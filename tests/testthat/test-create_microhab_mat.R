@@ -4,7 +4,7 @@ test_that("abuse cases", {
 
 # Diameter is constant through tests, doesn't influence
 # which voxels the branch goes through etc.
-shoot_diameter <- 0.01
+shoot_diameter <- trunk_diameter <- 0.01
 
 # Shorthand functions
 create_empty_shoot_tbl <- function() {
@@ -42,7 +42,7 @@ create_empty_trunk_tbl <- function() {
   ))
 }
 
-test_that("assign surface area", {
+test_that("Branch surface area", {
 
   # A 5*5 landscape with a 1-cell corridor around it
   corridor <- 1
@@ -131,5 +131,66 @@ test_that("assign surface area", {
     trunk_dt = create_empty_trunk_tbl()
   )
   expect_equal(microhab_mat[,,1,1], expected_mat)
+})
 
+test_that("Trunk surface area", {
+
+  # A 2*2*5 landscape
+  dim_xy <- 2
+  dim_z <- 5
+  config <- list(
+    TotalSurfaceAreaOpt = 1,
+    SurfaceAreaLossOpt = 0,
+    LightConditionsOpt = 0,
+    AverageWeightedAngles = 0,
+    MaxX = dim_xy,
+    MaxY = dim_xy,
+    MaxZ = dim_z, # 2D
+    corridor = 0
+  )
+
+  trunk_dt <- create_empty_trunk_tbl() |>
+    tibble::add_row(
+      # One sapling in one corner
+      "x" = 0.5, "y" = 0.5, "height" = 0.5,
+      "diameter" = trunk_diameter, "treeID" = 1
+    ) |>
+    tibble::add_row(
+      # A small tree in the opposite corner
+      "x" = 1.5, "y" = 1.5, "height" = 2.5,
+      "diameter" = trunk_diameter, "treeID" = 2
+    ) |> dplyr::mutate(
+      "sa" = pi * diameter / 2 * sqrt((diameter/2)^2 + height^2)
+    )
+
+  # Create a single branch to assert both branch and trunk contribute to area
+  shoots_dt <- create_empty_shoot_tbl() |>
+    add_shoot_row(begin_coords = c(0.1, 0.5, 0.5), end_coords = c(0.5, 0.5, 0.5)) |>
+    dplyr::mutate("sa" = length * diameter * pi / 2)
+
+  # Carry out test
+  microhab_mat <- create_microhabitat_mat(
+    config = config,
+    shoot_dt = shoots_dt,
+    trunk_dt = trunk_dt
+  )[,,,1] # only retain surface area
+
+  # Total cone volume is calculated correctly
+  expect_equal(sum(microhab_mat[2,2,1:3]), trunk_dt$sa[2])
+  # Cone volume is distributed among crossed voxels
+  expect_true(all(microhab_mat[2,2,1:3] > 0.0))
+  expect_true(microhab_mat[2,2,3] < microhab_mat[2,2,2])
+  expect_true(microhab_mat[2,2,2] < microhab_mat[2,2,1])
+
+  # Trunk and branches contribute additively to surface area
+  exptd_sa_corner <- shoots_dt$sa[1] + trunk_dt$sa[1]
+  expect_equal(microhab_mat[1,1,1],  exptd_sa_corner)
+
+  # Voxels above tree height remain empty
+  expect_equal(sum(microhab_mat[1,1,2:5]), 0.0)
+  expect_equal(sum(microhab_mat[2,2,4:5]), 0.0)
+
+  # Other areas remain empty
+  expect_equal(sum(microhab_mat[1, 2, 1:5]), 0.0)
+  expect_equal(sum(microhab_mat[2, 1, 1:5]), 0.0)
 })
