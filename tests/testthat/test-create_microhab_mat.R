@@ -194,3 +194,93 @@ test_that("Trunk surface area", {
   expect_equal(sum(microhab_mat[1, 2, 1:5]), 0.0)
   expect_equal(sum(microhab_mat[2, 1, 1:5]), 0.0)
 })
+
+test_that("Available light", {
+
+  # follows a Beer-Lambert extinction law
+  voxel_area <- 10000
+
+  # A 3*3*3 grid with a corridor
+  dim_xy <- 3
+  dim_z <- 3
+  corridor <- 1
+  dim_corr <- dim_xy + 2 * corridor
+
+  config <- list(
+    LightConditionsOpt = 1,
+    # At first only above voxels affect light availability
+    DistVoxToConsider = 0,
+    kL = exp(runif(1, -4, 1)), # reasonable values
+    TotalSurfaceAreaOpt = 0,
+    SurfaceAreaLossOpt = 0,
+    AverageWeightedAngles = 0,
+    MaxX = dim_xy,
+    MaxY = dim_xy,
+    MaxZ = dim_z, # 2D
+    corridor = corridor
+  )
+
+  vox_dt <- tidyr::expand_grid(
+    "x" = seq_len(dim_corr),
+    "y" = seq_len(dim_corr),
+    "z" = seq_len(dim_z)
+  )
+  vox_dt$leafarea <- runif(n = nrow(vox_dt), min = 0, max = 5000)
+
+  config$DistVoxToConsider <- 1
+  central_coord <- ceiling(dim_corr / 2)
+  vox_dt <- vox_dt |> dplyr::mutate(
+    "ring_nb" = pmax(abs(x - central_coord), abs(y - central_coord)),
+    "rel_contrib" = 1 / (config$DistVoxToConsider + 1) / pmax(1, ring_nb * 8),
+  )
+
+  # Compute contributions to the central cell
+  exptd_light_mat <- array(dim = c(dim_corr, dim_corr))
+  for (x in 1:dim_corr) {
+    for (y in 1:dim_corr) {
+      voxel_column <- vox_dt$x == x & vox_dt$y == y
+      total_leaf_area <- sum(vox_dt$leafarea[voxel_column])
+      exptd_light_mat[x,y] <- vox_dt$rel_contrib[voxel_column & vox_dt$z == 1] *
+        exp(-config$kL * total_leaf_area / voxel_area)
+    }
+  }
+  exptd_light_avail <- sum(exptd_light_mat)
+
+  sum_contribs <- vox_dt |>
+    dplyr::filter(ring_nb <= config$DistVoxToConsider, z == 1) |>
+    dplyr::pull(rel_contrib) |> sum()
+  if (sum_contribs != 1.0) {
+    stop("Relative contributions don't sum to 1.")
+  }
+
+  # LR = 0 only focal voxel + those above it
+  microhab_mat <- create_microhabitat_mat(
+    config = config,
+    shoot_dt = create_empty_shoot_tbl(),
+    trunk_dt = create_empty_trunk_tbl(),
+    vox_dt = vox_dt
+  )[,,,3] # only retain light
+
+  # Compute cumulated leaf area
+  vox_dt$cumul_leaf_area <- vox_dt$leafarea
+  for (z in (dim_z - 1):1) {
+    for (x in seq_len(dim_corr)) {
+      for (y in seq_len(dim_corr)) {
+        row_above <- vox_dt$x == x & vox_dt$y == y & vox_dt$z == (z + 1)
+        row <- vox_dt$x == x & vox_dt$y == y & vox_dt$z == z
+        vox_dt$cumul_leaf_area[row] <- vox_dt$cumul_leaf_area[row] + vox_dt$cumul_leaf_area[row_above]
+      }
+    }
+  }
+  vox_dt$light <- exp(-config$kL * vox_dt$cumul_leaf_area / voxel_area)
+  vox_dt$contrib <- vox_dt$rel_contrib * vox_dt$light
+
+  exptd_light <- vox_dt |>
+    dplyr::filter(
+      ring_nb <= config$DistVoxToConsider,
+      z == 1
+      ) |>
+    dplyr::pull(contrib) |> sum()
+
+  expect_equal(microhab_mat[2, 2, 1], exptd_light)
+})

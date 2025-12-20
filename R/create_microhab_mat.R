@@ -25,6 +25,7 @@ create_microhabitat_mat <- function(config, shoot_dt, trunk_dt, vox_dt = NULL,
                                     dead_trees_id = NULL) {
   # Inputs are correct
   #check_config(config)
+  # DistVoxToConsider <= corridor
 
   if (is.character(shoot_dt))
     read.table(shoot_dt, sep = "\t",  header = TRUE, skip = 1)
@@ -58,6 +59,7 @@ create_microhabitat_mat <- function(config, shoot_dt, trunk_dt, vox_dt = NULL,
   dimPlot <- c(MaxX, MaxY, MaxZ)
   forest_max_x <- MaxX + 2 * corridor
   forest_max_y <- MaxY + 2 * corridor
+  voxel_area <- 100^2
 
   microhab_mat <- array(
     rep(0, dimPlot[1] * dimPlot[2] * dimPlot[3] * 4),
@@ -200,7 +202,7 @@ create_microhabitat_mat <- function(config, shoot_dt, trunk_dt, vox_dt = NULL,
       for (y in seq_len(forest_max_y)) {
         for (z in seq_len(MaxZ)) {
           total_leaf_area <- sum(leaf_area_mat[x, y, z:MaxZ])
-          light_mat[x, y, z] <- exp(-config$kL * total_leaf_area / 10000)
+          light_mat[x, y, z] <- exp(-config$kL * total_leaf_area / voxel_area)
         }
       }
     }
@@ -211,21 +213,20 @@ create_microhabitat_mat <- function(config, shoot_dt, trunk_dt, vox_dt = NULL,
     for (x in seq(from = corridor + 1, to = forest_max_x - corridor)) {
       for (y in seq(from = corridor + 1, to = forest_max_y - corridor)) {
         for (z in seq_len(MaxZ)) {
-          TotalContribution <- 0
+          total_contribtn <- 0
 
           # loop over ring surrounding the focal voxel
           xx_seq <- seq(from = x - light_range, to = x + light_range)
           yy_seq <- seq(from = y - light_range, to = y + light_range)
           for (xx in xx_seq) {
             for (yy in yy_seq) {
-              Ring <- max(abs(xx - x), abs(yy - y))
-              Contribution <- 1 / (light_range + 1) / max(1, (Ring * 8)) *
+              ring_index <- max(abs(xx - x), abs(yy - y))
+              rel_contribtn <- 1 / (light_range + 1) / max(1, (ring_index * 8)) *
                 light_mat[xx, yy, z]
-
-              TotalContribution <- TotalContribution + Contribution
+              total_contribtn <- total_contribtn + rel_contribtn
             }
           }
-          microhab_mat[x - corridor, y - corridor, z, light_elt] <- TotalContribution
+          microhab_mat[x - corridor, y - corridor, z, light_elt] <- total_contribtn
         } # z
       } # y
     } # x
