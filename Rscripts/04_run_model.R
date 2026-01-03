@@ -70,10 +70,10 @@ output <- foreach::foreach(pair_idx = seq_len(nrow(pairs))) %dorng% {
 
   # Run the IBM
   run_modve_sim(
-    config,
-    SpeciesPoolFilename,
+    sim_params = config,
+    SpeciesPool = SpeciesPoolFilename,
     Microhabitat,
-    path_to_init_file,
+    InitDist = path_to_init_file,
     path_to_ind_output,
     path_to_sp_output,
     path_to_comm_output

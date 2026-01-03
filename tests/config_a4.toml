@@ -16,3 +16,6 @@ MortRateRandom = 0.1
 MortRateMass = 0.1
 MortRateMassScaling = -0.25
 InitialTimeStep = 2
+SlopeRecruitment = 0
+InterceptRecruitment = 70
+

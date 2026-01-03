@@ -1,4 +1,5 @@
-
+#'
+#'@export
 run_modve_sim <- function(sim_params,
                           SpeciesPool,
                           Microhabitat,
@@ -14,9 +15,10 @@ run_modve_sim <- function(sim_params,
     "MortRateMassScaling", "MortRateRandom", "SurfaceBiomassScaling",
     "SlopeRecruitment", "InterceptRecruitment"
   )
-  if (!all(is.element(exptd_params, sim_params))) {
-    stop(cat("sim_params must contain at least the following elements: ",
-             exptd_params, "\n"))
+  missing_params <- exptd_params[!exptd_params %in% names(sim_params)]
+  if (length(missing_params > 0)) {
+    stop(paste(c("sim_params is missing the following parameters: ",
+             missing_params), rep(" ", length(missing_params)+1)))
   }
   timeSteps <- sim_params$timeSteps
 
