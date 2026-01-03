@@ -10,6 +10,18 @@ Rcpp::Rostream<true>&  Rcpp::Rcout = Rcpp::Rcpp_cout_get();
 Rcpp::Rostream<false>& Rcpp::Rcerr = Rcpp::Rcpp_cerr_get();
 #endif
 
+// calc_light_matrix
+NumericVector calc_light_matrix(const DataFrame& vox_dt, const List& config);
+RcppExport SEXP _MoDVE_calc_light_matrix(SEXP vox_dtSEXP, SEXP configSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< const DataFrame& >::type vox_dt(vox_dtSEXP);
+    Rcpp::traits::input_parameter< const List& >::type config(configSEXP);
+    rcpp_result_gen = Rcpp::wrap(calc_light_matrix(vox_dt, config));
+    return rcpp_result_gen;
+END_RCPP
+}
 // find_intersecting_voxels
 List find_intersecting_voxels(NumericVector coords_begin, NumericVector coords_end);
 RcppExport SEXP _MoDVE_find_intersecting_voxels(SEXP coords_beginSEXP, SEXP coords_endSEXP) {
@@ -24,6 +36,7 @@ END_RCPP
 }
 
 static const R_CallMethodDef CallEntries[] = {
+    {"_MoDVE_calc_light_matrix", (DL_FUNC) &_MoDVE_calc_light_matrix, 2},
     {"_MoDVE_find_intersecting_voxels", (DL_FUNC) &_MoDVE_find_intersecting_voxels, 2},
     {NULL, NULL, 0}
 };
