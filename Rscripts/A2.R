@@ -1,13 +1,13 @@
 # Create species matrices
-source("utils.R")
+#source("utils.R")
 
-
+{
 AgeMaturityMetabolic <- function(InterceptAgeMaturity, ScalingAgeMaturity, Mass) {
     return(InterceptAgeMaturity * (Mass^ScalingAgeMaturity))
 }
 
 # Parse input configuration file
-config <- parse_config()
+config <- parse_config("tests/config_a2.toml")
 
 # ============================================================================
 # RNG seed
@@ -130,7 +130,7 @@ ColumnHeaders <- c("SpeciesID", "MaximumMass", "MassAtMaturity", "GrowthRate",
                    "LightResponseA", "LightResponseB", "LightResponseC", "MinHeightRel",
                    "MaxHeightRel", "MeanHeightRel", "HeightBreadth", "MaxRecruitsAtMaxMass",
                    "MaxRecruitsAtMassAtMaturity", "AgeAtMaturity")
-
+}
 # Main loop (for random generation of species pool)
 for (Num in seq_len(numSpeciesPools)) {
 

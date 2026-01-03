@@ -1,96 +1,97 @@
 # Create the initial epiphyte distrubution depending on the epiphyte traits and the initial microhabitat matrix
-source("utils.R")
+#source("utils.R")
 
-
-# Growth function. Used here to approximate the age of the individuals
-# MassFunctionOfAge=@(MaxMass,K,Age) (MaxMass*(1-exp(-K*(Age))));
-AgeFunctionOfMass <- function(MaxMass, Mass, K) {
+{
+  # Growth function. Used here to approximate the age of the individuals
+  # MassFunctionOfAge=@(MaxMass,K,Age) (MaxMass*(1-exp(-K*(Age))));
+  AgeFunctionOfMass <- function(MaxMass, Mass, K) {
     return(-log(1 - (Mass / MaxMass)) / K)
-}
+  }
 
-# Parse input configuration file
-config <- parse_config()
+  # Parse input configuration file
+  config <- parse_config("tests/config_a3.toml")
 
-###############################################################################
-# Parameters that need to be specified/checked before running this script
+  ###############################################################################
+  # Parameters that need to be specified/checked before running this script
 
-# RNG seed
-seed <- config$seed
-set.seed(seed, kind="Mersenne-Twister")  # integer for fixed seed or NULL for random
+  # RNG seed
+  seed <- config$seed
+  set.seed(seed, kind="Mersenne-Twister")  # integer for fixed seed or NULL for random
 
-SingleSpeciesModel <- config$SingleSpeciesModel  # 1: Single species model, 0: Community model
+  SingleSpeciesModel <- config$SingleSpeciesModel  # 1: Single species model, 0: Community model
 
-# Directory where model is save and directory where microhabitat matrices
-# are stored
-DirectoryModelMain <- config$DirectoryModelMain
-DirectoryMicrohabitatMain <- config$DirectoryMicrohabitatMain
-DirectorySpeciesPoolsMain <- config$DirectorySpeciesPoolsMain
+  # Directory where model is save and directory where microhabitat matrices
+  # are stored
+  DirectoryModelMain <- config$DirectoryModelMain
+  DirectoryMicrohabitatMain <- config$DirectoryMicrohabitatMain
+  DirectorySpeciesPoolsMain <- config$DirectorySpeciesPoolsMain
 
-# Choose species pools to use and number of replicates per species pool
-numSpeciesPools <- config$numSpeciesPools  # Start and end number of  species pools
-replicatePerSpeciesPool <- config$replicatePerSpeciesPool  # Number of replicates per species pool
-TimeStep <- config$TimeStep  # Time step for which the Initial distribution is generated
+  # Choose species pools to use and number of replicates per species pool
+  numSpeciesPools <- config$numSpeciesPools  # Start and end number of  species pools
+  replicatePerSpeciesPool <- config$replicatePerSpeciesPool  # Number of replicates per species pool
+  TimeStep <- config$TimeStep  # Time step for which the Initial distribution is generated
 
-# The suitable voxel can either be the voxel
-# with the highest available surface area (MethodVoxel=1)
-# or a random voxel (MethodVoxel=0)
-MethodVoxel <- config$MethodVoxel
+  # The suitable voxel can either be the voxel
+  # with the highest available surface area (MethodVoxel=1)
+  # or a random voxel (MethodVoxel=0)
+  MethodVoxel <- config$MethodVoxel
 
-# Define how many individuals per species are used, and how many of them are initially mature
-# This variable defines if the NumberSpecies are total numbers irrespective
-# of the model area (ScalingPerHa=0), or if the NumberSpecies or given per
-# hectar and are scaled to the model area (ScalingPerHa=1)
-ScalingPerHa <- config$ScalingPerHa
-IndividualsPerSpecies <- config$IndividualsPerSpecies
-PercentageMaturePerSpecies <- config$PercentageMaturePerSpecies
+  # Define how many individuals per species are used, and how many of them are initially mature
+  # This variable defines if the NumberSpecies are total numbers irrespective
+  # of the model area (ScalingPerHa=0), or if the NumberSpecies or given per
+  # hectar and are scaled to the model area (ScalingPerHa=1)
+  ScalingPerHa <- config$ScalingPerHa
+  IndividualsPerSpecies <- config$IndividualsPerSpecies
+  PercentageMaturePerSpecies <- config$PercentageMaturePerSpecies
 
-# This parameter set the scaling between the
-SurfaceBiomassScaling <- config$SurfaceBiomassScaling  # cm^2 per m^2
-Imax <- config$Imax
-###############################################################################
+  # This parameter set the scaling between the
+  SurfaceBiomassScaling <- config$SurfaceBiomassScaling  # cm^2 per m^2
+  Imax <- config$Imax
+  ###############################################################################
 
-###############################################################################
-# Generate directories to save the model
-dir.create(DirectoryModelMain, recursive=TRUE)
+  ###############################################################################
+  # Generate directories to save the model
+  dir.create(DirectoryModelMain, recursive=TRUE)
 
-###############################################################################
-# Load parameters saved along with the microhabitat and species pool files
+  ###############################################################################
+  # Load parameters saved along with the microhabitat and species pool files
 
-# Load plot dimensions if an artifical theoretical forest is used
-dimPlot <- readRDS(file.path(DirectoryMicrohabitatMain, "dimPlot.rds"))
+  # Load plot dimensions if an artifical theoretical forest is used
+  dimPlot <- readRDS(file.path(DirectoryMicrohabitatMain, "dimPlot.rds"))
 
-# Calculate individuals per species if normalization per hectare (ScalingPerHa=1) is chosen
-if (ScalingPerHa == 1) {
+  # Calculate individuals per species if normalization per hectare (ScalingPerHa=1) is chosen
+  if (ScalingPerHa == 1) {
     IndividualsPerSpecies <- IndividualsPerSpecies * ((dimPlot[1] * dimPlot[2]) / 10000)
+  }
+
+  # Get number of species from species pool file
+  species_filename <- paste("SpeciesPool", numSpeciesPools[1], ".csv", sep="")
+  Input_file <- file.path(DirectorySpeciesPoolsMain, species_filename)
+  SpeciesPool <- read.csv(Input_file)
+  NumberSpecies <- length(SpeciesPool$SpeciesID)
+
+  ColumnHeaders <- c(colnames(SpeciesPool), c("X", "Y", "Z", "Mass", "Status", "IndividualID", "SurfaceAreaOccupied", "Age"))
+
+  # Get numbers of columns used in this script
+  ColMinLight <- match("MinLight", ColumnHeaders)
+  ColMaxLight <- match("MaxLight", ColumnHeaders)
+
+  # Get number of total individuals for each replicate
+  TotalIndividuals <- NumberSpecies * IndividualsPerSpecies
+  NumberMaturesPerSpecies <- round(IndividualsPerSpecies * (PercentageMaturePerSpecies / 100))
+
+  # Load initial microhabitat matrix
+  microhabitat_filename <- paste("MicrohabitatMatrix", TimeStep, ".rds", sep="")
+  FileInitalMatrix <- file.path(DirectoryMicrohabitatMain, microhabitat_filename)
+  Microhabitat <- readRDS(FileInitalMatrix)
+
+  # Set real light values (in microhabitat, relative light values are saved)
+  Microhabitat[, , , 3] <- Microhabitat[, , , 3] * Imax
 }
 
-# Get number of species from species pool file
-species_filename <- paste("SpeciesPool", numSpeciesPools[1], ".csv", sep="")
-Input_file <- file.path(DirectorySpeciesPoolsMain, species_filename)
-SpeciesPool <- read.csv(Input_file)
-NumberSpecies <- length(SpeciesPool$SpeciesID)
-
-ColumnHeaders <- c(colnames(SpeciesPool), c("X", "Y", "Z", "Mass", "Status", "IndividualID", "SurfaceAreaOccupied", "Age"))
-
-# Get numbers of columns used in this script
-ColMinLight <- match("MinLight", ColumnHeaders)
-ColMaxLight <- match("MaxLight", ColumnHeaders)
-
-# Get number of total individuals for each replicate
-TotalIndividuals <- NumberSpecies * IndividualsPerSpecies
-NumberMaturesPerSpecies <- round(IndividualsPerSpecies * (PercentageMaturePerSpecies / 100))
-
-# Load initial microhabitat matrix
-microhabitat_filename <- paste("MicrohabitatMatrix", TimeStep, ".rds", sep="")
-FileInitalMatrix <- file.path(DirectoryMicrohabitatMain, microhabitat_filename)
-Microhabitat <- readRDS(FileInitalMatrix)
-
-# Set real light values (in microhabitat, relative light values are saved)
-Microhabitat[, , , 3] <- Microhabitat[, , , 3] * Imax
-
-###############################################################################
 # Main loop for Single Species Model
 if (SingleSpeciesModel == 1) {
+
 # Start - Identical for both SingleSpeciesModel 0 and 1
     for (numPool in int_seq(from=numSpeciesPools[1], to=numSpeciesPools[2], by=1)) {
         print(paste("Number species pool:", numPool))
@@ -211,7 +212,8 @@ if (SingleSpeciesModel == 1) {
 if (SingleSpeciesModel == 0) {
 # Start - Identical for both SingleSpeciesModel 0 and 1
     for (numPool in int_seq(from=numSpeciesPools[1], to=numSpeciesPools[2], by=1)) {
-        print(paste("Number species pool:", numPool))
+
+      print(paste("Number species pool:", numPool))
 
         # Laden des species pools
         species_filename <- paste("SpeciesPool", numPool, ".csv", sep="")
