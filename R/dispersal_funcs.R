@@ -74,10 +74,6 @@ resolveReproDispersal <- function(E,
                              max_id) {
 
   dimPlot <- dim(Microhabitat)[1:3]
-  empty_3d_array <- array(
-    rep(0, dimPlot[1] * dimPlot[2] * dimPlot[3]),
-    dim = c(dimPlot[1], dimPlot[2], dimPlot[3])
-  )
 
   # Store number of individuals at beginning of time step
   NumberOfSpecies <- nrow(SpeciesPool)
@@ -87,13 +83,7 @@ resolveReproDispersal <- function(E,
   }
 
   # Calculate available surface area per voxel
-  avail_sa_matrix <- Microhabitat[, , , 1]
-  for (i in seq_len(nrow(E))) {
-    sa_needed <- E$Mass[i]^(2/3) / SurfaceBiomassScaling
-    avail_sa_matrix[E$X[i], E$Y[i], E$Z[i]] <- max(
-      0, avail_sa_matrix[E$X[i], E$Y[i], E$Z[i]] - sa_needed
-    )
-  }
+  avail_sa_matrix <- get_surf_area_mat(E, Microhabitat, sim_params$SurfaceBiomassScaling)
 
   # Initialize potential recruitment dataframe
   unique_species <- unique(E$SpeciesID)
@@ -109,7 +99,10 @@ resolveReproDispersal <- function(E,
     sp <- unique_species[i]
 
     # Generate initially empty matrix to store the probabilities for recruitment
-    exptd_nb_recruits_matrix <- empty_3d_array
+    exptd_nb_recruits_matrix <- array(
+      rep(0, dimPlot[1] * dimPlot[2] * dimPlot[3]),
+      dim = c(dimPlot[1], dimPlot[2], dimPlot[3])
+    )
 
     # Matrix containing all mature individuals of one species
     mature_inds <- E[E$SpeciesID == sp & E$Mass >= E$MassAtMaturity, ]
@@ -146,7 +139,7 @@ resolveReproDispersal <- function(E,
 
       # Dispersal probability * fecundity = expected nb offspring in each xyz
       exptd_nb_recruits_matrix <- exptd_nb_recruits_matrix +
-        prob_disp_matrix[x_coords, y_coords, z_coords, sp] * factor1 * factor3
+        prob_disp_matrix[,,, sp] * factor1 * factor3
     }
 
     # Store potential normalized number of recruits
