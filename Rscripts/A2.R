@@ -1,13 +1,13 @@
 # Create species matrices
 #source("utils.R")
 
+# Parse input configuration file
+config <- parse_config("tests/config_a2.toml")
+{
 {
 AgeMaturityMetabolic <- function(InterceptAgeMaturity, ScalingAgeMaturity, Mass) {
     return(InterceptAgeMaturity * (Mass^ScalingAgeMaturity))
 }
-
-# Parse input configuration file
-config <- parse_config("tests/config_a2.toml")
 
 # ============================================================================
 # RNG seed
@@ -98,28 +98,6 @@ DispersalKernelAsymmetryRandom <- config$DispersalKernelAsymmetryRandom  # The t
 # DispersalKernelNeutral <- 1.5  # The higher this values, the more local is the dispersal
 # DispersalKernelAsymmetryNeutral <- 0.5  # The trait describes the relative proportion of seed dispersed below the mother (i.e. 0.5=> symmetric dispersal kernel)
 
-# ============================================================================
-# Create folder to save species trait matrices
-# if (SpeciesPoolType == 0) {
-#     if (CorrelationMassAgeOfMaturity == 1 || CorrelationMassRecruitment == 1) {
-#         FullNameSpeciesPool <- paste("SP_Random_", NameSpeciesPool, "_TraitCorrOn", sep="")
-#     } else {
-#         FullNameSpeciesPool <- paste("SP_Random_", NameSpeciesPool, "_TraitCorrOff", sep="")
-#     }
-# } else if (SpeciesPoolType == 1) {
-#     if (CorrelationMassAgeOfMaturity == 1 || CorrelationMassRecruitment == 1) {
-#         FullNameSpeciesPool <- paste("SP_Sequential_", NameSpeciesPool, "_TraitCorrOn", sep="")
-#     } else {
-#         FullNameSpeciesPool <- paste("SP_Sequential_", NameSpeciesPool, "_TraitCorrOff", sep="")
-#     }
-# } else if (SpeciesPoolType == 2) {
-#     if (CorrelationMassAgeOfMaturity == 1 || CorrelationMassRecruitment == 1) {
-#         FullNameSpeciesPool <- paste("SP_Neutral_", NameSpeciesPool, "_TraitCorrOn", sep="")
-#     } else {
-#         FullNameSpeciesPool <- paste("SP_Neutral_", NameSpeciesPool, "_TraitCorrOff", sep="")
-#     }
-# }
-
 # where to save
 SaveDirectory <- file.path(MainOutputDirectory)
 dir.create(SaveDirectory, recursive=TRUE)
@@ -130,6 +108,7 @@ ColumnHeaders <- c("SpeciesID", "MaximumMass", "MassAtMaturity", "GrowthRate",
                    "LightResponseA", "LightResponseB", "LightResponseC", "MinHeightRel",
                    "MaxHeightRel", "MeanHeightRel", "HeightBreadth", "MaxRecruitsAtMaxMass",
                    "MaxRecruitsAtMassAtMaturity", "AgeAtMaturity")
+}
 }
 # Main loop (for random generation of species pool)
 for (Num in seq_len(numSpeciesPools)) {
