@@ -1,53 +1,3 @@
-
-#' Extract individual coordinates in vector form
-#'
-#' Reads a count matrix and extracts the x, y and z coordinates of all
-#' individuals
-#'
-#' @param count_matrix a 3d integer matrix containing tallies of individuals
-#' present in each cell
-#'
-#' @returns a list of 3 integer vectors `x`, `y` and `z` containing the
-#' corresponding coordinates of all individuals
-#' @export
-#'
-extract_ind_coords <- function(count_matrix) {
-
-  nb_inds <- sum(count_matrix)
-
-  ids <- arrayInd(
-    which(count_matrix > 0),
-    dim(count_matrix)
-  )
-  x_inds <- ids[, 1]
-  y_inds <- ids[, 2]
-  z_inds <- ids[, 3]
-
-  while (nb_inds > length(x_inds)) {
-
-    # recursively distribute coordinates until counts of remaining
-    # unprocessed individuals reaches zero
-    tmp_ids <- arrayInd(
-      which(count_matrix > 0),
-      dim(count_matrix)
-    )
-
-    # decrement count
-    count_matrix[tmp_ids] = count_matrix[tmp_ids] - 1
-
-    tmp_ids <- arrayInd(
-      which(count_matrix > 0),
-      dim(count_matrix)
-    )
-
-    x_inds <- append(x_inds, tmp_ids[, 1])
-    y_inds <- append(y_inds, tmp_ids[, 2])
-    z_inds <- append(z_inds, tmp_ids[, 3])
-  }
-
-  return(list(x  = x_inds, y = y_inds, z = z_inds))
-}
-
 #' Resolve the dispersal step of the simulation
 #'
 #' @param E epiphyte data frame
@@ -63,7 +13,7 @@ extract_ind_coords <- function(count_matrix) {
 #' @returns a list
 #' @export
 #'
-resolveReproDispersal <- function(E,
+resolve_repro_dispersal <- function(E,
                              Microhabitat,
                              SurfaceBiomassScaling,
                              centralPoint,
@@ -82,8 +32,8 @@ resolveReproDispersal <- function(E,
     nbIndsBeforeDisp[sp] <- length(which(E$SpeciesID == sp & E$Status == 1))
   }
 
-  # Calculate available surface area per voxel
-  avail_sa_matrix <- get_surf_area_mat(E, Microhabitat, sim_params$SurfaceBiomassScaling)
+  # Deduce surface area
+  avail_sa_matrix <- get_surf_area_mat(E, Microhabitat[,,,1], sim_params$SurfaceBiomassScaling)
 
   # Initialize potential recruitment dataframe
   unique_species <- unique(E$SpeciesID)
@@ -94,6 +44,7 @@ resolveReproDispersal <- function(E,
   )
 
   # Loop over all species
+  # TODO: this loop could be parallelised
   for (i in seq_len(NumberOfSpecies)) {
 
     sp <- unique_species[i]
@@ -136,10 +87,9 @@ resolveReproDispersal <- function(E,
         (mature_inds$MaximumMass[j] - mature_inds$MassAtMaturity[j])
       # ??
       factor3 <- 1 + (mature_inds$RecruitmentInc[j] * factor2)
-
       # Dispersal probability * fecundity = expected nb offspring in each xyz
       exptd_nb_recruits_matrix <- exptd_nb_recruits_matrix +
-        prob_disp_matrix[,,, sp] * factor1 * factor3
+        prob_disp_matrix[x_coords, y_coords, z_coords, sp] * factor1 * factor3
     }
 
     # Store potential normalized number of recruits
