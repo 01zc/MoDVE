@@ -1,0 +1,18 @@
+source("../old_funcs.R")
+
+test_that("consistent with previous version", {
+
+  dimX <- dimY <- 30
+  dimZ <- 80
+  centralPoint <- find_central_point(c(dimX, dimY, dimZ))
+
+  nb_species <- 3
+  SpeciesPool <- tibble::tibble(
+    "SpeciesID" = seq_len(nb_species),
+    "DispersalKernel" = runif(nb_species),
+    "DispersalKernelAsymmetry" = runif(nb_species)
+  )
+  mat_exptd <- old_compute_prob_matrix_norm(centralPoint, dimX, dimY, dimZ, nrow(SpeciesPool), SpeciesPool)
+  mat_obs <- calc_prob_disp_matrix(centralPoint, dimX, dimY, dimZ,  SpeciesPool)
+  testthat::expect_equal(mat_exptd, mat_obs)
+})
