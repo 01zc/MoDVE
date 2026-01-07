@@ -10,80 +10,90 @@ draw_species_traits(species_params)
 \item{species_params}{a list of trait-generating parameter, which must
 contain the following elements:
 \itemize{
-\item MaxMassLogScaleRandom logical, if \code{TRUE} then \code{MaxMass} is sampled in
+\item \code{MaxMassLogScaleRandom} logical, if \code{TRUE} then \code{MaxMass} is sampled in
 a uniform between the log10 of both \code{MaxMassRandom} values.
-\item MaxMassRandom a length-2 numeric vector containing the minimum and
+\item \code{MaxMassRandom} a length-2 numeric vector containing the minimum and
 maximum MaxMass
-\item MassAtMaturityRelativeRandom a length-2 numeric vector containing the
+\item \code{MassAtMaturityRelativeRandom} a length-2 numeric vector containing the
 minimum and maximum bounds (between 0 and 1) in which to sample what fraction
 of MaxMass the mass at maturity corresponds to.
-
-\item InterceptAgeMaturity numeric, the intercept of the function generating
+\item \code{InterceptAgeMaturity} numeric, the intercept of the function generating
 the age at maturity as a function of mass at maturity
-\item ScalingAgeMaturity numeric, the exponent of the function generating
+\item \code{ScalingAgeMaturity} numeric, the exponent of the function generating
 the age at maturity as a function of mass at maturity
-\item AgeAtMaturityDevCorr numeric, the range of possible deviation
+\item \code{AgeAtMaturityDevCorr} numeric, the range of possible deviation
 coefficients in the function generating age at maturity from mass at maturity.
-
-\item CorrelationMassRecruitment logical, controls the option used to generate the parameters
-of the mass-to-reproduction allocation function. If \code{TRUE},
-\item RecruitmentInvestmentRelMeanCorr
-\item RecruitmentInvestmentRelDevCorr
-\item RecruitmentNormalizeAtSize1Corr
-\item RecruitmentInvestmentRelMeanRandom vector of 2 elements
-\item RecruitmentNormalizeAtSize1Random vector of 2 elements
-
-\item DispersalKernelRandom a length-2 numeric vector, min and max possible
+\item \code{CorrelationMassRecruitment} logical, controls the option used to
+generate the parameters of the mass-to-reproduction allocation function.
+If \code{TRUE}:
+\item \code{RecruitmentInvestmentRel} is sampled in a uniform distribution
+with min and max values \eqn{`RecruitmentInvestmentRelMeanCorr` *
+  (1 +- `RecruitmentInvestmentRelDevCorr`)},
+\item \code{RecruitmentInc} is set to 0.
+If \code{FALSE}:
+\item \code{RecruitmentInvestmentRel} is sampled in a uniform distribution
+with min and max values \code{RecruitmentInvestmentRelMeanRandom}
+\item \code{RecruitmentInc} is sampled in a uniform distribution with min and max
+values \code{RecruitmentIncRandom.}
+\item \code{RecruitmentInvestmentRelMeanCorr} see above
+\item \code{RecruitmentInvestmentRelDevCorr} see above
+\item \code{RecruitmentInvestmentRelMeanRandom} see above
+\item \code{RecruitmentIncRandom}
+\item \code{DispersalKernelRandom} a length-2 numeric vector, min and max possible
 values of the dispersal kernel.
-\item DispersalKernelAsymmetryRandom a length-2 numeric vector, min and max possible
-values of the asymmetry coefficient.
-\item HeightBreadthRandom a length-2 numeric vector, min and max possible
+\item \code{DispersalKernelAsymmetryRandom} a length-2 numeric vector, min and max possible
+values of the asymmetry coefficient, between 0 and 1.
+\item \code{HeightBreadthRandom} a length-2 numeric vector, min and max possible
 values for the breadth of the height niche. The minimum and maximum relative
 heights for the species are MeanHeight +- (HeightBreadth /2), where MeanHeight
 is sampled randomly between 0 and 1. The resulting min and max relative
 heights are then used to sample the minimum and maximum of the light niche:
-Imax x exp(-kL x LAI x (1 - MinHeight))
-\item Imax numeric, maximum light intensity used to generate the light niche
-\item LAI numeric, the leaf area index of this species
-\item kL, the light extinction coefficient used to generate the light niche
+\deqn{I_{max} e^{-k_L LAI (1 - MinHeight)}}
+\item \code{Imax} numeric, maximum light intensity used to generate the light niche
+\item \code{LAI} numeric, the leaf area index of this species
+\item \code{kL}, the light extinction coefficient used to generate the light niche
 }}
 }
 \value{
 a named list of numeric containing the following traits:
 \itemize{
-\item MaximumMass positive numeric, the maximum mass an individual can reach.
-\item MassAtMaturity numeric between 0 and and MaximumMass,
-fraction of MaximumMass above which at individual can reproduce.
-\item GrowthRate positive numeric, the fraction of remaining growth an individual
+\item \code{MaximumMass} positive numeric, the maximum mass an individual can reach.
+\item \code{MassAtMaturity} numeric between 0 and and \code{MaximumMass},
+fraction of \code{MaximumMass} above which at individual can reproduce.
+\item \code{GrowthRate} positive numeric, the fraction of remaining growth an individual
 gains in a single generation (i.e, mass increase = growth_rate * (max_mass - mass)),
 under optimal light conditions.
-\item DispersalKernel positive numeric, the dispersal kernel.
-\item DispersalKernelAsymmetry numeric between 0 and 1, the dispersal asymmetry.
+\item \code{DispersalKernel} positive numeric, the dispersal kernel.
+\item \code{DispersalKernelAsymmetry} numeric between 0 and 1, the dispersal asymmetry.
 D_k_A = 0.5 corresponds to symmetric dispersal; with D_k_A = 1 individuals
 disperse stricly below themselves; with D_k_A = 0 individuals never disperse
 only above themselves or at their height.
 }
-\item RecruitmentInvestmentRel numeric between 0 and 1, a coefficient scaling
-the mass-dependent fecundity coefficient (see @resolve_repro_dispersal )
-\item RecruitmentInc a positive coefficient scaling how relative mass growth (see @resolve_repro_dispersal )
+\item \code{RecruitmentInvestmentRel} numeric between 0 and 1, a coefficient scaling
+the mass-dependent fecundity coefficient (see \code{\link[=resolve_repro_dispersal]{resolve_repro_dispersal()}} )
+\item \code{RecruitmentInc} a positive coefficient scaling how relative mass growth (see \code{\link[=resolve_repro_dispersal]{resolve_repro_dispersal()}} )
 increases fecundity.
-\item MinLight positive numeric, minimum light conditions under which this species can survive
-\item MaxLight positive numeric, maximum light conditions under which this species can survive
-\item OptimumLight positive numeric, optimum light conditions under which individuals of this species
-grow and reproduce at the maximum rate. It is calculated as the average of MinLight and MaxLight.
-\item LightBreadth positive numeric, range between MinLight and MaxLight
-\item LightResponseA first term of the parabolic light-growth response function.
-\item LightResponseB second term of the parabolic light-growth response function.
-\item LightResponseC third term of the parabolic light-growth response function.
-\item MinHeightRel minimum relative height (between 0 and 1) at which the species can survive, used to compute MinLight
-\item MaxHeightRel maximum relative height (between 0 and 1) at which the species can survive, used to compute MaxLight
-\item MeanHeightRel average of MinHeightRel and MaxHeightRel
-\item HeightBreadth range between MinHeightRel and MaxHeightRel
-\item MaxRecruits mass-dependent fecundity coefficient when mass = MaximumMass
-\item MaxRecruitsAtMassAtMaturity mass-dependent fecundity coefficient when mass = MassAtMaturity
-\item AgeAtmaturity
+\item \code{MinLight} positive numeric, minimum light conditions under which this species can survive
+\item \code{MaxLight} positive numeric, maximum light conditions under which this species can survive
+\item \code{OptimumLight} positive numeric, optimum light conditions under which individuals of this species
+grow and reproduce at the maximum rate. It is calculated as the average of \code{MinLight} and \code{MaxLight.}
+\item \code{LightBreadth} positive numeric, range between \code{MinLight} and \code{MaxLight}
+\item \code{LightResponseA} first term of the parabolic light-growth response function.
+\item \code{LightResponseB} second term of the parabolic light-growth response function.
+\item \code{LightResponseC} third term of the parabolic light-growth response function.
+\item \code{MinHeightRel} minimum relative height (between 0 and 1) at which the species can survive, used to compute \code{MinLight}
+\item \code{MaxHeightRel} maximum relative height (between 0 and 1) at which the species can survive, used to compute \code{MaxLight}
+\item \code{MeanHeightRel} average of \code{MinHeightRel} and \code{MaxHeightRel}
+\item \code{HeightBreadth} range between \code{MinHeightRel} and \code{MaxHeightRel}
+\item \code{MaxRecruits} mass-dependent fecundity coefficient when mass = \code{MaximumMass}
+\item \code{MaxRecruitsAtMassAtMaturity} mass-dependent fecundity coefficient when mass = \code{MassAtMaturity}
+\item \code{AgeAtmaturity}
+}
 }
 }
 \description{
 Draw species traits from generating parameters
+}
+\details{
+Additional details... Age-mass equation, light equation,...
 }
