@@ -32,3 +32,8 @@ test_that("Input is checked correctly", {
                "The following elements of species_params must be positive or zero:  LAI")
 
 })
+
+test_that("Input is checked correctly", {
+  sp_params <- ref_sp_params
+  draw_species_traits(sp_params)
+})

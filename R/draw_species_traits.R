@@ -34,7 +34,7 @@
 #'  * `RecruitmentInvestmentRelMeanCorr` see above
 #'  * `RecruitmentInvestmentRelDevCorr` see above
 #'  * `RecruitmentInvestmentRelMeanRandom` see above
-#'  * `RecruitmentIncRandom`
+#'  * `RecruitmentIncRandom` see above
 #'
 #'  * `DispersalKernelRandom` a length-2 numeric vector, min and max possible
 #'  values of the dispersal kernel.
@@ -85,9 +85,6 @@
 #'  * `MaxHeightRel` maximum relative height (between 0 and 1) at which the species can survive, used to compute `MaxLight`
 #'  * `MeanHeightRel` average of `MinHeightRel` and `MaxHeightRel`
 #'  * `HeightBreadth` range between `MinHeightRel` and `MaxHeightRel`
-#'  * `MaxRecruits` mass-dependent fecundity coefficient when mass = `MaximumMass`
-#'  * `MaxRecruitsAtMassAtMaturity` mass-dependent fecundity coefficient when mass = `MassAtMaturity`
-#'  * `AgeAtmaturity`
 #' }
 #' @export
 #'
@@ -122,30 +119,17 @@ draw_species_traits <- function(species_params) {
       RecruitmentInvestmentRelMeanCorr * (1 - RecruitmentInvestmentRelDevCorr),
       RecruitmentInvestmentRelMeanCorr * (1 + RecruitmentInvestmentRelDevCorr)
     )
-    RecruitmentNormalizeAtSize1 <- RecruitmentNormalizeAtSize1Corr  # Factor converting the reproductive biomass to potential recruits
-    SlopeRecruitment <- 0  # Slope of the correlation between mass and recruitment
-    InterceptRecruitment <- RecruitmentNormalizeAtSize1
     RecruitmentInc <- 0
   } else {
     RecruitmentInvestmentRel <- runif(1,
       RecruitmentInvestmentRelMeanRandom[1],
       RecruitmentInvestmentRelMeanRandom[2]
     )
-    RecruitmentNormalizeAtSize1 <- runif(1,
-      RecruitmentNormalizeAtSize1Random[1],
-      RecruitmentNormalizeAtSize1Random[2]
-    )
-    SlopeRecruitment <- 0  # No slope if no correlation is choosen
-    InterceptRecruitment <- RecruitmentNormalizeAtSize1 - SlopeRecruitment
     RecruitmentInc <- runif(1, RecruitmentIncRandom[1], RecruitmentIncRandom[2])
       # Not meaningful if no correlation
   }
-  # TODO: InterceptRecruitment, SlopeRecruitment are not used (pass via config instead) -> DELETE?
-  # TODO: MaxRecruits and MaxRecruitsMaturity are not used -> DELETE?
-  MaxRecruits <- InterceptRecruitment * RecruitmentInvestmentRel
-  MaxRecruitsMaturity <- (InterceptRecruitment + SlopeRecruitment *
-                            MassAtMaturity) * RecruitmentInvestmentRel
-  # Dispersal
+
+   # Dispersal
   DispersalKernel <- runif(1, DispersalKernelRandom[1], DispersalKernelRandom[2])
   DispersalKernelAsymmetry <- runif(1, DispersalKernelAsymmetryRandom[1], DispersalKernelAsymmetryRandom[2])
 
@@ -168,8 +152,7 @@ draw_species_traits <- function(species_params) {
     MaxMass, MassAtMaturity, K, DispersalKernel, DispersalKernelAsymmetry,
     RecruitmentInvestmentRel, RecruitmentInc, MinLight, MaxLight, OptimumLight,
     LightBreadth, light_resp_params[1], light_resp_params[2], light_resp_params[3],
-    MinHeight, MaxHeight, MeanHeight, HeightBreadth,
-    MaxRecruits, MaxRecruitsMaturity, AgeAtMaturity
+    MinHeight, MaxHeight, MeanHeight, HeightBreadth
   )
   names(sp_traits) <- species_trait_names()
   return(sp_traits)

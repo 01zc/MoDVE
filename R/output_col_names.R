@@ -5,8 +5,7 @@ species_trait_names <- function() {
            "MinLight", "MaxLight", "OptimumLight", "LightBreadth",
            "LightResponseA", "LightResponseB", "LightResponseC",
            "MinHeightRel",  "MaxHeightRel", "MeanHeightRel",
-           "HeightBreadth", "MaxRecruitsAtMaxMass",
-           "MaxRecruitsAtMassAtMaturity", "AgeAtMaturity"))
+           "HeightBreadth"))
 }
 
 inds_output_names <- function() {
