@@ -3,8 +3,11 @@
 #' @param species_params a list of trait-generating parameter, which must
 #' contain the following elements:
 #'
-#'  * `MaxMassLogScaleRandom` logical, if `TRUE` then `MaxMass` is sampled in
-#'  a uniform between the log10 of both `MaxMassRandom` values.
+#'  * `MaxMassLogScaleRandom` logical. If `FALSE`, `MaxMass` is sampled in a
+#'  uniform distribution with parameters `MaxMassRandom`. If `TRUE`, the value
+#'  is instead sampled in a uniform of the log10's of `MaxMassRandom`, and the
+#'  sampled value is then transformed back. This inflates the frequency of
+#'  sampling values closer to the minimum.
 #'  * `MaxMassRandom` a length-2 numeric vector containing the minimum and
 #'  maximum MaxMass
 #'  * `MassAtMaturityRelativeRandom` a length-2 numeric vector containing the
@@ -96,6 +99,7 @@ draw_species_traits <- function(species_params) {
 
   # Draw max size
   if (MaxMassLogScaleRandom) {
+    if (MaxMassRandom[1] == 0) MaxMassRandom[1] <- 1e-9 # otherwise NaN
     MaxMassLog <- runif(1, min = log10(MaxMassRandom[1]),
                         max = log10(MaxMassRandom[2]))
     MaxMass <- 10^MaxMassLog
@@ -168,7 +172,6 @@ check_species_params <- function(species_params) {
 
   exptd_params <- c(
     "AgeAtMaturityDevCorr",
-    "AgeAtMaturityRandom",
     "CorrelationMassRecruitment",
     "DispersalKernelAsymmetryRandom",
     "DispersalKernelRandom",
@@ -179,7 +182,6 @@ check_species_params <- function(species_params) {
     "MassAtMaturityRelativeRandom",
     "MaxMassLogScaleRandom",
     "MaxMassRandom",
-    "MaxMassRangeCorr",
     "RecruitmentIncMaxCorr",
     "RecruitmentIncRandom",
     "RecruitmentInvestmentRelDevCorr",
@@ -253,12 +255,10 @@ check_species_params <- function(species_params) {
 
 
   # Check that the following parameters are positive:
-  positive_params <- c("DispersalKernelRandom", "HeightBreadthRandom",
-                       "AgeAtMaturityDevCorr", "Imax", "LAI", "kL")
+  positive_params <- c("InterceptAgeMaturity", "DispersalKernelRandom", "HeightBreadthRandom",
+                       "Imax", "LAI", "kL")
   if (CorrelationMassRecruitment) {
-    positive_params <- c(positive_params,
-                         "RecruitmentInvestmentRelMeanCorr",
-                         "RecruitmentInvestmentRelDevCorr")
+    positive_params <- c(positive_params, "RecruitmentInvestmentRelMeanCorr")
   } else {
     positive_params <- c(positive_params,
                          "RecruitmentInvestmentRelMeanRandom",
@@ -273,7 +273,12 @@ check_species_params <- function(species_params) {
   }
 
   # Check that the following parameters are between 0 and 1:
-  prop_params <- c("MassAtMaturityRelativeRandom", "DispersalKernelAsymmetryRandom")
+  prop_params <- c(
+    "MassAtMaturityRelativeRandom", "DispersalKernelAsymmetryRandom",
+    "AgeAtMaturityDevCorr")
+  if (CorrelationMassRecruitment) {
+    prop_params <- c(prop_params, "RecruitmentInvestmentRelDevCorr")
+  }
   is_prop <- sapply(species_params[prop_params], function(x) all(x >= 0) && all(x <= 1))
   if (any(!is_prop)) {
     wrong_params <- prop_params[!is_prop]

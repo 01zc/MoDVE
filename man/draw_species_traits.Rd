@@ -10,8 +10,11 @@ draw_species_traits(species_params)
 \item{species_params}{a list of trait-generating parameter, which must
 contain the following elements:
 \itemize{
-\item \code{MaxMassLogScaleRandom} logical, if \code{TRUE} then \code{MaxMass} is sampled in
-a uniform between the log10 of both \code{MaxMassRandom} values.
+\item \code{MaxMassLogScaleRandom} logical. If \code{FALSE}, \code{MaxMass} is sampled in a
+uniform distribution with parameters \code{MaxMassRandom}. If \code{TRUE}, the value
+is instead sampled in a uniform of the log10's of \code{MaxMassRandom}, and the
+sampled value is then transformed back. This inflates the frequency of
+sampling values closer to the minimum.
 \item \code{MaxMassRandom} a length-2 numeric vector containing the minimum and
 maximum MaxMass
 \item \code{MassAtMaturityRelativeRandom} a length-2 numeric vector containing the
@@ -38,7 +41,7 @@ values \code{RecruitmentIncRandom.}
 \item \code{RecruitmentInvestmentRelMeanCorr} see above
 \item \code{RecruitmentInvestmentRelDevCorr} see above
 \item \code{RecruitmentInvestmentRelMeanRandom} see above
-\item \code{RecruitmentIncRandom}
+\item \code{RecruitmentIncRandom} see above
 \item \code{DispersalKernelRandom} a length-2 numeric vector, min and max possible
 values of the dispersal kernel.
 \item \code{DispersalKernelAsymmetryRandom} a length-2 numeric vector, min and max possible
@@ -85,9 +88,6 @@ grow and reproduce at the maximum rate. It is calculated as the average of \code
 \item \code{MaxHeightRel} maximum relative height (between 0 and 1) at which the species can survive, used to compute \code{MaxLight}
 \item \code{MeanHeightRel} average of \code{MinHeightRel} and \code{MaxHeightRel}
 \item \code{HeightBreadth} range between \code{MinHeightRel} and \code{MaxHeightRel}
-\item \code{MaxRecruits} mass-dependent fecundity coefficient when mass = \code{MaximumMass}
-\item \code{MaxRecruitsAtMassAtMaturity} mass-dependent fecundity coefficient when mass = \code{MassAtMaturity}
-\item \code{AgeAtmaturity}
 }
 }
 }

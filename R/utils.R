@@ -108,3 +108,10 @@ int_seq <- function(from, to, by=1L) {
 
     return(s)
 }
+
+err_msg_missing_params <- function(param_name, missing_params) {
+  return(paste(c(param_name, " is missing the following parameters: ",
+          missing_params), rep(" ", length(missing_params) + 1)))
+}
+
+
