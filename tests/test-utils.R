@@ -31,7 +31,7 @@ draw_rnd_species_params <- function(max_val = 100) {
     MaxMassRandom = runif(1, 0, max_val), #
     InterceptAgeMaturity = runif(1, 0, max_val),
     AgeAtMaturityDevCorr = runif(1, 0, 1),
-    ScalingAgeMaturity = runif(1, -max_val, max_val),
+    ScalingAgeMaturity = runif(1, 0, 1),
     MassAtMaturityRelativeRandom = runif(1, 0, 1), ##
 
     CorrelationMassRecruitment = runif(1) > 0.5,
@@ -46,10 +46,6 @@ draw_rnd_species_params <- function(max_val = 100) {
     LAI = runif(1, 0, max_val)
   )
 
-  # Draw second value for uniform parameters
-  draw_max_value <- function(min_val, upper_bound) {
-    return(min_val + runif(1, 0, upper_bound - min_val))
-  }
   sp_params$MaxMassRandom[2] <- draw_max_value(sp_params$MaxMassRandom[1], max_val)
   sp_params$MassAtMaturityRelativeRandom[2] <- draw_max_value(
     sp_params$MassAtMaturityRelativeRandom[1], 1
@@ -73,4 +69,9 @@ draw_rnd_species_params <- function(max_val = 100) {
     sp_params$RecruitmentInvestmentRelMeanRandom[2] <- draw_max_value(sp_params$RecruitmentInvestmentRelMeanRandom[1], max_val)
   }
   return(sp_params)
+}
+
+# Draw second value for uniform parameters
+draw_max_value <- function(min_val, upper_bound) {
+  return(min_val + runif(1, 0, upper_bound - min_val))
 }

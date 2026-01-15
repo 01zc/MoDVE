@@ -74,5 +74,7 @@ test_that("Growth rate satisfies its equation", {
     (1 - exp(-species_traits$GrowthRate * exptd_age_maturity))
 
   expect_equal(species_traits$MassAtMaturity, exptd_mass_mat)
+
+
 })
 

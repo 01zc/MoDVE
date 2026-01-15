@@ -16,7 +16,7 @@
 #'
 #'  * `InterceptAgeMaturity` numeric, the intercept of the function generating
 #'  the age at maturity as a function of mass at maturity
-#'  * `ScalingAgeMaturity` numeric, the exponent of the function generating
+#'  * `ScalingAgeMaturity` numeric between 0 and 1, the exponent of the function generating
 #'  the age at maturity as a function of mass at maturity
 #'  * `AgeAtMaturityDevCorr` numeric, the range of possible deviation
 #'  coefficients in the function generating age at maturity from mass at maturity.
@@ -94,7 +94,7 @@
 draw_species_traits <- function(species_params) {
 
   # Unpack parameters
-  #check_species_params(species_params)
+  check_species_params(species_params)
   list2env(species_params, envir = environment())
 
   # Draw max size
@@ -182,16 +182,22 @@ check_species_params <- function(species_params) {
     "MassAtMaturityRelativeRandom",
     "MaxMassLogScaleRandom",
     "MaxMassRandom",
-    "RecruitmentIncMaxCorr",
-    "RecruitmentIncRandom",
-    "RecruitmentInvestmentRelDevCorr",
-    "RecruitmentInvestmentRelMeanCorr",
-    "RecruitmentInvestmentRelMeanRandom",
     "ScalingAgeMaturity",
     "kL"
     )
 
   list2env(species_params, envir = environment())
+
+  if (CorrelationMassRecruitment) {
+    exptd_params <- c(exptd_params,
+                      "RecruitmentInvestmentRelMeanCorr",
+                      "RecruitmentInvestmentRelDevCorr")
+  } else {
+    exptd_params <- c(exptd_params,
+                         "RecruitmentInvestmentRelMeanRandom",
+                         "RecruitmentIncRandom")
+  }
+
 
   missing_params <- exptd_params[!exptd_params %in% names(species_params)]
   if (length(missing_params > 0)) {
@@ -275,7 +281,7 @@ check_species_params <- function(species_params) {
   # Check that the following parameters are between 0 and 1:
   prop_params <- c(
     "MassAtMaturityRelativeRandom", "DispersalKernelAsymmetryRandom",
-    "AgeAtMaturityDevCorr")
+    "AgeAtMaturityDevCorr", "ScalingAgeMaturity")
   if (CorrelationMassRecruitment) {
     prop_params <- c(prop_params, "RecruitmentInvestmentRelDevCorr")
   }

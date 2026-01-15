@@ -106,9 +106,8 @@ test_that("Initial individuals are distributed correctly", {
     "seq_index" = index_3d(X, Y, Z, dimensions[1], dimensions[2]),
     "is_in_suitable" = seq_index %in% suitable_voxels,
     "is_mature" = Mass >= species_df$MassAtMaturity[SpeciesID],
-    "has_exptd_mass" = Mass == (
-      species_df$MaximumMass[SpeciesID] *
-        (1 - exp(-species_df$GrowthRate[SpeciesID] * Age))
+    "exptd_mass" =  species_df$MaximumMass[SpeciesID] *
+        (1 - exp(-species_df$GrowthRate[SpeciesID] * Age)
     )
   )
   expect_true(all(init_ind_df$is_in_suitable))
@@ -117,7 +116,7 @@ test_that("Initial individuals are distributed correctly", {
   nb_mature_inds <- nb_species * round(rnd_params$IndividualsPerSpecies *
                                    rnd_params$PercentageMaturePerSpecies / 100)
   expect_equal(sum(init_ind_df$is_mature), nb_mature_inds)
-  expect_true(all(init_ind_df$has_exptd_mass))
+  expect_true(all(init_ind_df$exptd_mass))
 
   # what's enough sa?
   # set all individuals to same mass
