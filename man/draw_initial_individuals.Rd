@@ -8,18 +8,25 @@ draw_initial_individuals(
   distr_params,
   species_df,
   microhab_mat,
-  path_to_output,
-  largest_inds_first = TRUE,
-  largest_voxels_first = TRUE
+  path_to_output = NULL,
+  largest_inds_first = FALSE,
+  most_surf_area_first = FALSE
 )
 }
 \arguments{
 \item{distr_params}{a list containing at least the following parameters:
 \itemize{
-\item IndividualsPerSpecies
-\item ScalingPerHa
-\item PercentageMaturePerSpecies
-\item SurfaceBiomassScaling
+\item \code{IndividualsPerSpecies} (scalar) integer, the number of individuals of per
+species.
+\item \code{ScalingPerHa} logical, defines whether the NumberSpecies are total numbers
+irrespective of the model area (\code{TRUE}), or if the NumberSpecies or given per
+hectar and are scaled to the model area (\code{FALSE})
+\item \code{PercentageMaturePerSpecies} a number between 0 and 100 indicating the
+percentage of initial individuals that should start as mature individuals
+able to reproduce
+\item \code{SurfaceBiomassScaling} a strictly positive parameter scaling the surface
+area requirement as a function of the mass of the individual:
+\deqn{S = M^{2/3} / g_S}
 }}
 
 \item{species_df}{a data frame containing the species traits, as created by
@@ -29,13 +36,32 @@ draw_initial_individuals(
 in each voxel, as created by \code{create_microhab_mat()}}
 
 \item{path_to_output}{a string, where (folder and name) should the output
-be saved? Must be \code{.csv}.}
+be saved? Must be \code{.csv}. If \code{NULL} (the default), no output is saved and the
+output is returned as a data frame instead.}
 
 \item{largest_inds_first}{logical, should larger individuals be allocated
 first (\code{TRUE}) to represent competitive advantage, or randomly (\code{FALSE})}
 
-\item{largest_voxels_first}{logical, should individuals first be allocated to
+\item{most_surf_area_first}{logical, should individuals first be allocated to
 the largest voxel available (\code{TRUE}) or a random one (\code{FALSE})?}
+}
+\value{
+if \code{path_to_output = NULL}, returns a data frame with one row per
+initial individual and the following columns:
+\itemize{
+\item \code{X} the x-coordinate of the individual
+\item \code{Y} the y-coordinate of the individual
+\item \code{Z} the z-coordinate of the individual
+\item \code{Mass} the mass of the individual
+\item \code{Status}, the status of the individual either 1 (alive) or 2 (dead, due to
+a lack of available surface area to allocate this individual)
+\item \code{IndividualID} a unique identifier for this individual
+\item \code{SurfaceAreaOccupied} the amount of surface area that this individual
+requires and uses
+\item \code{Age} age of the individual in generations
+\item \code{SpeciesID} which species (from the \code{species_df}) this individual belongs
+to.
+}
 }
 \description{
 Draw the initial mass, age, occupied surface area of initial individuals

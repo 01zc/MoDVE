@@ -1,39 +1,45 @@
 
-config <- parse_config("tests/config_a3.toml")
-set.seed(config$seed, kind="Mersenne-Twister")
+distr_params <- parse_config("tests/config_a3.toml")
+set.seed(distr_params$seed, kind="Mersenne-Twister")
 
 # Prepare folder paths
-DirectoryModelMain <- config$DirectoryModelMain
-DirectoryMicrohabitatMain <- config$DirectoryMicrohabitat
-DirectorySpeciesPoolsMain <- config$DirectorySpeciesPools
+DirectoryModelMain <- distr_params$DirectoryModelMain
+dir_microhab <- distr_params$DirectoryMicrohabitatMain
+DirectorySpeciesPoolsMain <- distr_params$DirectorySpeciesPools
 
 dir.create(DirectoryModelMain, recursive=TRUE)
 
 # Load microhabitat matrix
-microhabitat_filename <- paste("MicrohabitatMatrix", TimeStep, ".rds", sep="")
-FileInitalMatrix <- file.path(DirectoryMicrohabitatMain, microhabitat_filename)
-Microhabitat <- readRDS(FileInitalMatrix)
+microhabitat_filename <- paste("MicrohabitatMatrix", distr_params$TimeStep, ".rds", sep="")
+path_to_microhab <- file.path(dir_microhab, microhabitat_filename)
+microhab_mat <- readRDS(path_to_microhab)
 # Transform light values from relative to absolute
-Microhabitat[, , , 3] <- Microhabitat[, , , 3] * config$Imax
+microhab_mat[, , , 3] <- microhab_mat[, , , 3] * distr_params$Imax
 
-for (numPool in config$numSpeciesPools[1]:config$numSpeciesPools[2]) {
+for (numPool in distr_params$numSpeciesPools[1]:distr_params$numSpeciesPools[2]) {
+
+  #numPool <- 4
+  #numReplicates <- 1
 
   # Load the species pool
   species_filename <- paste("SpeciesPool", numPool, ".csv", sep = "")
   Input_file <- file.path(DirectorySpeciesPoolsMain, species_filename)
-  SpeciesPool <- read.csv(Input_file)
+  species_df <- read.csv(Input_file)
 
-  for (numReplicates in seq_len(config$replicatePerSpeciesPool)) {
+  for (numReplicates in seq_len(distr_params$replicatePerSpeciesPool)) {
 
     path_to_output <- file.path(DirectoryModelMain, paste(
       "ID_SpeciesP_", numPool, "_Rep_", numReplicates, ".csv", sep = ""
     ))
 
+    largest_inds_first <- TRUE
+    largest_voxels_first <- TRUE
+
     # Generate the distribution and individual traits
     draw_initial_individuals(
-      config, SpeciesPool, Microhabitat, path_to_output,
-      largest_inds_first = config$SingleSpeciesModel,
-      largest_voxels_first = config$MethodVoxel
+      distr_params, species_df, microhab_mat, path_to_output,
+      largest_inds_first = distr_params$SingleSpeciesModel,
+      largest_voxels_first = distr_params$MethodVoxel
     )
   }
 }

@@ -8,6 +8,11 @@ species_trait_names <- function() {
            "HeightBreadth"))
 }
 
+inds_input_names <- function() {
+  return(c("X", "Y", "Z", "Mass", "Status", "IndividualID",
+           "SurfaceAreaOccupied", "Age", "SpeciesID"))
+}
+
 inds_output_names <- function() {
   return(c(
     "SpeciesID", "IndividualID", "Status", "Mass", "Age", "X", "Y", "Z",

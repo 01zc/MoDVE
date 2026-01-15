@@ -1,13 +1,13 @@
 seed = 42
-SingleSpeciesModel = 0
+SingleSpeciesModel = false
 DirectoryModelMain = "tests/data/output_a3"
 DirectoryMicrohabitatMain = "tests/data/microhabitat"
 DirectorySpeciesPoolsMain = "tests/data/species_pools"
 numSpeciesPools = [4, 5]
 replicatePerSpeciesPool = 1
 TimeStep = 1
-MethodVoxel = 0
-ScalingPerHa = 0
+MethodVoxel = false
+ScalingPerHa = false
 IndividualsPerSpecies = 23
 PercentageMaturePerSpecies = 50
 SurfaceBiomassScaling = 100

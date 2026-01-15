@@ -9,9 +9,9 @@ create_microhabitat_mat(
   shoot_dt,
   trunk_dt,
   vox_dt = NULL,
-  path_to_output,
-  dead_branches_id,
-  dead_trees_id
+  path_to_output = NULL,
+  dead_branches_id = NULL,
+  dead_trees_id = NULL
 )
 }
 \arguments{
@@ -31,7 +31,8 @@ create_microhabitat_mat(
 
 \item{vox_dt}{only required if LightConditionsOpt is TRUE}
 
-\item{path_to_output}{string, where to save output? Must be an rds file}
+\item{path_to_output}{string, where to save output? Must be an rds file or \code{NULL},
+in which case the result matrix is returned.}
 
 \item{dead_branches_id}{integer vector containing the IDs of all branches dying this time step}
 
