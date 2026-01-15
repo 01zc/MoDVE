@@ -1,3 +1,5 @@
+
+source("../test-utils.R")
 ref_sp_params <- parse_config("../config_a2.toml")
 
 test_that("Input is checked correctly", {
@@ -43,7 +45,7 @@ test_that("Species traits meet requirements", {
 
   # All parameters are numeric, positive etc.
   species_df <- as.data.frame(c("SpeciesID" = 1, species_traits))
-  expect_silent(check_species_df(species_traits))
+  expect_silent(check_species_df(species_df))
 
   list2env(species_traits, envir = environment())
 

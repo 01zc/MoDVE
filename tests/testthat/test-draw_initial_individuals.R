@@ -1,4 +1,4 @@
-source("tests/test-utils.R")
+source("../test-utils.R")
 
 test_that("3D coordinates are converted to sequential index correctly", {
 
@@ -46,12 +46,6 @@ test_that("Initial individuals are distributed correctly", {
   species_df$MaxLight <- 100
   species_df$LightBreadth <- 100
   microhab_mat[,,,3] <- 50 # optimal light conditions
-
-  {
-    distr_params <- rnd_params
-    largest_inds_first = FALSE
-    most_surf_area_first = FALSE
-  }
 
   # Edge case - no mature individuals
   rnd_percent <- rnd_params$PercentageMaturePerSpecies
@@ -110,71 +104,75 @@ test_that("Initial individuals are distributed correctly", {
         (1 - exp(-species_df$GrowthRate[SpeciesID] * Age)
     )
   )
-  expect_true(all(init_ind_df$is_in_suitable))
 
   # Age and mass satisfy the growth equation
   nb_mature_inds <- nb_species * round(rnd_params$IndividualsPerSpecies *
                                    rnd_params$PercentageMaturePerSpecies / 100)
   expect_equal(sum(init_ind_df$is_mature), nb_mature_inds)
-  expect_true(all(init_ind_df$exptd_mass))
+  expect_equal(init_ind_df$Mass, init_ind_df$exptd_mass, tolerance = 0.1)
 
-  # what's enough sa?
-  # set all individuals to same mass
+  # Individuals are allocated only if surface area is sufficient
+  # Must fix the mass to a constant to determine necessary SA per individual
   rnd_params$PercentageMaturePerSpecies <- 100
   fixed_mass <- runif(1, 0, 100)
   species_df$MaximumMass <- species_df$MassAtMaturity <- fixed_mass
-  reqd_surf_area_per_ind <- fixed_mass ^ (2/3) / rnd_params$SurfaceBiomassScaling
-  reqd_surf_area_total <- reqd_surf_area_per_ind * nb_species * rnd_params$IndividualsPerSpecies
-  # Distribute it evenly among voxels
-  surf_area_mat[suitable_voxels] <- reqd_surf_area_total / length(suitable_voxels)
+  reqd_surf_area_per_ind <- fixed_mass ^ (2/3) / rnd_params$SurfaceBiomassScaling +
+    0.0001
+  surf_area_mat <- rep(0, prod(dimensions))
+  expect_lt(total_nb_inds, prod(dimensions)) # ensure there are less individuals than voxels
+  # Enough SA for all
+  suitable_voxels <- sample(1:prod(dimensions), size = total_nb_inds, replace = FALSE)
+  surf_area_mat[suitable_voxels] <- reqd_surf_area_per_ind
+  microhab_mat[,,,1] <- surf_area_mat
   init_ind_df <- draw_initial_individuals(rnd_params, species_df, microhab_mat)
   expect_true(all(init_ind_df$Status == 1)) # alive
-
-  insufficient_surf_area <- reqd_surf_area_total - 1
-  surf_area_mat[suitable_voxels] <- reqd_surf_area_total / length(suitable_voxels)
+  # Enough SA for all but one
+  surf_area_mat[suitable_voxels[1]] <- 0
+  microhab_mat[,,,1] <- surf_area_mat
   init_ind_df <- draw_initial_individuals(rnd_params, species_df, microhab_mat)
-  expect_true(!all(init_ind_df$Status == 1))
-  # expect a specific amount of dead individuals?
+  expect_equal(sum(init_ind_df$Status == 2), 1)
 
-  # threshold: not enough SA for all
-  # if not enough SA, only a certain fraction of individuals is allocated
-  # if largest_first, only largest allocated
-  # else random
+  # If mass-based competition is enabled, largest individuals are allocated first
+  # Set some variation, with our fixed mass as a lower threshold
+  species_df$MaximumMass <- fixed_mass * 1.2
+  not_enough_sa <- total_nb_inds * fixed_mass ^ (2/3) /
+    rnd_params$SurfaceBiomassScaling
+  surf_area_mat <- rep(0, prod(dimensions))
+  rand_voxel <- sample(1:length(surf_area_mat), 1)
+  surf_area_mat[rand_voxel] <- not_enough_sa
+  microhab_mat[,,,1] <- surf_area_mat
+  init_ind_df <- draw_initial_individuals(largest_inds_first = TRUE,
+    rnd_params, species_df, microhab_mat)
+  # Largest individual made it, smallest one did not
+  expect_equal(init_ind_df$Status[which.max(init_ind_df$Mass)], 1)
+  expect_equal(init_ind_df$Status[which.min(init_ind_df$Mass)], 2)
 
-  # light
-  # if no suitable light conditions all individuals status 2 even if SA if fine
-  # if variable conditions individuals only allocated where light in suitable range
-
-
-
-  # testing microhab SA
-  # (light always ok)
-  # individuals are only present where SA > 0
-  # individuals are only present where SA > min SA reqt
-
-  # randomly sample which voxels contain SA
-
-  # 1 - Enough SA to fit all individuals
-  exptd_max_total_mass <- sum(species_df$MaximumMass * nb_mature_inds_per_sp +
-    species_df$MassAtMaturity * (rnd_params$IndividualsPerSpecies - nb_mature_inds_per_sp))
-
-  exptd_max_sa_occupied <- exptd_max_total_mass ^ (2/3) / rnd_params$SurfaceBiomassScaling
-  total_sa_occupied <- sum(init_ind_df$SurfaceAreaOccupied)
-  expect_lte(total_sa_occupied, exptd_max_sa_occupied)
-
-  # X Y Z within boundaries of the landscape
-  # X Y Z only in voxels with SA > 0 and light conditions ok
-  # If enough surface area then all Status 1
-  # If no SA all Status 2
-  # sum(Mass <= MassAtMaturity) = nb_inds * (1- percentageMature / 100)
-  # sum(Mass >= MassAtMaturity) = nb_inds * (percentageMature / 100)
-  # age statisfies growth equation requirement
-
-  # IndividualID in 1:nbinds
-  # Species ID has all species id
-
-  largest_inds_first = TRUE
-  most_surf_area_first = TRUE
-
-
+  # Individuals are not allocated to unsuitable light conditions
+  # even if surface area is sufficient
+  dimensions <- rep(6, 3)
+  nb_bad_voxels <- prod(dimensions) / 3
+  unlimited_sa <- 100000
+  microhab_mat <- array(0, dim = c(dimensions, 3))
+  microhab_mat[,,,1] <- unlimited_sa
+  min_light <- runif(1, 1, 49)
+  max_light <- runif(1, 51, 100)
+  opt_light <- 50
+  species_df$MinLight <- min_light
+  species_df$MaxLight <- max_light
+  species_df$OptimumLight <- opt_light
+  species_df$LightBreadth <- max_light - min_light
+  voxels_not_enough_light <- sample(1:prod(dimensions), nb_bad_voxels)
+  voxels_too_much_light <- sample((1:prod(dimensions))[-voxels_not_enough_light], nb_bad_voxels)
+  expect_true(!any(voxels_too_much_light %in% voxels_not_enough_light))
+  light_mat <- rep(opt_light, prod(dimensions))
+  light_mat[voxels_not_enough_light] <- min_light - 0.5
+  light_mat[voxels_too_much_light] <- max_light + 0.5
+  microhab_mat[,,,3] <- light_mat
+  init_ind_df <- draw_initial_individuals(rnd_params, species_df, microhab_mat) |>
+    dplyr::mutate(
+      "vox_idx" = index_3d(X, Y, Z, dimensions[1], dimensions[2])
+    )
+  expect_true(all(init_ind_df$Status == 1))
+  expect_true(!any(init_ind_df$vox_idx %in% voxels_not_enough_light))
+  expect_true(!any(init_ind_df$vox_idx %in% voxels_too_much_light))
 })

@@ -133,7 +133,7 @@ draw_initial_individuals <- function(distr_params, species_df,
 
   # Schedule individual allocation priority
   if (largest_inds_first) { # largest individuals win competition
-    ind_queue <- order(init_ind_matSub[, col_mass], decreasing = TRUE)
+    ind_queue <- order(init_ind_mat[, col_mass], decreasing = TRUE)
   } else { # random
     ind_queue <- sample(seq_len(TotalIndividuals), TotalIndividuals, replace=FALSE)
   }
