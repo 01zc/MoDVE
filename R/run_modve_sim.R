@@ -17,8 +17,7 @@ run_modve_sim <- function(sim_params,
   )
   missing_params <- exptd_params[!exptd_params %in% names(sim_params)]
   if (length(missing_params > 0)) {
-    stop(paste(c("sim_params is missing the following parameters: ",
-             missing_params), rep(" ", length(missing_params)+1)))
+    stop(err_msg_missing_params("sim_params", missing_params))
   }
   timeSteps <- sim_params$timeSteps
 
@@ -32,7 +31,7 @@ run_modve_sim <- function(sim_params,
     } # error
     else SpeciesPool <- read.csv(SpeciesPool, sep = ",", header = TRUE)
   }
-  NumberOfSpecies <- nrow(SpeciesPool)  # number of species per 25X25m plot
+  NumberOfSpecies <- nrow(SpeciesPool)  # number of species per 25x25m plot
 
   if (!is.data.frame(InitDist)) {
     # Then it must be a path to the input
@@ -50,11 +49,11 @@ run_modve_sim <- function(sim_params,
   max_id <- nrow(E)  # to trace individual IDs
 
   isHabitatDynamic <- sim_params$MicrohabitatType == 1
-  if (!is.data.frame(Microhabitat)) {
+  if (!is.array(Microhabitat)) {
     # Then it must be a path or vector of paths
-    for (i in seq_along(Microhabitat[i])) {
-      if (!grepl("*.csv$", Microhabitat[i])) {
-        stop("Microhabitat should be a data frame or a valid path to a .csv file.")
+    for (i in seq_along(Microhabitat)) {
+      if (!grepl("*.rds$", Microhabitat[i])) {
+        stop("Microhabitat should be an array or a valid path to a .rds file.")
       }
       if (!file.exists(Microhabitat[i])) {
         stop(paste0(Microhabitat[i], " doesn't exist.\n"))
@@ -70,7 +69,7 @@ run_modve_sim <- function(sim_params,
       }
     }
     # If all checks ok, read the first one
-    Microhabitat <- read.csv(Microhabitat[1], sep = ",", header = TRUE)
+    Microhabitat <- readRDS(Microhabitat[1])
   }
 
   #  Convert relative light values to absolute ?mol*m-2*s-1
@@ -81,21 +80,20 @@ run_modve_sim <- function(sim_params,
 
   # Prepare output
   dir_output <- dirname(path_to_ind_output)
-  if (!dir.exists(dirname(dir_output))) {
-    stop(paste0("Directory ", dir_output, " does not exist."))
+  if (!dir.exists(dir_output)) {
+    stop(paste0("Output directory ", dir_output, " does not exist."))
   }
   if (!grepl("*.csv$", path_to_ind_output)) {
     stop("path_to_ind_output must be a csv file")
   }
 
   dir_output <- dirname(path_to_sp_output)
-  if (!dir.exists(dirname(dir_output))) {
-    stop(paste0("Directory ", dir_output, " does not exist."))
+  if (!dir.exists(dir_output)) {
+    stop(paste0("Output directory ", dir_output, " does not exist."))
   }
   if (!grepl("*.csv$", path_to_sp_output)) {
     stop("path_to_sp_output must be a csv file")
   }
-
 
   sp_output_headers <- species_output_names()
   {
@@ -104,10 +102,10 @@ run_modve_sim <- function(sim_params,
     col_nb_mature_inds <- 5; col_nb_rec <- 6; col_nb_rec <- 7;
     col_nb_dead_branch <- 8; col_nb_dead_light <- 9; col_nb_dead_comp <- 10;
     col_nb_dead_base <- 11; col_growth_rate <- 12; col_growth_log <- 13
-    col_birth <- 14; col_death <- 15; col_size <- 16; ColSAverageAge <- 17
-    ColSMinLight <- 18; ColSMaxLight <- 19; ColSMeanLight <- 20;
-    ColSMinHeight <- 21; ColSMaxHeight <- 22; ColSMeanHeight <- 23
-    nb_cols_sp_output <- ColSMeanHeight
+    col_birth <- 14; col_death <- 15; col_size <- 16; col_avg_age <- 17
+    col_min_light <- 18; col_max_light <- 19; col_mean_light <- 20;
+    col_min_height <- 21; col_max_height <- 22; col_mean_height <- 23
+    nb_cols_sp_output <- col_mean_height
   }
   # Initialize Matrix where species parameters are saved
   sp_output <- array(
@@ -116,7 +114,7 @@ run_modve_sim <- function(sim_params,
   )
 
   dir_output <- dirname(path_to_comm_output)
-  if (!dir.exists(dirname(dir_output))) {
+  if (!dir.exists(dir_output)) {
     stop(paste0("Directory ", dir_output, " does not exist."))
   }
   if (!grepl("*.csv$", path_to_comm_output)) {
@@ -130,23 +128,29 @@ run_modve_sim <- function(sim_params,
 
   # Stop criterion: if stop density is exceeded, the simulation ends
   # to cap memory usage
-  StopNbInds <- sim_params$StopCriterionHa * dimX * dimY / 10000
+  StopNbInds <- sim_params$StopCriterionHa / 10000 * dimX * dimY
 
   # Calculate the probability to disperse in surrounding voxels
   centralPoint <- find_central_point(c(dimX, dimY, dimZ))
   prob_disp_matrix <- calc_prob_disp_matrix(
-    centralPoint, dimX, dimY, dimZ, NumberOfSpecies, SpeciesPool
+    centralPoint,
+    dimX = dimX * 2 + 1,
+    dimY = dimY * 2 + 1,
+    dimZ = dimZ * 2 + 1,
+    SpeciesPool
   )
 
   # Generation loop
   for (t in seq_len(timeSteps)) {
 
+    gen_nb <- sim_params$InitialTimeStep + t - 1 # actual time step
+
     # Check if the stop criterion is met
     nbIndsAlive <- length(which(E$Status == 1))
     if (nbIndsAlive > StopNbInds) {
       writeLines(paste0(
-        "Time ", t, ": population has exceeded max threshold of ",StopNbInds,
-        ". Ending simulation."
+        "Time ", gen_nb, ": population has exceeded max threshold of ", StopNbInds,
+        " individuals. Ending simulation."
         ))
       break
     }
@@ -154,7 +158,7 @@ run_modve_sim <- function(sim_params,
     # Update microhabitat if applicable
     if (isHabitatDynamic && t > 1) {
       Microhabitat <- readRDS(microhab_files[t])
-      Microhabitat[, , , 3] <- Microhabitat[, , , 3] * Imax
+      Microhabitat[, , , 3] <- Microhabitat[, , , 3] * sim_params$Imax
     }
 
     # Update how many species are alive at beginning of generation
@@ -162,9 +166,11 @@ run_modve_sim <- function(sim_params,
     nbIndsBeforeDispTotal <- length(which(E$Status == 1))
 
     # Dispersal
-    disp_items <- resolveReproDispersal(
-      E, Microhabitat, SurfaceBiomassScaling,
-      centralPoint, InterceptRecruitment, SlopeRecruitment,
+    stop("TODO: change calls from E columns to SpeciesPool")
+    disp_items <- resolve_repro_dispersal(
+      E, Microhabitat, sim_params$SurfaceBiomassScaling,
+      centralPoint, sim_params$InterceptRecruitment,
+      sim_params$SlopeRecruitment,
       prob_disp_matrix,  SpeciesPool, max_id
     )
 
@@ -190,13 +196,13 @@ run_modve_sim <- function(sim_params,
     # E(E(:,1)==0,:)=[]; %in rare case, some individuals with only zeros are creates, which is wrong. This is to prevent the script to stop.
 
     # Growth
-    E <- resolve_growth(E, Microhabitat, SurfaceBiomassScaling)
+    E <- resolve_growth(E, Microhabitat, sim_params$SurfaceBiomassScaling)
 
     # Mortality (except from competition)
     E <- resolve_mortality(E, Microhabitat)
 
     # Mortality due to competition for space
-    E <- resolve_competition(E, Microhabitat, CompetitionMethod)
+    E <- resolve_competition(E, Microhabitat, sim_params$CompetitionMethod)
 
     # Age increment
     E$Age <- E$Age + 1
@@ -214,7 +220,7 @@ run_modve_sim <- function(sim_params,
       row_nb <- (nb_sp - 1) * timeSteps + t
       is_sp <- E$SpeciesID == nb_sp
 
-      sp_output[row_nb, col_sp_t] <- InitialTimeStep + t - 1
+      sp_output[row_nb, col_sp_t] <- gen_nb
       sp_output[row_nb, col_sp_id] <- nb_sp
       sp_output[row_nb, col_nb_inds_begin] <- nb_inds_begin
       sp_output[row_nb, col_nb_inds_end] <- nb_alive
@@ -238,26 +244,15 @@ run_modve_sim <- function(sim_params,
           nb_dead_branch + nb_dead_light + nb_dead_comp + nb_dead_base
         ) / nb_inds_begin
         sp_output[row_nb, col_size] <- mean(E$Mass[is_sp])
-        sp_output[row_nb, ColSAverageAge] <- mean(E$Age[is_sp])
-        sp_output[row_nb, ColSMinLight] <- min(E$LightInVoxel[is_sp])
-        sp_output[row_nb, ColSMaxLight] <- max(E$LightInVoxel[is_sp])
-        sp_output[row_nb, ColSMeanLight] <- mean(E$LightInVoxel[is_sp])
-        sp_output[row_nb, ColSMinHeight] <- min(E$Z[is_sp])
-        sp_output[row_nb, ColSMaxHeight] <- max(E$Z[is_sp])
-        sp_output[row_nb, ColSMeanHeight] <- mean(E$Z[is_sp])
+        sp_output[row_nb, col_avg_age] <- mean(E$Age[is_sp])
+        sp_output[row_nb, col_min_light] <- min(E$LightInVoxel[is_sp])
+        sp_output[row_nb, col_max_light] <- max(E$LightInVoxel[is_sp])
+        sp_output[row_nb, col_mean_light] <- mean(E$LightInVoxel[is_sp])
+        sp_output[row_nb, col_min_height] <- min(E$Z[is_sp])
+        sp_output[row_nb, col_max_height] <- max(E$Z[is_sp])
+        sp_output[row_nb, col_mean_height] <- mean(E$Z[is_sp])
       } else {
-        sp_output[row_nb, col_growth_rate] <- NA
-        sp_output[row_nb, col_growth_log] <- NA
-        sp_output[row_nb, col_birth] <- NA
-        sp_output[row_nb, col_death] <- NA
-        sp_output[row_nb, col_size] <- NA
-        sp_output[row_nb, ColSAverageAge] <- NA
-        sp_output[row_nb, ColSMinLight] <- NA
-        sp_output[row_nb, ColSMaxLight] <- NA
-        sp_output[row_nb, ColSMeanLight] <- NA
-        sp_output[row_nb, ColSMinHeight] <- NA
-        sp_output[row_nb, ColSMaxHeight] <- NA
-        sp_output[row_nb, ColSMeanHeight] <- NA
+        sp_output[row_nb, col_growth_rate:col_mean_height] <- NA
       }
 
     } # species loop
@@ -267,7 +262,7 @@ run_modve_sim <- function(sim_params,
     MortalityBranchFall <- length(which(E$Status == 3))
     MortalityLight <- length(which(E$Status == 4))
     MortalityNatural <- length(which(E$Status == 5))
-    comm_output$timeStep[t] <- InitialTimeStep + t - 1
+    comm_output$timeStep[t] <- gen_nb
     comm_output$NumberSpeciesBeginning[t] <- InitialNumberSpecies
     comm_output$NumberSpeciesEnd[t] <- length(unique(E$SpeciesID[E$Status == 1]))
     comm_output$NumberIndividualsBeginning[t] <- nbIndsBeforeDispTotal
@@ -280,13 +275,13 @@ run_modve_sim <- function(sim_params,
     comm_output$BranchSurfaceIndex[t] <- sum(Microhabitat[, , , 1]) /
       (dimX[1] * dimY[2])
     comm_output$EpiphyteFilling[t] <- sum(E$Mass^(2/3)) /
-      SurfaceBiomassScaling / sum(Microhabitat[, , , 1])
+      sim_params$SurfaceBiomassScaling / sum(Microhabitat[, , , 1])
 
     # Command window information
     "--------------------------------------------" |>
       paste_wrap("Species Pool: ", numPool) |>
       paste_wrap("Replicate: ", r) |>
-      paste_wrap("Time step: ", InitialTimeStep + t - 1) |>
+      paste_wrap("Time step: ", gen_nb) |>
       paste_wrap("Species Pool: ", numPool) |>
       paste_wrap("Number of individuals: ",
                  comm_output$NumberIndividualsEnd[t]) |>

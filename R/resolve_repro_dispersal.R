@@ -78,18 +78,21 @@ resolve_repro_dispersal <- function(E,
       y_coords <- seq(dist_to_center[2] + 1, dist_to_center[2] + dimPlot[2])
       z_coords <- seq(dist_to_center[3] + 1, dist_to_center[3] + dimPlot[3])
 
-      # TODO: none of the following terms are documented in the paper?
-      # Mass-dependent fecundity?
-      factor1 <- (InterceptRecruitment + SlopeRecruitment * mature_inds$Mass[j]) *
-        mature_inds$RecruitmentInvestmentRel[j]
-      # ??
-      factor2 <- (mature_inds$Mass[j] - mature_inds$MassAtMaturity[j]) /
+      # Mass-dependent fecundity coefficient
+      mass_coeff <- (InterceptRecruitment + SlopeRecruitment) * mature_inds$Mass[j] *
+        mature_inds$RecruitmentInvestmentRel[j] # base mass-to-reproduction allocation
+
+      # Relative mass growth since the individual has reached maturity
+      # 0 = just reached maturity
+      # 1 = max mass reached
+      rel_growth <- (mature_inds$Mass[j] - mature_inds$MassAtMaturity[j]) /
         (mature_inds$MaximumMass[j] - mature_inds$MassAtMaturity[j])
-      # ??
-      factor3 <- 1 + (mature_inds$RecruitmentInc[j] * factor2)
+      # Reproduction allocation increases with relative growth
+      incr_alloc_coeff <- 1 + (mature_inds$RecruitmentInc[j] * rel_growth)
+
       # Dispersal probability * fecundity = expected nb offspring in each xyz
       exptd_nb_recruits_matrix <- exptd_nb_recruits_matrix +
-        prob_disp_matrix[x_coords, y_coords, z_coords, sp] * factor1 * factor3
+        prob_disp_matrix[x_coords, y_coords, z_coords, sp] * mass_coeff * incr_alloc_coeff
     }
 
     # Store potential normalized number of recruits

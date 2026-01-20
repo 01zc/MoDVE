@@ -2,7 +2,7 @@
 % Please edit documentation in R/calc_prob_dist_matrix.R
 \name{find_central_point}
 \alias{find_central_point}
-\title{Find a the central point in a three dimension coordinate system}
+\title{Find the central point of the dispersal matrix}
 \usage{
 find_central_point(dims)
 }
@@ -13,7 +13,10 @@ of the coordinate system}
 \value{
 a length-3 numeric vector containing the X, Y and Z coordinates of
 the central point
+@export
 }
 \description{
-Given dimensions X, Y and Z, returns the 3d coordinates of the central point
+Given dimensions X, Y and Z of the microhabitat matrix, returns the central
+point of the corresponding dispersal matrix, which has dimensions (2X+1, 2Y+1,
+2Z+1).
 }

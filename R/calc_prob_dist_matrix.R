@@ -5,14 +5,13 @@
 #' @param dimX numeric, the X dimension of the coordinate system
 #' @param dimY numeric, the Y dimension of the coordinate system
 #' @param dimZ numeric, the Z dimension of the coordinate system
-#' @param NumberOfSpecies the number of epiphyte species in the simulation
 #' @param SpeciesPool a data frame containing the species traits of all species
 #'
 #' @returns a matrix with the base probability of dispersing from the central
 #' point to each cell within reach
 #' @export
 #'
-calc_prob_disp_matrix <- function(centralPoint, dimX, dimY, dimZ, NumberOfSpecies, SpeciesPool) {
+calc_prob_disp_matrix <- function(centralPoint, dimX, dimY, dimZ, SpeciesPool) {
 
   # Calculate distance to central point
   DistanceMatrix <- array(
@@ -30,6 +29,7 @@ calc_prob_disp_matrix <- function(centralPoint, dimX, dimY, dimZ, NumberOfSpecie
   }
 
   # Get probabilities to disperse in each voxel
+  NumberOfSpecies <- nrow(SpeciesPool)
   ProbabilityMatrix <- prob_disp_matrix <- array(
     rep(0, dimX * dimY * dimZ * NumberOfSpecies),
     dim = c(dimX, dimY, dimZ, NumberOfSpecies)
@@ -57,16 +57,18 @@ calc_prob_disp_matrix <- function(centralPoint, dimX, dimY, dimZ, NumberOfSpecie
   return(prob_disp_matrix)
 }
 
-#' Find a the central point in a three dimension coordinate system
+#' Find the central point of the dispersal matrix
 #'
-#' Given dimensions X, Y and Z, returns the 3d coordinates of the central point
+#' Given dimensions X, Y and Z of the microhabitat matrix, returns the central
+#' point of the corresponding dispersal matrix, which has dimensions (2X+1, 2Y+1,
+#' 2Z+1).
 #'
 #' @param dims a length-3 numeric vector containing dimension sizes X, Y and Z
 #' of the coordinate system
 #'
 #' @returns a length-3 numeric vector containing the X, Y and Z coordinates of
 #' the central point
-#' @export
+#'  @export
 #'
 find_central_point <- function(dims) {
   dimX <- dims[1] * 2 + 1

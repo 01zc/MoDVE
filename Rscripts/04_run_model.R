@@ -1,3 +1,4 @@
+{
 options(warn=-1)  # Suppress warnings
 options(digits.secs=3)  # 3 decimal digits for seconds
 
@@ -45,7 +46,9 @@ save_rng(file.path(dir_output, "random_state_seed.RData"))
 # Choose species pools to use and number of replicates per species pool
 pairs <- expand.grid(config$numSpeciesPools, config$replicatePerSpeciesPool)
 colnames(pairs) <- c("numPool", "r")
-output <- foreach::foreach(pair_idx = seq_len(nrow(pairs))) %dorng% {
+pair_idx <- 1
+#output <- foreach::foreach(pair_idx = seq_len(nrow(pairs))) %dorng% {
+
 
   numPool <- pairs$numPool[pair_idx]
   r <- pairs$r[pair_idx]
@@ -59,7 +62,10 @@ output <- foreach::foreach(pair_idx = seq_len(nrow(pairs))) %dorng% {
   SpeciesPoolFileName <- file.path(config$DirectorySpeciesPools, sp_filename)
 
   # Load microhabitat (static forest)
-  Microhabitat <- readRDS(file.path(config$DirectoryMicrohabitat, "MicrohabitatMatrix1.rds"))
+  #Microhabitat <- readRDS(file.path(config$DirectoryMicrohabitat, "MicrohabitatMatrix1.rds"))
+  time_seq <- config$InitialTimeStep + seq_len(config$timeSteps) - 1
+  path_to_microhab <- paste("MicrohabitatMatrix", time_seq, ".rds", sep="")
+  Microhabitat <- file.path(config$DirectoryMicrohabitat, path_to_microhab)
 
   # Create Save-Directory for each each replicate/initialDistribution
   dir_output_this_run <- file.path(dir_output, paste("ID_SpeciesP_", numPool, "_Rep_", r, sep=""))
@@ -68,10 +74,17 @@ output <- foreach::foreach(pair_idx = seq_len(nrow(pairs))) %dorng% {
   path_to_sp_output <- file.path(dir_output_this_run, "SpeciesSummary.csv")
   path_to_comm_output <- file.path(dir_output_this_run, "CommunitySummary.csv")
 
+  {
+    sim_params = config
+    SpeciesPool = SpeciesPoolFileName
+    InitDist = path_to_init_file
+  }
+}
+
   # Run the IBM
   run_modve_sim(
     sim_params = config,
-    SpeciesPool = SpeciesPoolFilename,
+    SpeciesPool = SpeciesPoolFileName,
     Microhabitat,
     InitDist = path_to_init_file,
     path_to_ind_output,

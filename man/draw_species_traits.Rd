@@ -22,7 +22,7 @@ minimum and maximum bounds (between 0 and 1) in which to sample what fraction
 of MaxMass the mass at maturity corresponds to.
 \item \code{InterceptAgeMaturity} numeric, the intercept of the function generating
 the age at maturity as a function of mass at maturity
-\item \code{ScalingAgeMaturity} numeric, the exponent of the function generating
+\item \code{ScalingAgeMaturity} numeric between 0 and 1, the exponent of the function generating
 the age at maturity as a function of mass at maturity
 \item \code{AgeAtMaturityDevCorr} numeric, the range of possible deviation
 coefficients in the function generating age at maturity from mass at maturity.

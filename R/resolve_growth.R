@@ -13,7 +13,7 @@ resolve_growth <- function(E, Microhabitat, SurfaceBiomassScaling) {
 
     vox <- Microhabitat[E$X[i], E$Y[i], E$Z[i], ]
 
-    # maybe it is faster if I do not use the if statement => speed testing
+    # TODO: maybe it is faster if I do not use the if statement => speed testing
     if (E$Status[i] == 1) {
 
       # Von Bertalanffy growth function

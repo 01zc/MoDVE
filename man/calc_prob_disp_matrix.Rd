@@ -4,14 +4,7 @@
 \alias{calc_prob_disp_matrix}
 \title{Title}
 \usage{
-calc_prob_disp_matrix(
-  centralPoint,
-  dimX,
-  dimY,
-  dimZ,
-  NumberOfSpecies,
-  SpeciesPool
-)
+calc_prob_disp_matrix(centralPoint, dimX, dimY, dimZ, SpeciesPool)
 }
 \arguments{
 \item{centralPoint}{a numeric vector of length 3 containing the X, Y and Z
@@ -22,8 +15,6 @@ coordinates of the center}
 \item{dimY}{numeric, the Y dimension of the coordinate system}
 
 \item{dimZ}{numeric, the Z dimension of the coordinate system}
-
-\item{NumberOfSpecies}{the number of epiphyte species in the simulation}
 
 \item{SpeciesPool}{a data frame containing the species traits of all species}
 }
