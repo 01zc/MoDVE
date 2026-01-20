@@ -32,8 +32,13 @@ resolve_repro_dispersal <- function(E,
     nbIndsBeforeDisp[sp] <- length(which(E$SpeciesID == sp & E$Status == 1))
   }
 
-  # Deduce surface area
-  avail_sa_matrix <- get_surf_area_mat(E, Microhabitat[,,,1], SurfaceBiomassScaling)
+  # Habitat variables
+  light_mat <- Microhabitat[,,,3]
+  dim(light_mat) <- dim(Microhabitat)[1:3]
+  # keep same dimensions
+  avail_sa_matrix <- Microhabitat[,,,1]
+  dim(avail_sa_matrix) <- dim(Microhabitat)[1:3]
+  avail_sa_matrix <- get_surf_area_mat(E, avail_sa_matrix, SurfaceBiomassScaling)
 
   # Initialize potential recruitment dataframe
   unique_species <- unique(E$SpeciesID)
@@ -101,8 +106,8 @@ resolve_repro_dispersal <- function(E,
 
     # Matrix containing all voxel for which the light requirements are fulfilled
     pot_hab_matrix <- ifelse(
-      Microhabitat[, , , 3] >= minLight &
-        Microhabitat[, , , 3] <= maxLight,
+      light_mat >= minLight &
+        light_mat <= maxLight,
       1, 0
     )
 

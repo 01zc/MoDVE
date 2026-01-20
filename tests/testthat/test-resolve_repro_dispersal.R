@@ -10,13 +10,13 @@ test_that("consistent with old version", {
   surface_biomass_scaling <- runif(1, 0, 100)
 
   # Initialise a random 3D grid with individuals
-  dimensions <- sample(1:10, 3)
+  dimensions <- sample(1:300, 3)
   centralPoint <- find_central_point(dimensions)
 
   Microhabitat <- array(0, c(dimensions, 3))
   nb_suitable_voxels <- round(prod(dimensions) * runif(1, 0, 1))
   suitable_voxels <- sample(1:prod(dimensions), nb_suitable_voxels)
-  reqd_sa_per_ind <- SpeciesPool$MaximumMass^2/3 / surface_biomass_scaling
+  reqd_sa_per_ind <- SpeciesPool$MaximumMass^(2/3) / surface_biomass_scaling
   surface_area_mat <- array(0, dim = dimensions)
   surface_area_mat[suitable_voxels] <- reqd_sa_per_ind *
     sample(1:10, length(suitable_voxels), replace = TRUE)
@@ -47,9 +47,7 @@ test_that("consistent with old version", {
   #  expected_sa = Mass^(2 / 3) / surface_biomass_scaling
   #)
 
-  E[, c("TotalSurfaceInVoxel", "LightInVoxel", "SurfaceLossInVoxel")] <- 0
-  E$MassAtMaturity
-  min(E$LightInVoxel[is_sp])
+  # E[, c("TotalSurfaceInVoxel", "LightInVoxel", "SurfaceLossInVoxel")] <- 0
 
   prob_disp_matrix <- calc_prob_disp_matrix(centralPoint,
                                             dimensions[1],
@@ -75,6 +73,7 @@ test_that("consistent with old version", {
 
   recruitment_df <- disp_list$PotentialRecruitment
   names(recruitment_df) <- c("species_index", "exptd_nb_recruits")
+  recruitment_df$species_index[recruitment_df$species_index == 0] <- 1
   recruitment_df$nb_recruits <- as.numeric(disp_list$NumberRecruitsPerSpecies)
 
   res_exptd <- list(
