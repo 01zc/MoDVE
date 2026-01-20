@@ -4,10 +4,12 @@
 \alias{resolve_growth}
 \title{Title}
 \usage{
-resolve_growth(E, Microhabitat, SurfaceBiomassScaling)
+resolve_growth(E, SpeciesPool, Microhabitat, SurfaceBiomassScaling)
 }
 \arguments{
 \item{E}{epiphyte data frame}
+
+\item{SpeciesPool}{species data frame}
 
 \item{Microhabitat}{microhabitat matrix}
 

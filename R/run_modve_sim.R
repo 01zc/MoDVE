@@ -196,10 +196,10 @@ run_modve_sim <- function(sim_params,
     # E(E(:,1)==0,:)=[]; %in rare case, some individuals with only zeros are creates, which is wrong. This is to prevent the script to stop.
 
     # Growth
-    E <- resolve_growth(E, Microhabitat, sim_params$SurfaceBiomassScaling)
+    E <- resolve_growth(E, SpeciesPool, Microhabitat, sim_params$SurfaceBiomassScaling)
 
     # Mortality (except from competition)
-    E <- resolve_mortality(E, Microhabitat)
+    E <- resolve_mortality(E, SpeciesPool, Microhabitat)
 
     # Mortality due to competition for space
     E <- resolve_competition(E, Microhabitat, sim_params$CompetitionMethod)

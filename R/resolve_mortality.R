@@ -1,6 +1,7 @@
 #' Title
 #'
 #' @param E epiphyte data frame
+#' @param SpeciesPool species data frame
 #' @param Microhabitat microhabitat matrix
 #' @param MortalityMethod 0 = individuals die randomly according to `MortRateRandom`,
 #' or 1 = mortality is mass-dependent, using `MortRateMass * (mass^MortRateMassScaling)`
@@ -11,13 +12,16 @@
 #' @returns the modified epiphyte data frame
 #' @export
 #'
-resolve_mortality <- function(E, Microhabitat, MortalityMethod, MortRateRandom,
-                  MortRateMass, MortRateMassScaling) {
+resolve_mortality <- function(E, SpeciesPool, Microhabitat, MortalityMethod,
+                              MortRateRandom, MortRateMass, MortRateMassScaling) {
 
   for (i in seq_len(nrow(E))) {
     if (E$Status[i] == 1) {
 
       vox <- Microhabitat[E$X[i], E$Y[i], E$Z[i],]
+      this_species <- SpeciesPool$SpeciesID == E$SpeciesID[i]
+      min_light <- SpeciesPool$MinLight[this_species]
+      max_light <- SpeciesPool$MaxLight[this_species]
 
       # The following comparison would fail without the is.nan check,
       # because Microhabitat contains NaNs in some entries and
@@ -32,7 +36,7 @@ resolve_mortality <- function(E, Microhabitat, MortalityMethod, MortRateRandom,
       # Branch fall mortality
       if (!is.nan(vox[2]) && runif(1, min = 0, max = 1) < vox[2]) {
         E$Status[i] <- 3
-      } else if (vox[3] < E$MinLight[i] | vox[3] > E$MaxLight[i]) {
+      } else if (vox[3] < min_light | vox[3] > max_light) {
         # Unsuitable light conditions
         E$Status[i] <- 4
       } else if (MortalityMethod == 0 && runif(1, min = 0, max = 1) < MortRateRandom) {  # Natural mortality rate

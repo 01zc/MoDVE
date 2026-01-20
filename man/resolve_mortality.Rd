@@ -6,6 +6,7 @@
 \usage{
 resolve_mortality(
   E,
+  SpeciesPool,
   Microhabitat,
   MortalityMethod,
   MortRateRandom,
@@ -15,6 +16,8 @@ resolve_mortality(
 }
 \arguments{
 \item{E}{epiphyte data frame}
+
+\item{SpeciesPool}{species data frame}
 
 \item{Microhabitat}{microhabitat matrix}
 

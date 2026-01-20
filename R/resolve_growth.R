@@ -1,29 +1,33 @@
 #' Title
 #'
 #' @param E epiphyte data frame
+#' @param SpeciesPool species data frame
 #' @param Microhabitat microhabitat matrix
 #' @param SurfaceBiomassScaling numeric parameter
 #'
 #' @returns the modified epiphyte data frame
 #' @export
 #'
-resolve_growth <- function(E, Microhabitat, SurfaceBiomassScaling) {
+resolve_growth <- function(E, SpeciesPool, Microhabitat, SurfaceBiomassScaling) {
 
   for (i in seq_len(nrow(E))) {
 
     vox <- Microhabitat[E$X[i], E$Y[i], E$Z[i], ]
 
-    # TODO: maybe it is faster if I do not use the if statement => speed testing
+    # TODO: could be faster without if statement => speed testing
     if (E$Status[i] == 1) {
 
+      sp_row <- which(SpeciesPool$SpeciesID == E$SpeciesID[i])
+
       # Von Bertalanffy growth function
-      growth_term <- E$GrowthRate[i] * (E$MaximumMass[i] - E$Mass[i])
+      growth_term <- SpeciesPool$GrowthRate[sp_row] *
+        (SpeciesPool$MaximumMass[sp_row] - SpeciesPool$Mass[sp_row])
 
       # Parabolic light response
       light_vox <- vox[3]
-      light_term <- E$LightResponseA[i] * light_vox^2 +
-        E$LightResponseB[i] * light_vox +
-        E$LightResponseC[i]
+      light_term <- SpeciesPool$LightResponseA[sp_row] * light_vox^2 +
+        SpeciesPool$LightResponseB[sp_row] * light_vox +
+        SpeciesPool$LightResponseC[sp_row]
 
       E$Mass[i] <- E$Mass[i] + max(0, growth_term * light_term)
     }
