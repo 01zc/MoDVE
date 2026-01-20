@@ -1,70 +1,69 @@
-source("../old_funcs.R")
+source("tests/old_funcs.R")
+source("tests/test-utils.R")
 
-species_params <- parse_config("../config_a2.toml")
+species_params <- parse_config("tests/config_a2.toml")
 
 test_that("consistent with old version", {
 
-  nb_species <- 3
-
-  SpeciesPool <- 1:nb_species |>
-    purrr::imap(function(i) { draw_species_traits(species_params)}) |>
-    purrr::map(as.data.frame) |>
-    purrr::list_rbind()
-
+  nb_species <- 1
+  SpeciesPool <- create_rnd_species_df(nb_species, species_params)
   surface_biomass_scaling <- runif(1, 0, 100)
 
   # Initialise a random 3D grid with individuals
-  dimensions <- sample(1:20, 3)
-  surface_area_mat <- array(10, dim = dimensions)
-  nb_inds <- sample(1:dimensions[1], 1)
-
+  dimensions <- sample(1:10, 3)
   centralPoint <- find_central_point(dimensions)
 
-  nb_inds <- 20
-  #create_rnd_epiphyte_tbl <- function() {}
-
-  E <- tibble::tibble(
-    SpeciesID = 1,
-    IndividualID = seq_len(nb_inds),
-    Status = 1,
-    # Initialise individuals randomly
-    X = rep(sample(dimensions[1], nb_inds, replace = TRUE)),
-    Y = rep(sample(dimensions[2], nb_inds, replace = TRUE)),
-    Z = rep(sample(dimensions[3], nb_inds, replace = TRUE)),
-    Mass = runif(nb_inds, 0, 1),
-    MassAtMaturity = Mass,
-    MaxMass = Mass,
-    RecruitmentInvestmentRel = runif(nb_inds),
-    # Compute expected surface area
-    expected_sa = Mass^(2/3) / surface_biomass_scaling
-  )
-
-  idx_recruits <- 1:3
-  sp <- 1
-  E[idx_recruits, names(SpeciesPool)] <- SpeciesPool[sp, ]
-  E$X[idx_recruits] <- recruit_coords$x
-  E$Y[idx_recruits] <- recruit_coords$y
-  E$Z[idx_recruits] <- recruit_coords$z
-  E$Mass[idx_recruits] <- 0  # Initial size
-  E$Status[idx_recruits] <- 1  # status 1:alive
-  recruits_ids <- seq(max_id + 1, max_id + length(totalNbRecruits))
-  E$IndividualID[idx_recruits] <- recruits_ids
-
   Microhabitat <- array(0, c(dimensions, 3))
-  Microhabitat[,,,1] <- 0 # surface area
-  Microhabiat[,,,3] <- 0 # light
+  nb_suitable_voxels <- round(prod(dimensions) * runif(1, 0, 1))
+  suitable_voxels <- sample(1:prod(dimensions), nb_suitable_voxels)
+  reqd_sa_per_ind <- SpeciesPool$MaximumMass^2/3 / surface_biomass_scaling
+  surface_area_mat <- array(0, dim = dimensions)
+  surface_area_mat[suitable_voxels] <- reqd_sa_per_ind *
+    sample(1:10, length(suitable_voxels), replace = TRUE)
+  Microhabitat[, , , 1] <- surface_area_mat
+  Microhabitat[, , , 3] <- SpeciesPool$OptimumLight
 
-  prob_disp_matrix <- calc_prob_disp_matrix(
-    centralPoint, dimensions[1], dimensions[2], dimensions[3],
-    SpeciesPool
+  E <- draw_initial_individuals(
+    draw_rnd_initial_inds_params(),
+    SpeciesPool,
+    Microhabitat
   )
 
+  # nb_inds <- sample(1:dimensions[1], 1)
+  # nb_inds <- 20
+  # E <- tibble::tibble(
+  #  SpeciesID = 1,
+  #  IndividualID = seq_len(nb_inds),
+  #  Status = 1,
+  #  # Initialise individuals randomly
+  #  X = rep(sample(dimensions[1], nb_inds, replace = TRUE)),
+  #  Y = rep(sample(dimensions[2], nb_inds, replace = TRUE)),
+  #  Z = rep(sample(dimensions[3], nb_inds, replace = TRUE)),
+  #  Mass = runif(nb_inds, 0, 1),
+  #  MassAtMaturity = Mass,
+  #  MaxMass = Mass,
+  #  RecruitmentInvestmentRel = runif(nb_inds, 0, 1),
+  #  # Compute expected surface area
+  #  expected_sa = Mass^(2 / 3) / surface_biomass_scaling
+  #)
+
+  E[, c("TotalSurfaceInVoxel", "LightInVoxel", "SurfaceLossInVoxel")] <- 0
+  E$MassAtMaturity
+  min(E$LightInVoxel[is_sp])
+
+  prob_disp_matrix <- calc_prob_disp_matrix(centralPoint,
+                                            dimensions[1],
+                                            dimensions[2],
+                                            dimensions[3],
+                                            SpeciesPool)
+
+  max_id <- max(E$IndividualID)
 
   disp_list <- old_dispersal(
     nb_species,
     E,
     Microhabitat,
-    SurfaceBiomassScaling,
+    surface_biomass_scaling,
     dimensions,
     centralPoint,
     InterceptRecruitment,
@@ -74,10 +73,21 @@ test_that("consistent with old version", {
     max_id
   )
 
+  recruitment_df <- disp_list$PotentialRecruitment
+  names(recruitment_df) <- c("species_index", "exptd_nb_recruits")
+  recruitment_df$nb_recruits <- as.numeric(disp_list$NumberRecruitsPerSpecies)
+
+  res_exptd <- list(
+    "nbIndsBeforeDisp" = disp_list$IntialNumberIndividuals,
+    "E" = disp_list$E,
+    "recruitment_df" = recruitment_df,
+    "max_id" = disp_list$MaxIndividualID
+  )
+
   res_obs <- resolve_repro_dispersal(
     E,
     Microhabitat,
-    SurfaceBiomassScaling,
+    surface_biomass_scaling,
     centralPoint,
     InterceptRecruitment,
     SlopeRecruitment,
@@ -85,5 +95,7 @@ test_that("consistent with old version", {
     SpeciesPool,
     max_id
   )
+
+  expect_equal(res_obs, res_exptd)
 
 })

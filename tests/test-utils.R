@@ -75,3 +75,12 @@ draw_rnd_species_params <- function(max_val = 100) {
 draw_max_value <- function(min_val, upper_bound) {
   return(min_val + runif(1, 0, upper_bound - min_val))
 }
+
+draw_rnd_initial_inds_params <- function() {
+  return(list(
+    "SurfaceBiomassScaling" = runif(1, 1e-7, 10),
+    "IndividualsPerSpecies" = sample(1:100, 1),
+    "ScalingPerHa" = FALSE,
+    "PercentageMaturePerSpecies" = runif(1, 0, 100)
+  ))
+}

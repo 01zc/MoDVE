@@ -25,12 +25,8 @@ test_that("3D coordinates are converted to sequential index correctly", {
 
 test_that("Initial individuals are distributed correctly", {
 
-  rnd_params <- list(
-    "SurfaceBiomassScaling" = runif(1, 1e-7, 100),
-    "IndividualsPerSpecies" = sample(1:100, 1),
-    "ScalingPerHa" = FALSE,
-    "PercentageMaturePerSpecies" = runif(1, 0, 100)
-  )
+  rnd_params <- draw_rnd_initial_inds_params()
+  rnd_params$ScalingPerHa <- FALSE
   nb_species <- sample(1:5, 1)
   total_nb_inds <- nb_species * rnd_params$IndividualsPerSpecies
   species_df <- create_rnd_species_df(nb_species, draw_rnd_species_params())

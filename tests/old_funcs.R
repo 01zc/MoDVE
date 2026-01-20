@@ -215,13 +215,15 @@ old_dispersal <- function(NumberOfSpecies,
     colnames(PotentialRecruitment) <- c("index", "potential_recruit")
   }
 
-  disp_items <- list("IntialNumberIndividuals"=IntialNumberIndividuals,
-                     "NumberRecruitsPerSpecies"=NumberRecruitsPerSpecies,
-                     "InitialNumberSpecies"=InitialNumberSpecies,
-                     "IntialNumberIndividualsTotal"=IntialNumberIndividualsTotal,
-                     "E"=E,
-                     "PotentialRecruitment"=PotentialRecruitment,
-                     "MaxIndividualID"=MaxIndividualID)
+  disp_items <- list(
+    "IntialNumberIndividuals" = IntialNumberIndividuals,
+    "NumberRecruitsPerSpecies" = NumberRecruitsPerSpecies,
+    "InitialNumberSpecies" = InitialNumberSpecies,
+    "IntialNumberIndividualsTotal" = IntialNumberIndividualsTotal,
+    "E" = E,
+    "PotentialRecruitment" = PotentialRecruitment,
+    "MaxIndividualID" = MaxIndividualID
+  )
   return(disp_items)
 }
 

@@ -33,7 +33,7 @@ resolve_repro_dispersal <- function(E,
   }
 
   # Deduce surface area
-  avail_sa_matrix <- get_surf_area_mat(E, Microhabitat[,,,1], sim_params$SurfaceBiomassScaling)
+  avail_sa_matrix <- get_surf_area_mat(E, Microhabitat[,,,1], SurfaceBiomassScaling)
 
   # Initialize potential recruitment dataframe
   unique_species <- unique(E$SpeciesID)
@@ -118,14 +118,13 @@ resolve_repro_dispersal <- function(E,
 
     # Increment recruit counts
     totalNbRecruits <- sum(nb_recruits_matrix)
-    recruits_tbl$nb_recruits[sp] <- totalNbRecruits
+    recruitment_df$nb_recruits[sp] <- totalNbRecruits
 
     if (totalNbRecruits > 0) {
 
       # Add new recruits to epiphyte matrix
       recruit_coords <- extract_ind_coords(nb_recruits_matrix)
       idx_recruits <- seq(nrow(E) + 1, nrow(E) + totalNbRecruits)
-      E[idx_recruits, names(SpeciesPool)] <- SpeciesPool[sp, ]
       E$X[idx_recruits] <- recruit_coords$x
       E$Y[idx_recruits] <- recruit_coords$y
       E$Z[idx_recruits] <- recruit_coords$z
