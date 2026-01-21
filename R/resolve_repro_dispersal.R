@@ -53,6 +53,7 @@ resolve_repro_dispersal <- function(E,
   for (i in seq_len(NumberOfSpecies)) {
 
     sp <- unique_species[i]
+    this_species <- which(SpeciesPool$SpeciesID == sp)
 
     # Generate initially empty matrix to store the probabilities for recruitment
     exptd_nb_recruits_matrix <- array(
@@ -61,7 +62,8 @@ resolve_repro_dispersal <- function(E,
     )
 
     # Matrix containing all mature individuals of one species
-    mature_inds <- E[E$SpeciesID == sp & E$Mass >= E$MassAtMaturity, ]
+    mass_maturity <- SpeciesPool$MassAtMaturity[this_species]
+    mature_inds <- E[E$SpeciesID == sp & E$Mass >= mass_maturity, ]
 
     minLight <- SpeciesPool$MinLight[i]
     maxLight <- SpeciesPool$MaxLight[i]
@@ -85,15 +87,15 @@ resolve_repro_dispersal <- function(E,
 
       # Mass-dependent fecundity coefficient
       mass_coeff <- (InterceptRecruitment + SlopeRecruitment) * mature_inds$Mass[j] *
-        mature_inds$RecruitmentInvestmentRel[j] # base mass-to-reproduction allocation
+        SpeciesPool$RecruitmentInvestmentRel[this_species] # base mass-to-reproduction allocation
 
       # Relative mass growth since the individual has reached maturity
       # 0 = just reached maturity
       # 1 = max mass reached
-      rel_growth <- (mature_inds$Mass[j] - mature_inds$MassAtMaturity[j]) /
-        (mature_inds$MaximumMass[j] - mature_inds$MassAtMaturity[j])
+      rel_growth <- (mature_inds$Mass[j] - mass_maturity) /
+        (SpeciesPool$MaximumMass[this_species] - mass_maturity)
       # Reproduction allocation increases with relative growth
-      incr_alloc_coeff <- 1 + (mature_inds$RecruitmentInc[j] * rel_growth)
+      incr_alloc_coeff <- 1 + (SpeciesPool$RecruitmentInc[this_species] * rel_growth)
 
       # Dispersal probability * fecundity = expected nb offspring in each xyz
       exptd_nb_recruits_matrix <- exptd_nb_recruits_matrix +

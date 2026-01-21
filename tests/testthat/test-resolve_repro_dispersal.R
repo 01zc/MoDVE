@@ -7,24 +7,26 @@ test_that("consistent with old version", {
 
   nb_species <- 1
   SpeciesPool <- create_rnd_species_df(nb_species, species_params)
-  surface_biomass_scaling <- runif(1, 0, 100)
+  SurfaceBiomassScaling <- runif(1, 0, 100)
 
   # Initialise a random 3D grid with individuals
-  dimensions <- sample(1:300, 3)
+  dimensions <- sample(2:10, 3)
   centralPoint <- find_central_point(dimensions)
 
   Microhabitat <- array(0, c(dimensions, 3))
   nb_suitable_voxels <- round(prod(dimensions) * runif(1, 0, 1))
   suitable_voxels <- sample(1:prod(dimensions), nb_suitable_voxels)
-  reqd_sa_per_ind <- SpeciesPool$MaximumMass^(2/3) / surface_biomass_scaling
+  reqd_sa_per_ind <- SpeciesPool$MaximumMass^(2/3) / SurfaceBiomassScaling
   surface_area_mat <- array(0, dim = dimensions)
   surface_area_mat[suitable_voxels] <- reqd_sa_per_ind *
     sample(1:10, length(suitable_voxels), replace = TRUE)
   Microhabitat[, , , 1] <- surface_area_mat
   Microhabitat[, , , 3] <- SpeciesPool$OptimumLight
 
+  init_params <-draw_rnd_initial_inds_params()
+  init_params$PercentageMaturePerSpecies <- rep(100, nb_species)
   E <- draw_initial_individuals(
-    draw_rnd_initial_inds_params(),
+    init_params,
     SpeciesPool,
     Microhabitat
   )
@@ -44,7 +46,7 @@ test_that("consistent with old version", {
   #  MaxMass = Mass,
   #  RecruitmentInvestmentRel = runif(nb_inds, 0, 1),
   #  # Compute expected surface area
-  #  expected_sa = Mass^(2 / 3) / surface_biomass_scaling
+  #  expected_sa = Mass^(2 / 3) / SurfaceBiomassScaling
   #)
 
   # E[, c("TotalSurfaceInVoxel", "LightInVoxel", "SurfaceLossInVoxel")] <- 0
@@ -57,11 +59,14 @@ test_that("consistent with old version", {
 
   max_id <- max(E$IndividualID)
 
+  E_old <- E
+  E_old[, (ncol(E)+1):(ncol(E)+1+ncol(SpeciesPool))] <- SpeciesPool
+
   disp_list <- old_dispersal(
     nb_species,
-    E,
+    E_old,
     Microhabitat,
-    surface_biomass_scaling,
+    SurfaceBiomassScaling,
     dimensions,
     centralPoint,
     InterceptRecruitment,
@@ -86,7 +91,7 @@ test_that("consistent with old version", {
   res_obs <- resolve_repro_dispersal(
     E,
     Microhabitat,
-    surface_biomass_scaling,
+    SurfaceBiomassScaling,
     centralPoint,
     InterceptRecruitment,
     SlopeRecruitment,
@@ -96,5 +101,4 @@ test_that("consistent with old version", {
   )
 
   expect_equal(res_obs, res_exptd)
-
 })
