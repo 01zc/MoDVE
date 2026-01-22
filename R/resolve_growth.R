@@ -21,15 +21,15 @@ resolve_growth <- function(E, SpeciesPool, Microhabitat, SurfaceBiomassScaling) 
 
       # Von Bertalanffy growth function
       growth_term <- SpeciesPool$GrowthRate[sp_row] *
-        (SpeciesPool$MaximumMass[sp_row] - SpeciesPool$Mass[sp_row])
+        (SpeciesPool$MaximumMass[sp_row] - E$Mass[i])
 
       # Parabolic light response
       light_vox <- vox[3]
-      light_term <- SpeciesPool$LightResponseA[sp_row] * light_vox^2 +
+      light_term <- max(0, SpeciesPool$LightResponseA[sp_row] * light_vox^2 +
         SpeciesPool$LightResponseB[sp_row] * light_vox +
-        SpeciesPool$LightResponseC[sp_row]
+        SpeciesPool$LightResponseC[sp_row])
 
-      E$Mass[i] <- E$Mass[i] + max(0, growth_term * light_term)
+      E$Mass[i] <- E$Mass[i] + growth_term * light_term
     }
 
     # Add info about the voxel to the epiphyte matrix
