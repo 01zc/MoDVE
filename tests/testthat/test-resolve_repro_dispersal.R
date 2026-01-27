@@ -58,9 +58,24 @@ test_that("consistent with old version", {
                                             SpeciesPool)
 
   max_id <- max(E$IndividualID)
+  InterceptRecruitment <- runif(0, 100, 1)
+  SlopeRecruitment <- runif(0, 1, 1)
 
+  # Format input to the old version
+  dimX <- dimensions[1] * 2 + 1
+  dimY <- dimensions[2] * 2 + 1
+  dimZ <- dimensions[3] * 2 + 1
+  central_point_old <- c(
+    floor(dimX/2) + 1,
+    floor(dimY/2) + 1,
+    floor(dimZ/2) + 1
+  )
+  prob_disp_matrix_old <- old_compute_prob_matrix_norm(
+    central_point_old, dimX, dimY, dimZ, nb_species, SpeciesPool
+    )
   E_old <- E
   E_old[, (ncol(E)+1):(ncol(E)+1+ncol(SpeciesPool))] <- SpeciesPool
+
 
   disp_list <- old_dispersal(
     nb_species,
@@ -68,7 +83,7 @@ test_that("consistent with old version", {
     Microhabitat,
     SurfaceBiomassScaling,
     dimensions,
-    centralPoint,
+    central_point_old,
     InterceptRecruitment,
     SlopeRecruitment,
     prob_disp_matrix,

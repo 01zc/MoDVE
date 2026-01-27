@@ -86,7 +86,7 @@ resolve_repro_dispersal <- function(E,
       z_coords <- seq(dist_to_center[3] + 1, dist_to_center[3] + dimPlot[3])
 
       # Mass-dependent fecundity coefficient
-      mass_coeff <- (InterceptRecruitment + SlopeRecruitment) * mature_inds$Mass[j] *
+      mass_coeff <- (InterceptRecruitment + SlopeRecruitment * mature_inds$Mass[j]) *
         SpeciesPool$RecruitmentInvestmentRel[this_species] # base mass-to-reproduction allocation
 
       # Relative mass growth since the individual has reached maturity
