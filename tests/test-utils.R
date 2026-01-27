@@ -7,7 +7,7 @@ index_3d <- function(x, y, z, dimX, dimY) {
 #' Convenience wrapper that calls [draw_species_traits()] for multiple species
 #' and formats the output as a dataframe.
 #'
-create_rnd_species_df <- function(nb_species, species_params) {
+create_rnd_species_df <- function(nb_species, species_params = draw_rnd_species_params()) {
 
   species_df <- purrr::imap_dfr(1:nb_species, function(x, i) {
     as.data.frame(c("SpeciesID" = i, draw_species_traits(species_params)))
@@ -28,22 +28,22 @@ draw_rnd_species_params <- function(max_val = 100) {
 
   sp_params <- list(
     MaxMassLogScaleRandom = runif(1) > 0.5, # coin flip
-    MaxMassRandom = runif(1, 0, max_val), #
+    MaxMassRandom = runif(1, 0, max_val),
     InterceptAgeMaturity = runif(1, 0, max_val),
     AgeAtMaturityDevCorr = runif(1, 0, 1),
     ScalingAgeMaturity = runif(1, 0, 1),
-    MassAtMaturityRelativeRandom = runif(1, 0, 1), ##
+    MassAtMaturityRelativeRandom = runif(1, 0, 1),
 
     CorrelationMassRecruitment = runif(1) > 0.5,
 
-    DispersalKernelRandom = runif(1, 0, max_val), #
-    DispersalKernelAsymmetryRandom = runif(1, 0, 1), ##
+    DispersalKernelRandom = runif(1, 0, max_val),
+    DispersalKernelAsymmetryRandom = runif(1, 0, 1),
 
-    HeightBreadthRandom = runif(1, 0, max_val), #
+    HeightBreadthRandom = runif(1, 0, 1),
 
     Imax = runif(1, 0, max_val),
-    kL = runif(1, 0, max_val),
-    LAI = runif(1, 0, max_val)
+    kL = runif(1, 0, 1),
+    LAI = runif(1, 0, min(10, max_val))
   )
 
   sp_params$MaxMassRandom[2] <- draw_max_value(sp_params$MaxMassRandom[1], max_val)
@@ -54,7 +54,7 @@ draw_rnd_species_params <- function(max_val = 100) {
   sp_params$DispersalKernelAsymmetryRandom[2] <- draw_max_value(
     sp_params$DispersalKernelAsymmetryRandom[1], 1
   )
-  sp_params$HeightBreadthRandom[2] <- draw_max_value(sp_params$HeightBreadthRandom[1], max_val)
+  sp_params$HeightBreadthRandom[2] <- draw_max_value(sp_params$HeightBreadthRandom[1], 1)
 
   # Parameters that depend on the correlation mass option
   if (sp_params$CorrelationMassRecruitment) {
@@ -83,4 +83,25 @@ draw_rnd_initial_inds_params <- function() {
     "ScalingPerHa" = FALSE,
     "PercentageMaturePerSpecies" = runif(1, 0, 100)
   ))
+}
+
+#' Create a microhabitat matrix of specified dimensions and fill its
+#' surface area and light layer based on species requirements
+#'
+#' Surface area is set such that:
+#' * a random fraction of all voxels are suitable
+#' * each suitable voxels can sustain between 1 and 10 individuals of maximum mass
+create_rnd_microhabitat <- function(SpeciesPool, dimensions, SurfaceBiomassScaling) {
+
+  Microhabitat <- array(0, c(dimensions, 3))
+  nb_suitable_voxels <- round(prod(dimensions) * runif(1, 0, 1))
+  suitable_voxels <- sample(1:prod(dimensions), nb_suitable_voxels)
+  reqd_sa_per_ind <- SpeciesPool$MaximumMass^(2/3) / SurfaceBiomassScaling
+  surface_area_mat <- array(0, dim = dimensions)
+  surface_area_mat[suitable_voxels] <- reqd_sa_per_ind *
+    sample(1:10, length(suitable_voxels), replace = TRUE)
+  Microhabitat[, , , 1] <- surface_area_mat
+  Microhabitat[, , , 3] <- SpeciesPool$OptimumLight
+
+  return(Microhabitat)
 }

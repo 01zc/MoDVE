@@ -13,15 +13,7 @@ test_that("consistent with old version", {
   dimensions <- sample(2:10, 3)
   centralPoint <- find_central_point(dimensions)
 
-  Microhabitat <- array(0, c(dimensions, 3))
-  nb_suitable_voxels <- round(prod(dimensions) * runif(1, 0, 1))
-  suitable_voxels <- sample(1:prod(dimensions), nb_suitable_voxels)
-  reqd_sa_per_ind <- SpeciesPool$MaximumMass^(2/3) / SurfaceBiomassScaling
-  surface_area_mat <- array(0, dim = dimensions)
-  surface_area_mat[suitable_voxels] <- reqd_sa_per_ind *
-    sample(1:10, length(suitable_voxels), replace = TRUE)
-  Microhabitat[, , , 1] <- surface_area_mat
-  Microhabitat[, , , 3] <- SpeciesPool$OptimumLight
+  Microhabitat <- create_rnd_microhabitat(SpeciesPool, dimensions, SurfaceBiomassScaling)
 
   init_params <-draw_rnd_initial_inds_params()
   init_params$PercentageMaturePerSpecies <- rep(100, nb_species)
