@@ -15,7 +15,7 @@ test_that("consistent with old version", {
 
   Microhabitat <- create_rnd_microhabitat(SpeciesPool, dimensions, SurfaceBiomassScaling)
 
-  init_params <-draw_rnd_initial_inds_params()
+  init_params <- draw_rnd_initial_inds_params()
   init_params$PercentageMaturePerSpecies <- rep(100, nb_species)
   E <- draw_initial_individuals(
     init_params,
