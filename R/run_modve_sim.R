@@ -199,7 +199,9 @@ run_modve_sim <- function(sim_params,
     E <- resolve_growth(E, SpeciesPool, Microhabitat, sim_params$SurfaceBiomassScaling)
 
     # Mortality (except from competition)
-    E <- resolve_mortality(E, SpeciesPool, Microhabitat)
+    E <- resolve_mortality(E, SpeciesPool, Microhabitat, sim_params$MortalityMethod,
+                           sim_params$MortRateRandom, sim_params$MortRateMass,
+                           sim_params$MortRateMassScaling)
 
     # Mortality due to competition for space
     E <- resolve_competition(E, Microhabitat, sim_params$CompetitionMethod)

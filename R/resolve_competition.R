@@ -2,13 +2,13 @@
 #'
 #' @param E epiphyte data frame
 #' @param Microhabitat microhabitat matrix
-#' @param CompetitionMethod integer, 1 = larger individuals get priority in
-#' voxel attribution, otherwise individuals are distributed randomly.
+#' @param larger_first boolean, `TRUE` = larger individuals get priority in
+#' voxel attribution, otherwise (`FALSE`) individuals are distributed randomly.
 #'
 #' @returns the modified epiphyte data frame
 #' @export
 #'
-resolve_competition <- function(E, Microhabitat, CompetitionMethod) {
+resolve_competition <- function(E, Microhabitat, larger_first) {
 
   # Calculate total surface area occupied by epiphytes per voxel
   dims <- dim(Microhabitat)
@@ -36,12 +36,12 @@ resolve_competition <- function(E, Microhabitat, CompetitionMethod) {
 
   for (i in seq_len(length(vox_xs))) {
 
-    # Get all individuals in thisvoxel
+    # Get all individuals in this voxel
     isInVoxel <- E$X == vox_xs[i] & E$Y == vox_ys[i] & E$Z == vox_zs[i]
     indsInVoxel <- E[isInVoxel & E$Status == 1, ]
 
     # Sort individuals
-    if (CompetitionMethod == 1) { # priority to larger individuals
+    if (larger_first) { # priority to larger individuals
       ind_seq <- order(indsInVoxel$SurfaceAreaOccupied, decreasing = TRUE)
     } else { # random
       ind_seq <- sample(seq_len(nrow(indsInVoxel)))
@@ -58,7 +58,7 @@ resolve_competition <- function(E, Microhabitat, CompetitionMethod) {
       # largest n individuals live, the rest die
       seq_beyond_capacity <- int_seq(capacity + 1, nrow(indsInVoxel))
       dead_ids <- indsInVoxel[seq_beyond_capacity, "IndividualID"]
-      these_die <- is.element(E$IndividualID, dead_ids)
+      these_die <- E$IndividualID %in% dead_ids$IndividualID
       E[these_die, "Status"] <- 2
     }
   }

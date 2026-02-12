@@ -3,16 +3,21 @@
 #' @param E epiphyte data frame
 #' @param SpeciesPool species data frame
 #' @param Microhabitat microhabitat matrix
-#' @param MortalityMethod 0 = individuals die randomly according to `MortRateRandom`,
-#' or 1 = mortality is mass-dependent, using `MortRateMass * (mass^MortRateMassScaling)`
-#' @param MortRateRandom numeric parameter
-#' @param MortRateMass numeric parameter
-#' @param MortRateMassScaling numeric parameter
+#' @param use_mass_dep_mortality boolean, if `FALSE` individuals die randomly
+#' according to `MortRateRandom`, if `TRUE` mortality is mass-dependent, using
+#' `MortRateMass * (mass^MortRateMassScaling)`.
+#' @param MortRateRandom numeric between 0 and 1, the probability of an
+#' individual dying if `use_mass_dep_mortality == FALSE`
+#' @param MortRateMass numeric, if `use_mass_dep_mortality == TRUE` the
+#' coefficient for the effect of mass on the probability of death
+#' @param MortRateMassScaling numeric between `-Inf` and `0`, if
+#' `use_mass_dep_mortality == TRUE` the exponent for the effect of mass on the
+#' probability of death. Must be negative or zero.
 #'
 #' @returns the modified epiphyte data frame
 #' @export
 #'
-resolve_mortality <- function(E, SpeciesPool, Microhabitat, MortalityMethod,
+resolve_mortality <- function(E, SpeciesPool, Microhabitat, use_mass_dep_mortality,
                               MortRateRandom, MortRateMass, MortRateMassScaling) {
 
   for (i in seq_len(nrow(E))) {
@@ -39,10 +44,10 @@ resolve_mortality <- function(E, SpeciesPool, Microhabitat, MortalityMethod,
       } else if (vox[3] < min_light | vox[3] > max_light) {
         # Unsuitable light conditions
         E$Status[i] <- 4
-      } else if (MortalityMethod == 0 && runif(1, min = 0, max = 1) < MortRateRandom) {  # Natural mortality rate
+      } else if (!use_mass_dep_mortality && runif(1, min = 0, max = 1) < MortRateRandom) {  # Natural mortality rate
         # Baseline random mortality
         E$Status[i] <- 5
-      } else if (MortalityMethod == 1 && runif(1, min = 0, max = 1) < (MortRateMass * (E$Mass[i]^MortRateMassScaling))) {
+      } else if (use_mass_dep_mortality && runif(1, min = 0, max = 1) < (MortRateMass * (E$Mass[i]^MortRateMassScaling))) {
         # Mass-dependent mortality
         E$Status[i] <- 5
       }

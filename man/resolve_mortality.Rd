@@ -8,7 +8,7 @@ resolve_mortality(
   E,
   SpeciesPool,
   Microhabitat,
-  MortalityMethod,
+  use_mass_dep_mortality,
   MortRateRandom,
   MortRateMass,
   MortRateMassScaling
@@ -21,14 +21,19 @@ resolve_mortality(
 
 \item{Microhabitat}{microhabitat matrix}
 
-\item{MortalityMethod}{0 = individuals die randomly according to \code{MortRateRandom},
-or 1 = mortality is mass-dependent, using \code{MortRateMass * (mass^MortRateMassScaling)}}
+\item{use_mass_dep_mortality}{boolean, if \code{FALSE} individuals die randomly
+according to \code{MortRateRandom}, if \code{TRUE} mortality is mass-dependent, using
+\code{MortRateMass * (mass^MortRateMassScaling)}.}
 
-\item{MortRateRandom}{numeric parameter}
+\item{MortRateRandom}{numeric between 0 and 1, the probability of an
+individual dying if \code{use_mass_dep_mortality == FALSE}}
 
-\item{MortRateMass}{numeric parameter}
+\item{MortRateMass}{numeric, if \code{use_mass_dep_mortality == TRUE} the
+coefficient for the effect of mass on the probability of death}
 
-\item{MortRateMassScaling}{numeric parameter}
+\item{MortRateMassScaling}{numeric between \code{-Inf} and \code{0}, if
+\code{use_mass_dep_mortality == TRUE} the exponent for the effect of mass on the
+probability of death. Must be negative or zero.}
 }
 \value{
 the modified epiphyte data frame
