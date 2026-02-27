@@ -132,18 +132,19 @@ resolve_repro_dispersal <- function(E,
       # Add new recruits to epiphyte matrix
       recruit_coords <- extract_ind_coords(nb_recruits_matrix)
       idx_recruits <- seq(nrow(E) + 1, nrow(E) + totalNbRecruits)
+      E[idx_recruits, ] <- NA
       E$X[idx_recruits] <- recruit_coords$x
       E$Y[idx_recruits] <- recruit_coords$y
       E$Z[idx_recruits] <- recruit_coords$z
       E$Mass[idx_recruits] <- 0  # Initial size
+      E$Age[idx_recruits] <- 0
+      E$SurfaceAreaOccupied[idx_recruits] <- 0
       E$Status[idx_recruits] <- 1  # status 1:alive
-      recruits_ids <- seq(max_id + 1, max_id + length(totalNbRecruits))
+      recruits_ids <- seq(max_id + 1, max_id + totalNbRecruits)
       E$IndividualID[idx_recruits] <- recruits_ids
+      E$SpeciesID[idx_recruits] <- sp
 
-      E[is.na(E)] <- 0  # convert all NA to 0 so that the R script matches the Matlab
-      # TODO: this is likely to cause bugs
-
-      max_id <- max_id + length(x_recruits)
+      max_id <- max_id + totalNbRecruits
     } # if any recruits
 
   } # species loop

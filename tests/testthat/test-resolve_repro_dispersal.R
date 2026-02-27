@@ -26,8 +26,10 @@ test_that("consistent with old version", {
   InterceptRecruitment <- runif(1, 0, 100)
   SlopeRecruitment <- runif(1, 0, 1)
 
-  # Format input to the old version
-  dims_with_corr <- dimPlot <-  dimensions * 2 + 1
+
+  # 1 - Generate expectation with old version
+  # Format input to the old format
+  dims_with_corr <- dimensions * 2 + 1
   ProbabilityMatrixNormalized <- old_compute_prob_matrix_norm(
     centralPoint,
     dims_with_corr[1],
@@ -36,12 +38,11 @@ test_that("consistent with old version", {
     nb_species,
     SpeciesPool
   )
-  E[, (ncol(E)+1):(ncol(E)+1+ncol(SpeciesPool))] <- SpeciesPool
-  {
-    NumberOfSpecies <- nb_species
-    dimPlot <- dims_with_corr
-    MaxIndividualID <- max_id
-  }
+  # Collate species traits to individual table
+  extra_col_indices <- (ncol(E) + 1):(ncol(E) + ncol(SpeciesPool) - 1)
+  E[, extra_col_indices] <- SpeciesPool[, 2:ncol(SpeciesPool)]
+  # Need to use the same RNG for both functions
+  rng_state <- .Random.seed
   disp_list <- old_dispersal(
     nb_species,
     E,
@@ -63,29 +64,25 @@ test_that("consistent with old version", {
 
   res_exptd <- list(
     "nbIndsBeforeDisp" = disp_list$IntialNumberIndividuals,
-    "E" = disp_list$E,
+    "E" = disp_list$E[, 1:9], # we don't care about species-level data
     "recruitment_df" = recruitment_df,
     "max_id" = disp_list$MaxIndividualID
   )
 
-  prob_disp_matrix <- calc_prob_disp_matrix(centralPoint,
-                                            dimensions[1],
-                                            dimensions[2],
-                                            dimensions[3],
-                                            SpeciesPool)
-  prob_disp_matrix <- ProbabilityMatrixNormalized
-
+  # 2 - Run the current algorithm
+  .Random.seed <- rng_state # restore to ensure both versions use same RNG
   res_obs <- resolve_repro_dispersal(
-    E,
+    E[,1:9],
     Microhabitat,
     SurfaceBiomassScaling,
     centralPoint,
     InterceptRecruitment,
     SlopeRecruitment,
-    prob_disp_matrix,
+    ProbabilityMatrixNormalized,
     SpeciesPool,
     max_id
   )
 
   expect_equal(res_obs, res_exptd)
 })
+

@@ -35,6 +35,7 @@ resolve_growth <- function(E, SpeciesPool, Microhabitat, SurfaceBiomassScaling) 
     # Add info about the voxel to the epiphyte matrix
     E$SurfaceAreaOccupied[i] <- (E$Mass[i]^(2/3)) / SurfaceBiomassScaling
     # TODO: do we really need individual-level copies of these habitat values?
+    # This is only for output, not used during simulation
     E$TotalSurfaceInVoxel[i] <- vox[1]  # Total surface in voxel
     E$SurfaceLossInVoxel[i] <- vox[2]  # Percentage surface loss in this year
     E$LightInVoxel[i] <- vox[3]  # Light conditions in voxel

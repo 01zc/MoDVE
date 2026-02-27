@@ -167,6 +167,7 @@ run_modve_sim <- function(sim_params,
 
     # Dispersal
     stop("TODO: change calls from E columns to SpeciesPool")
+    stop("TODO: make sure we use the expanded prob matrix as in old script")
     disp_items <- resolve_repro_dispersal(
       E, Microhabitat, sim_params$SurfaceBiomassScaling,
       centralPoint, sim_params$InterceptRecruitment,
