@@ -70,7 +70,8 @@ test_that("consistent with old version", {
   )
 
   # 2 - Run the current algorithm
-  .Random.seed <- rng_state # restore to ensure both versions use same RNG
+  # restore seed to ensure both versions use same RNG
+  assign(".Random.seed", rng_state, envir = .GlobalEnv)
   res_obs <- resolve_repro_dispersal(
     E[,1:9],
     Microhabitat,
