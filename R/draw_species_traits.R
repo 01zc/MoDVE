@@ -71,11 +71,13 @@
 #'  D_k_A = 0.5 corresponds to symmetric dispersal; with D_k_A = 1 individuals
 #'  disperse stricly below themselves; with D_k_A = 0 individuals never disperse
 #'  only above themselves or at their height.
-#'  }
 #'  * `RecruitmentInvestmentRel` numeric between 0 and 1, a coefficient scaling
-#'  the mass-dependent fecundity coefficient (see [resolve_repro_dispersal()] )
-#'  * `RecruitmentInc` a positive coefficient scaling how relative mass growth (see [resolve_repro_dispersal()] )
-#'  increases fecundity.
+#'  the mass-dependent fecundity coefficient (see [resolve_repro_dispersal()]),
+#'  representing the fraction of available biomass invested in fecundity
+#'  * `RecruitmentInc` numeric between 0 and 1, scaling how fecundity increases
+#'  with the growth stage of the epiphyte. This factor ranges from `1` when
+#'  `Mass` = `MassAtMaturity`, and `2 * RecruitmentInc` when
+#'  `Mass` = `MaximumMass`.
 #'  * `MinLight` positive numeric, minimum light conditions under which this species can survive
 #'  * `MaxLight` positive numeric, maximum light conditions under which this species can survive
 #'  * `OptimumLight` positive numeric, optimum light conditions under which individuals of this species
@@ -133,6 +135,9 @@ draw_species_traits <- function(species_params) {
     RecruitmentInc <- runif(1, RecruitmentIncRandom[1], RecruitmentIncRandom[2])
       # Not meaningful if no correlation
   }
+  # Both parameters must be between 0 and 1
+  RecruitmentInvestmentRel <- RecruitmentInvestmentRel |> min(1) |> max(0)
+  RecruitmentInc <- RecruitmentInc |> min(1) |> max(0)
 
    # Dispersal
   DispersalKernel <- runif(1, DispersalKernelRandom[1], DispersalKernelRandom[2])

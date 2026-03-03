@@ -15,6 +15,7 @@ test_that("consistent with previous version", {
   mat_exptd <- old_compute_prob_matrix_norm(centralPoint, dimX, dimY, dimZ, nrow(SpeciesPool), SpeciesPool)
   mat_obs <- calc_prob_disp_matrix(centralPoint, dimX, dimY, dimZ,  SpeciesPool)
   testthat::expect_equal(mat_exptd, mat_obs)
+  testthat::expect_equal(sum(mat_obs[,,,1]), 1)
 })
 
 test_that("matrix of with 1-dimension are accepted", {

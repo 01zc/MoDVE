@@ -1,5 +1,5 @@
-
 source("../test-utils.R")
+
 ref_sp_params <- parse_config("../config_a2.toml")
 
 test_that("Input is checked correctly", {

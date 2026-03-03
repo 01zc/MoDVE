@@ -42,6 +42,14 @@ check_species_df <- function(species_df) {
     stop("All values in species_df column MaximumMass should be >= MassAtMaturity")
   }
 
+  if (any(species_df$RecruitmentInvestmentRel > 1)) {
+    stop("species_df element RecruitmentInvestmentRel contains elements higher than 1.")
+  }
+
+  if (any(species_df$RecruitmentInc > 1)) {
+    stop("species_df element RecruitmentInc contains elements higher than 1.")
+  }
+
   if (any(species_df$DispersalKernelAsymmetry > 1)) {
     stop("species_df element DispersalKernelAsymmetry contains elements higher than 1.")
   }

@@ -59,14 +59,14 @@ draw_rnd_species_params <- function(max_val = 100) {
   # Parameters that depend on the correlation mass option
   if (sp_params$CorrelationMassRecruitment) {
     sp_params$RecruitmentInvestmentRelDevCorr <- runif(1, 0, 1)
-    sp_params$RecruitmentInvestmentRelMeanCorr <- runif(1, 0, max_val)
+    sp_params$RecruitmentInvestmentRelMeanCorr <- runif(1, 0, 1)
   }
   else {
-    sp_params$RecruitmentIncRandom <- runif(1, 0, max_val)
-    sp_params$RecruitmentIncRandom[2] <- draw_max_value(sp_params$RecruitmentIncRandom[1], max_val)
+    sp_params$RecruitmentIncRandom <- runif(1, 0, 1)
+    sp_params$RecruitmentIncRandom[2] <- draw_max_value(sp_params$RecruitmentIncRandom[1], 1)
 
-    sp_params$RecruitmentInvestmentRelMeanRandom <- runif(1, 0, max_val)
-    sp_params$RecruitmentInvestmentRelMeanRandom[2] <- draw_max_value(sp_params$RecruitmentInvestmentRelMeanRandom[1], max_val)
+    sp_params$RecruitmentInvestmentRelMeanRandom <- runif(1, 0, 1)
+    sp_params$RecruitmentInvestmentRelMeanRandom[2] <- draw_max_value(sp_params$RecruitmentInvestmentRelMeanRandom[1], 1)
   }
   return(sp_params)
 }

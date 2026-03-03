@@ -168,10 +168,14 @@ old_dispersal <- function(NumberOfSpecies,
         pot_habitat <- ifelse((Microhabitat[, , , 3] >= MatureIndividulsPerSpecies$MinLight[1]) & (Microhabitat[, , , 3] <= MatureIndividulsPerSpecies$MaxLight[1]), 1, 0)
 
         # Final probabiliy matrix for new recruits
-        probability_recruits <- ProbabilityMatrixPerSpecies * pot_habitat * AvailableSurfaceArea
+        probability_recruits <- ProbabilityMatrixPerSpecies *
+          pot_habitat * AvailableSurfaceArea
 
         # Calculate number of recuits based on final probability matrix
-        Recruits <- array(rpois(length(probability_recruits), probability_recruits), dim=dim(probability_recruits))  # poissrnd(probability_recruits) in matlab
+        Recruits <- array(
+          rpois(length(probability_recruits), probability_recruits),
+          dim=dim(probability_recruits)
+          )  # poissrnd(probability_recruits) in matlab
 
         # Add new recruits to epiphyte matrix
         num_recruits <- sum(Recruits)  # sum(sum(sum(Recruits))) in matlab
