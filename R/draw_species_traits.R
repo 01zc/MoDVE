@@ -63,9 +63,9 @@
 #'  * `MaximumMass` positive numeric, the maximum mass an individual can reach.
 #'  * `MassAtMaturity` numeric between 0 and and `MaximumMass`,
 #'  fraction of `MaximumMass` above which at individual can reproduce.
-#'  * `GrowthRate` positive numeric, the fraction of remaining growth an individual
-#'  gains in a single generation (i.e, mass increase = growth_rate * (max_mass - mass)),
-#'  under optimal light conditions.
+#'  * `GrowthRate` numeric between 0 an 1, the fraction of remaining growth an
+#'  individual gains in a single generation (i.e, mass increase = growth_rate *
+#'  (max_mass - mass)), under optimal light conditions.
 #'  * `DispersalKernel` positive numeric, the dispersal kernel.
 #'  * `DispersalKernelAsymmetry` numeric between 0 and 1, the dispersal asymmetry.
 #'  D_k_A = 0.5 corresponds to symmetric dispersal; with D_k_A = 1 individuals
@@ -115,7 +115,8 @@ draw_species_traits <- function(species_params) {
     runif(1, min = 1 - AgeAtMaturityDevCorr, max = 1 + AgeAtMaturityDevCorr)
 
   # Growth rate of the Bertalanffy growth curve
-  K <- -(log(1) + log(1 - (MassAtMaturity / MaxMass))) / AgeAtMaturity
+  K <- min(1, -log(1 - (MassAtMaturity / MaxMass)) / AgeAtMaturity)
+  # Age cannot be more than 1, otherwise risk of overshooting max mass
 
   # Recruitment
   if (CorrelationMassRecruitment) {

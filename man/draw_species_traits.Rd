@@ -63,9 +63,9 @@ a named list of numeric containing the following traits:
 \item \code{MaximumMass} positive numeric, the maximum mass an individual can reach.
 \item \code{MassAtMaturity} numeric between 0 and and \code{MaximumMass},
 fraction of \code{MaximumMass} above which at individual can reproduce.
-\item \code{GrowthRate} positive numeric, the fraction of remaining growth an individual
-gains in a single generation (i.e, mass increase = growth_rate * (max_mass - mass)),
-under optimal light conditions.
+\item \code{GrowthRate} numeric between 0 an 1, the fraction of remaining growth an
+individual gains in a single generation (i.e, mass increase = growth_rate *
+(max_mass - mass)), under optimal light conditions.
 \item \code{DispersalKernel} positive numeric, the dispersal kernel.
 \item \code{DispersalKernelAsymmetry} numeric between 0 and 1, the dispersal asymmetry.
 D_k_A = 0.5 corresponds to symmetric dispersal; with D_k_A = 1 individuals
