@@ -88,6 +88,8 @@ draw_rnd_initial_inds_params <- function() {
 #' Create a microhabitat matrix of specified dimensions and fill its
 #' surface area and light layer based on species requirements
 #'
+#' Microhabitat is set to be suitable for the *first* species in SpeciesPool
+#'
 #' Surface area is set such that:
 #' * a random fraction of all voxels are suitable
 #' * each suitable voxels can sustain between 1 and 10 individuals of maximum mass
@@ -96,12 +98,12 @@ create_rnd_microhabitat <- function(SpeciesPool, dimensions, SurfaceBiomassScali
   Microhabitat <- array(0, c(dimensions, 3))
   nb_suitable_voxels <- round(prod(dimensions) * runif(1, 0, 1))
   suitable_voxels <- sample(1:prod(dimensions), nb_suitable_voxels)
-  reqd_sa_per_ind <- SpeciesPool$MaximumMass^(2/3) / SurfaceBiomassScaling
+  reqd_sa_per_ind <- SpeciesPool$MaximumMass[1]^(2/3) / SurfaceBiomassScaling
   surface_area_mat <- array(0, dim = dimensions)
   surface_area_mat[suitable_voxels] <- reqd_sa_per_ind *
     sample(1:10, length(suitable_voxels), replace = TRUE)
   Microhabitat[, , , 1] <- surface_area_mat
-  Microhabitat[, , , 3] <- SpeciesPool$OptimumLight
+  Microhabitat[, , , 3] <- SpeciesPool$OptimumLight[1]
 
   return(Microhabitat)
 }
