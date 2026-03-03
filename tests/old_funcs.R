@@ -154,7 +154,9 @@ old_dispersal <- function(NumberOfSpecies,
           factor2 <- (MatureIndividulsPerSpecies$Mass[j] - MatureIndividulsPerSpecies$MassAtMaturity[j]) / (MatureIndividulsPerSpecies$MaximumMass[j] - MatureIndividulsPerSpecies$MassAtMaturity[j])
           factor3 <- 1 + (MatureIndividulsPerSpecies$RecruitmentInc[j] * factor2)
 
-          ProbabilityMatrixPerSpecies <- ProbabilityMatrixPerSpecies + ProbabilityMatrixNormalized[idx1, idx2, idx3, idx4] * factor1 * factor3
+          ProbabilityMatrixPerSpecies <- ProbabilityMatrixPerSpecies +
+            ProbabilityMatrixNormalized[idx1, idx2, idx3, idx4] *
+            factor1 * factor3
 
         }
 
