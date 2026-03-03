@@ -1,17 +1,18 @@
 source("../test-utils.R")
 
-test_that("multiplication works", {
+test_that("Competition works as expected", {
 
+  # Initialise habitat matrix
   dimensions <- sample(2:10, 3, replace = TRUE)
   Microhabitat <- array(0, dim = c(dimensions, 3))
 
-  # Two random voxels, one oversaturated with epiphytes
+  # Habitat contains two suitable voxels, one oversaturated with epiphytes...
   oversatd_vox <- c(
     sample(1:dimensions[1], 1),
     sample(1:dimensions[2], 1),
     sample(1:dimensions[3], 1)
     )
-  # The other could host more
+  # ...The other could host more
   undersatd_vox <- oversatd_vox
   while(identical(undersatd_vox, oversatd_vox)) { # different voxels
     undersatd_vox <- c(
@@ -21,6 +22,7 @@ test_that("multiplication works", {
     )
   }
 
+  # Initialise individuals
   nb_inds_per_vox <- sample(10:100, 1)
   E <- E_init <- tibble::tibble(
     "is_oversaturated" = c(rep(TRUE, nb_inds_per_vox), rep(FALSE, nb_inds_per_vox)), # shortcut for counting below
@@ -33,9 +35,7 @@ test_that("multiplication works", {
   ) |>
     dplyr::slice_sample(prop = 1) # shuffle rows
 
-
-
-  # Set surface area so there is too little or enough respectively
+  # Set surface area so there is too little, or enough surface area respectively
   E |> dplyr::filter(is_oversaturated) |> dplyr::pull(SurfaceAreaOccupied) |> sum()
   total_sa_oversatd <- 0.9 * sum(E$SurfaceAreaOccupied[which(E$is_oversaturated)])
   total_sa_undersatd <- 1.1 * sum(E$SurfaceAreaOccupied[which(!E$is_oversaturated)])
@@ -49,7 +49,7 @@ test_that("multiplication works", {
   E <- resolve_competition(E_init, Microhabitat, larger_first = FALSE)
 
   # After competition is resolved, epiphytes in oversaturated voxel have died
-  # until voxel is no longer oversaturated.
+  # down such that voxel is no longer oversaturated.
   nb_dead_oversatd <- E |> dplyr::filter(is_oversaturated) |>
     dplyr::pull(Status) |> magrittr::equals(2) |> sum()
   occupied_sa <- E |> dplyr::filter(is_oversaturated, Status == 1) |>
@@ -62,7 +62,7 @@ test_that("multiplication works", {
     dplyr::pull(Status) |> magrittr::equals(2) |> sum()
   expect_equal(nb_dead_undersatd, 0)
 
-  # larger_first = lightest X are dead
+  # larger_first --> lightest X are dead
   # otherwise a random succession (!= sort individuals)
   # take mass off some individuals and add it to others
   E <- resolve_competition(E_init, Microhabitat, larger_first = TRUE)
@@ -87,7 +87,7 @@ test_that("multiplication works", {
     dplyr::pull(Status) |> dplyr::between(2, 5) |> sum()
   expect_equal(nb_dead_undersatd, nb_dead)
 
-  # If the available surface area matches the occupied SA, no epiphyte dies
+  # If the available surface area matches the occupied SA, no epiphyte die
   E <- E_init |> dplyr::filter(is_oversaturated)
   surf_area_layer <- rep(0, prod(dimensions))
   surf_area_layer[index_oversatd] <- sum(E$SurfaceAreaOccupied)
@@ -103,6 +103,6 @@ test_that("multiplication works", {
   all_dead <- all(E$Status == 2)
   expect_true(all_dead)
 
-  # How does it work with a 1- or 2-dimension matrix?
+  # TODO: Does it work with a 1- or 2-dimension matrix?
 
 })

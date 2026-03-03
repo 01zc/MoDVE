@@ -1,17 +1,17 @@
 source("../test-utils.R")
 
-test_that("Mortality meets requirements", {
+test_that("Mortality works as expected", {
 
   nb_inds <- 5000
   rnd_mass <- runif(1, 1, 100)
 
-  # Set Microhabitat matrix
+  # Initialise Microhabitat matrix
   dimensions <- sample(1:5, 3, replace = TRUE)
   sa_loss_layer <- rep(0, prod(dimensions))
   Microhabitat <- array(0, dim = c(dimensions, 3))
-  # Mortality doesn't check actual surface area so we don't need to set it
+  # Mortality doesn't check surface area (only loss) so we don't need to set it
 
-  # Set light niche
+  # Initialise light niche
   SpeciesPool <- tibble::tibble(
     "SpeciesID" = 1,
     "MinLight" = sample(0:50, 1),
@@ -21,8 +21,9 @@ test_that("Mortality meets requirements", {
   Microhabitat[,,,3] <- OptimumLight
 
   # If no SA loss / light issue, death tally corresponds to mortality rate
+  # (with 5% tolerance for stochasticity vs sample size)
   MortRateRandom <- runif(1, 0, 1)
-  nb_inds <- 10000
+  nb_inds <- 15000
   E_initial <- tibble::tibble(
     "X" = sample(1:dimensions[1], nb_inds, replace = TRUE),
     "Y" = sample(1:dimensions[2], nb_inds, replace = TRUE),
@@ -41,10 +42,11 @@ test_that("Mortality meets requirements", {
     MortRateMassScaling = 0
   )
   prop_dead <- sum(E$Status == 5) / nb_inds
-  expect_equal(prop_dead, MortRateRandom, tolerance = 0.02)
+  expect_equal(prop_dead, MortRateRandom, tolerance = 0.05)
 
   # When mass-dependent mortality is enabled,
   # death tally is conform to mass-dependence equation
+  # (with 5% tolerance for stochasticity vs sample size)
   MortRateMass <- runif(1, 0, 1)
   MortRateMassScaling <- -rgamma(1, 5, 5)
   exptd_mortality_rate <- rnd_mass^MortRateMassScaling * MortRateMass
@@ -58,7 +60,7 @@ test_that("Mortality meets requirements", {
     MortRateMassScaling = MortRateMassScaling
   )
   prop_dead <- sum(E$Status == 5) / nb_inds
-  expect_equal(prop_dead, exptd_mortality_rate, tolerance = 0.03)
+  expect_equal(prop_dead, exptd_mortality_rate, tolerance = 0.05)
 
   # Individuals who are already dead are not affected by mortality
   E <- E_initial

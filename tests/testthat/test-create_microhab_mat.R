@@ -1,12 +1,12 @@
 test_that("abuse cases", {
-  # here try to enter incorrect input esp. for shoot and trunk tables
+  # TODO: here try to enter incorrect input esp. for shoot and trunk tables
 })
 
 # Diameter is constant through tests, doesn't influence
 # which voxels the branch goes through etc.
 shoot_diameter <- trunk_diameter <- 0.01
 
-# Shorthand functions
+# Shorthand functions to help building input tables for unit tests
 create_empty_shoot_tbl <- function() {
   return(tibble::tibble(
     "xbegin" = numeric(),
@@ -20,6 +20,7 @@ create_empty_shoot_tbl <- function() {
     "shootID" = numeric()
   ))
 }
+
 add_shoot_row <- function(shoot_tbl, begin_coords, end_coords) {
   return(shoot_tbl |>
     tibble::add_row(
@@ -42,7 +43,7 @@ create_empty_trunk_tbl <- function() {
   ))
 }
 
-test_that("Branch surface area", {
+test_that("Branch surface area is calculated correctly", {
 
   # A 5*5 landscape with a 1-cell corridor around it
   corridor <- 1
@@ -61,7 +62,8 @@ test_that("Branch surface area", {
     corridor = corridor
   )
 
-  # Table template
+  # Create a test shoots table
+  # Each case is a branch segment corresponding to an edge case we want to test
   {
     shoots_dt <- create_empty_shoot_tbl()
     z <- 0.5
@@ -101,21 +103,21 @@ test_that("Branch surface area", {
     intersctd_voxels[[5]] <- find_intersecting_voxels(begin_coords, end_coords)
   }
 
-  # Landscape viz
-  shoots_dt |>
-    ggplot2::ggplot() +
-    ggplot2::geom_rect(
-      xmin = microhab_extent[1], xmax = microhab_extent[2],
-      ymin = microhab_extent[1], ymax = microhab_extent[2],
-      alpha = 0.1
-    ) +
-    ggplot2::geom_segment(
-      ggplot2::aes(x = xbegin, y = ybegin, xend = xend, yend = yend, colour = as.factor(shootID))
-    ) +
-    ggplot2::coord_cartesian(xlim = c(0, grid_dim), ylim = c(0, grid_dim)) +
-    ggplot2::theme_linedraw()
+  # Landscape viz to help working with these unit tests
+  #shoots_dt |>
+  #  ggplot2::ggplot() +
+  #  ggplot2::geom_rect(
+  #    xmin = microhab_extent[1], xmax = microhab_extent[2],
+  #    ymin = microhab_extent[1], ymax = microhab_extent[2],
+  #    alpha = 0.1
+  #  ) +
+  #  ggplot2::geom_segment(
+  #    ggplot2::aes(x = xbegin, y = ybegin, xend = xend, yend = yend, colour = as.factor(shootID))
+  #  ) +
+  #  ggplot2::coord_cartesian(xlim = c(0, grid_dim), ylim = c(0, grid_dim)) +
+  #  ggplot2::theme_linedraw()
 
-  # Set expectations
+  # Expectations
   nb_voxels <- sapply(intersctd_voxels, length)
   surf_area_exptd <- shoots_dt$length * shoots_dt$diameter * pi / 2 / nb_voxels
   expected_mat <- matrix(data = 0, nrow = dim, ncol = dim)
@@ -133,7 +135,7 @@ test_that("Branch surface area", {
   expect_equal(microhab_mat[,,1,1], expected_mat)
 })
 
-test_that("Trunk surface area", {
+test_that("Trunk surface area is calculated correctly", {
 
   # A 2*2*5 landscape
   dim_xy <- 2
@@ -195,7 +197,7 @@ test_that("Trunk surface area", {
   expect_equal(sum(microhab_mat[2, 1, 1:5]), 0.0)
 })
 
-test_that("Available light", {
+test_that("Available light is calculated correctly", {
 
   # follows a Beer-Lambert extinction law
   voxel_area <- 10000

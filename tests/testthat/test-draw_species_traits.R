@@ -32,7 +32,6 @@ test_that("Input is checked correctly", {
   sp_params$LAI <- -10
   expect_error(check_species_params(sp_params),
                "The following elements of species_params must be positive or zero:  LAI")
-
 })
 
 test_that("Species traits meet requirements", {
@@ -76,7 +75,5 @@ test_that("Growth rate satisfies its equation", {
     (1 - exp(-species_traits$GrowthRate * exptd_age_maturity))
 
   expect_equal(species_traits$MassAtMaturity, exptd_mass_mat)
-
-
 })
 

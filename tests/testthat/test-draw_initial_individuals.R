@@ -115,13 +115,20 @@ test_that("Initial individuals are distributed correctly", {
   reqd_surf_area_per_ind <- fixed_mass ^ (2/3) / rnd_params$SurfaceBiomassScaling +
     0.0001
   surf_area_mat <- rep(0, prod(dimensions))
-  expect_lt(total_nb_inds, prod(dimensions)) # ensure there are less individuals than voxels
+  # for the following tests there must be less individuals than voxels
+  if (total_nb_inds >= prod(dimensions)) {
+    rnd_params$IndividualsPerSpecies <- floor(prod(dimensions) / nb_species) - 1
+    total_nb_inds <- nb_species * rnd_params$IndividualsPerSpecies
+  }
+  expect_lt(total_nb_inds, prod(dimensions))
+
   # Enough SA for all
   suitable_voxels <- sample(1:prod(dimensions), size = total_nb_inds, replace = FALSE)
   surf_area_mat[suitable_voxels] <- reqd_surf_area_per_ind
   microhab_mat[,,,1] <- surf_area_mat
   init_ind_df <- draw_initial_individuals(rnd_params, species_df, microhab_mat)
   expect_true(all(init_ind_df$Status == 1)) # alive
+
   # Enough SA for all but one
   surf_area_mat[suitable_voxels[1]] <- 0
   microhab_mat[,,,1] <- surf_area_mat
