@@ -1,3 +1,14 @@
+#' Run the MoDVE simulation
+#'
+#' Main function of the package, runs the epiphyte lifecycle simulation.
+#'
+#' @param sim_params description
+#' @param SpeciesPool descriptioflm
+#' @param Microhabitat desc
+#' @param InitDist description
+#' @param path_to_ind_output description
+#' @param path_to_sp_output description
+#' @param path_to_comm_output description
 #'
 #'@export
 run_modve_sim <- function(sim_params,
@@ -281,22 +292,20 @@ run_modve_sim <- function(sim_params,
       sim_params$SurfaceBiomassScaling / sum(Microhabitat[, , , 1])
 
     # Command window information
-    "--------------------------------------------" |>
-      paste_wrap("Species Pool: ", numPool) |>
-      paste_wrap("Replicate: ", r) |>
-      paste_wrap("Time step: ", gen_nb) |>
-      paste_wrap("Species Pool: ", numPool) |>
-      paste_wrap("Number of individuals: ",
-                 comm_output$NumberIndividualsEnd[t]) |>
-      paste_wrap("Number of species: ",
-                 comm_output$NumberSpeciesEnd[t]) |>
-      paste_wrap("Number of recruits: ", NumberRecruits) |>
-      paste_wrap("MortalityBranchFall: ", MortalityBranchFall) |>
-      paste_wrap("MortalityLight: ", MortalityLight) |>
-      paste_wrap("MortalityCompetition: ", MortalityCompetition) |>
-      paste_wrap("MortalityNatural: ", MortalityNatural) |>
-      paste_wrap("Time: ", format(Sys.time(), "%H:%M:%OS3")) |>
-      writeLines()
+    msg <- "--------------------------------------------"
+    msg <- paste_wrap(msg, "Species Pool: ", numPool)
+    msg <- paste_wrap(msg, "Replicate: ", r)
+    msg <- paste_wrap(msg, "Time step: ", gen_nb)
+    msg <- paste_wrap(msg, "Species Pool: ", numPool)
+    msg <- paste_wrap(msg, "Number of individuals: ", comm_output$NumberIndividualsEnd[t])
+    msg <- paste_wrap(msg, "Number of species: ", comm_output$NumberSpeciesEnd[t])
+    msg <- paste_wrap(msg, "Number of recruits: ", NumberRecruits)
+    msg <- paste_wrap(msg, "MortalityBranchFall: ", MortalityBranchFall)
+    msg <- paste_wrap(msg, "MortalityLight: ", MortalityLight)
+    msg <- paste_wrap(msg, "MortalityCompetition: ", MortalityCompetition)
+    msg <- paste_wrap(msg, "MortalityNatural: ", MortalityNatural)
+    msg <- paste_wrap(msg, "Time: ", format(Sys.time(), "%H:%M:%OS3"))
+    writeLines(msg)
 
     # Save Epiphyte matrix for every time step
     ind_output_file <- sub("*.csv$", paste0("_", t, ".csv"), path_to_ind_output)

@@ -1,3 +1,28 @@
+---
+title: "Run the simulation"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{simulation}
+  %\VignetteEngine{knitr::knitr}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+```
+
+Work in progress, currently only used to hold the R code without shipping the 
+package with R scripts.
+
+```{r setup}
+library(MoDVE)
+```
+
+
+```{r run_model, eval=FALSE}
 {
 options(warn=-1)  # Suppress warnings
 options(digits.secs=3)  # 3 decimal digits for seconds
@@ -93,3 +118,6 @@ pair_idx <- 1
   )
   return(NULL)
 }
+
+
+```

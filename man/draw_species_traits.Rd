@@ -59,6 +59,7 @@ heights are then used to sample the minimum and maximum of the light niche:
 }
 \value{
 a named list of numeric containing the following traits:
+`
 \itemize{
 \item \code{MaximumMass} positive numeric, the maximum mass an individual can reach.
 \item \code{MassAtMaturity} numeric between 0 and and \code{MaximumMass},
@@ -71,11 +72,13 @@ individual gains in a single generation (i.e, mass increase = growth_rate *
 D_k_A = 0.5 corresponds to symmetric dispersal; with D_k_A = 1 individuals
 disperse stricly below themselves; with D_k_A = 0 individuals never disperse
 only above themselves or at their height.
-}
 \item \code{RecruitmentInvestmentRel} numeric between 0 and 1, a coefficient scaling
-the mass-dependent fecundity coefficient (see \code{\link[=resolve_repro_dispersal]{resolve_repro_dispersal()}} )
-\item \code{RecruitmentInc} a positive coefficient scaling how relative mass growth (see \code{\link[=resolve_repro_dispersal]{resolve_repro_dispersal()}} )
-increases fecundity.
+the mass-dependent fecundity coefficient (see \code{\link[=resolve_repro_dispersal]{resolve_repro_dispersal()}}),
+representing the fraction of available biomass invested in fecundity
+\item \code{RecruitmentInc} numeric between 0 and 1, scaling how fecundity increases
+with the growth stage of the epiphyte. This factor ranges from \code{1} when
+\code{Mass} = \code{MassAtMaturity}, and \code{2 * RecruitmentInc} when
+\code{Mass} = \code{MaximumMass}.
 \item \code{MinLight} positive numeric, minimum light conditions under which this species can survive
 \item \code{MaxLight} positive numeric, maximum light conditions under which this species can survive
 \item \code{OptimumLight} positive numeric, optimum light conditions under which individuals of this species
@@ -88,7 +91,6 @@ grow and reproduce at the maximum rate. It is calculated as the average of \code
 \item \code{MaxHeightRel} maximum relative height (between 0 and 1) at which the species can survive, used to compute \code{MaxLight}
 \item \code{MeanHeightRel} average of \code{MinHeightRel} and \code{MaxHeightRel}
 \item \code{HeightBreadth} range between \code{MinHeightRel} and \code{MaxHeightRel}
-}
 }
 }
 \description{

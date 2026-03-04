@@ -1,3 +1,28 @@
+---
+title: "Create species pool"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{species_pool}
+  %\VignetteEngine{knitr::knitr}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+```
+
+Work in progress, currently only used to hold the R code without shipping the 
+package with R scripts.
+
+```{r setup}
+library(MoDVE)
+```
+
+
+```{r create_sp_pool, eval=FALSE}
 
 species_params <- parse_config("tests/config_a2.toml")
 check_species_params(species_params)
@@ -23,3 +48,5 @@ for (pool_nb in 1:species_params$numSpeciesPools) {
   write.csv(sp_traits_df, file.path(SaveDirectory, SpeciesPoolFileName),
             row.names = FALSE)
 }
+
+```

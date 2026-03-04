@@ -1,3 +1,28 @@
+---
+title: "Generate microhabitat"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{microhabitat}
+  %\VignetteEngine{knitr::knitr}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+```
+
+Work in progress, currently only used to hold the R code without shipping the 
+package with R scripts.
+
+```{r setup}
+library(MoDVE)
+```
+
+
+```{r generate_microhab, eval=FALSE}
 config <- parse_config("tests/config_a1.toml")
 
 # only for MicrohabitatType 1 or 2
@@ -126,3 +151,5 @@ for (i in timeStepStart:timeStepEnd) {
   print(end_time - start_time)
 }
 
+
+```

@@ -1,2 +1,7 @@
 ^MoDVE\.Rproj$
 ^\.Rproj\.user$
+^LICENSE\.md$
+^\.github$
+^vignettes/.*_cache
+^pkgdown$
+^\.github/workflows/test_r\.yaml$

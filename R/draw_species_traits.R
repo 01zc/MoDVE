@@ -59,7 +59,7 @@
 #'
 #'
 #' @returns a named list of numeric containing the following traits:
-#'
+#'`
 #'  * `MaximumMass` positive numeric, the maximum mass an individual can reach.
 #'  * `MassAtMaturity` numeric between 0 and and `MaximumMass`,
 #'  fraction of `MaximumMass` above which at individual can reproduce.
@@ -90,7 +90,7 @@
 #'  * `MaxHeightRel` maximum relative height (between 0 and 1) at which the species can survive, used to compute `MaxLight`
 #'  * `MeanHeightRel` average of `MinHeightRel` and `MaxHeightRel`
 #'  * `HeightBreadth` range between `MinHeightRel` and `MaxHeightRel`
-#' }
+#'
 #' @export
 #'
 draw_species_traits <- function(species_params) {
@@ -136,8 +136,8 @@ draw_species_traits <- function(species_params) {
       # Not meaningful if no correlation
   }
   # Both parameters must be between 0 and 1
-  RecruitmentInvestmentRel <- RecruitmentInvestmentRel |> min(1) |> max(0)
-  RecruitmentInc <- RecruitmentInc |> min(1) |> max(0)
+  RecruitmentInvestmentRel <- min(1, max(0, RecruitmentInvestmentRel))
+  RecruitmentInc <- min(1, max(0, RecruitmentInc))
 
    # Dispersal
   DispersalKernel <- runif(1, DispersalKernelRandom[1], DispersalKernelRandom[2])

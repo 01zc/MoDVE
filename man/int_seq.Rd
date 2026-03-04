@@ -43,6 +43,8 @@ int_seq(from = 4, to = 5, by = -1)    # integer(0)
 int_seq(from = 2, to = 1, by = 2)     # integer(0)
 
 # Invalid usage:
+\dontrun{
 int_seq(from = 2.5, to = 5, by = 1)   # Error: Fractional part in 'from', 'to' or 'by'
 int_seq(from = 2, to = 5, by = 0)     # Error: 'by' must be non-zero
+}
 }
