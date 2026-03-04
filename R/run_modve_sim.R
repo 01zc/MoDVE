@@ -293,8 +293,6 @@ run_modve_sim <- function(sim_params,
 
     # Command window information
     msg <- "--------------------------------------------"
-    msg <- paste_wrap(msg, "Species Pool: ", numPool)
-    msg <- paste_wrap(msg, "Replicate: ", r)
     msg <- paste_wrap(msg, "Time step: ", gen_nb)
     msg <- paste_wrap(msg, "Species Pool: ", numPool)
     msg <- paste_wrap(msg, "Number of individuals: ", comm_output$NumberIndividualsEnd[t])

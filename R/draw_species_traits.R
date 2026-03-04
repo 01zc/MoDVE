@@ -95,64 +95,66 @@
 #'
 draw_species_traits <- function(species_params) {
 
-  # Unpack parameters
   check_species_params(species_params)
-  list2env(species_params, envir = environment())
+
+  sp <- species_params # shorter alias
 
   # Draw max size
-  if (MaxMassLogScaleRandom) {
-    if (MaxMassRandom[1] == 0) MaxMassRandom[1] <- 1e-9 # otherwise NaN
-    MaxMassLog <- runif(1, min = log10(MaxMassRandom[1]),
-                        max = log10(MaxMassRandom[2]))
+  if (sp$MaxMassLogScaleRandom) {
+    if (sp$MaxMassRandom[1] == 0) sp$MaxMassRandom[1] <- 1e-9 # otherwise NaN
+    MaxMassLog <- runif(1, min = log10(sp$MaxMassRandom[1]),
+                        max = log10(sp$MaxMassRandom[2]))
     MaxMass <- 10^MaxMassLog
   } else {
-    MaxMass <- runif(1, min = MaxMassRandom[1], max = MaxMassRandom[2])
+    MaxMass <- runif(1, min = sp$MaxMassRandom[1], max = sp$MaxMassRandom[2])
   }
 
   # Mass at maturity is a function of the maximum size
-  MassAtMaturity <- MaxMass * runif(1, min = MassAtMaturityRelativeRandom[1],
-                                    max = MassAtMaturityRelativeRandom[2])
+  MassAtMaturity <- MaxMass * runif(1, min = sp$MassAtMaturityRelativeRandom[1],
+                                    max = sp$MassAtMaturityRelativeRandom[2])
 
-  AgeAtMaturity <- InterceptAgeMaturity * (MaxMass^ScalingAgeMaturity) *
-    runif(1, min = 1 - AgeAtMaturityDevCorr, max = 1 + AgeAtMaturityDevCorr)
+  AgeAtMaturity <- sp$InterceptAgeMaturity * (MaxMass^sp$ScalingAgeMaturity) *
+    runif(1, min = 1 - sp$AgeAtMaturityDevCorr, max = 1 + sp$AgeAtMaturityDevCorr)
 
   # Growth rate of the Bertalanffy growth curve
   K <- min(1, -log(1 - (MassAtMaturity / MaxMass)) / AgeAtMaturity)
   # Age cannot be more than 1, otherwise risk of overshooting max mass
 
   # Recruitment
-  if (CorrelationMassRecruitment) {
+  if (sp$CorrelationMassRecruitment) {
     RecruitmentInvestmentRel <- runif(1,
-      RecruitmentInvestmentRelMeanCorr * (1 - RecruitmentInvestmentRelDevCorr),
-      RecruitmentInvestmentRelMeanCorr * (1 + RecruitmentInvestmentRelDevCorr)
+      sp$RecruitmentInvestmentRelMeanCorr * (1 - sp$RecruitmentInvestmentRelDevCorr),
+      sp$RecruitmentInvestmentRelMeanCorr * (1 + sp$RecruitmentInvestmentRelDevCorr)
     )
     RecruitmentInc <- 0
   } else {
     RecruitmentInvestmentRel <- runif(1,
-      RecruitmentInvestmentRelMeanRandom[1],
-      RecruitmentInvestmentRelMeanRandom[2]
+      sp$RecruitmentInvestmentRelMeanRandom[1],
+      sp$RecruitmentInvestmentRelMeanRandom[2]
     )
-    RecruitmentInc <- runif(1, RecruitmentIncRandom[1], RecruitmentIncRandom[2])
+    RecruitmentInc <- runif(1, sp$RecruitmentIncRandom[1], sp$RecruitmentIncRandom[2])
       # Not meaningful if no correlation
   }
   # Both parameters must be between 0 and 1
   RecruitmentInvestmentRel <- min(1, max(0, RecruitmentInvestmentRel))
   RecruitmentInc <- min(1, max(0, RecruitmentInc))
 
-   # Dispersal
-  DispersalKernel <- runif(1, DispersalKernelRandom[1], DispersalKernelRandom[2])
-  DispersalKernelAsymmetry <- runif(1, DispersalKernelAsymmetryRandom[1], DispersalKernelAsymmetryRandom[2])
+  # Dispersal
+  DispersalKernel <- runif(1, sp$DispersalKernelRandom[1], sp$DispersalKernelRandom[2])
+  DispersalKernelAsymmetry <- runif(1,
+                                    sp$DispersalKernelAsymmetryRandom[1],
+                                    sp$DispersalKernelAsymmetryRandom[2])
 
   # Height niche
   MeanHeight <- runif(1, min = 0, max = 1)  # relative height in relation to canopy height
-  HeightBreadthTheoretical <- runif(1, HeightBreadthRandom[1], HeightBreadthRandom[2])
+  HeightBreadthTheoretical <- runif(1, sp$HeightBreadthRandom[1], sp$HeightBreadthRandom[2])
   MinHeight <- max(c(0, MeanHeight - (HeightBreadthTheoretical / 2)))
   MaxHeight <- min(c(1, MeanHeight + (HeightBreadthTheoretical / 2)))
   HeightBreadth <- MaxHeight - MinHeight
 
   # Light niche
-  MinLight <- Imax * exp(-kL * LAI * (1 - MinHeight))
-  MaxLight <- Imax * exp(-kL * LAI * (1 - MaxHeight))
+  MinLight <- sp$Imax * exp(-sp$kL * sp$LAI * (1 - MinHeight))
+  MaxLight <- sp$Imax * exp(-sp$kL * sp$LAI * (1 - MaxHeight))
   OptimumLight <- (MaxLight + MinLight) / 2
   LightBreadth <- MaxLight - MinLight
   light_resp_params <- get_light_resp_params(MinLight, MaxLight, OptimumLight)
@@ -192,9 +194,7 @@ check_species_params <- function(species_params) {
     "kL"
     )
 
-  list2env(species_params, envir = environment())
-
-  if (CorrelationMassRecruitment) {
+  if (species_params$CorrelationMassRecruitment) {
     exptd_params <- c(exptd_params,
                       "RecruitmentInvestmentRelMeanCorr",
                       "RecruitmentInvestmentRelDevCorr")
@@ -210,11 +210,11 @@ check_species_params <- function(species_params) {
     stop(err_msg_missing_params("species_params", missing_params))
   }
 
-  if (!is.logical(MaxMassLogScaleRandom)) {
+  if (!is.logical(species_params$MaxMassLogScaleRandom)) {
     stop("MaxMassLogScaleRandom must be TRUE or FALSE.")
   }
 
-  if (!is.logical(CorrelationMassRecruitment)) {
+  if (!is.logical(species_params$CorrelationMassRecruitment)) {
     stop("CorrelationMassRecruitment must be TRUE or FALSE.")
   }
 
@@ -243,7 +243,7 @@ check_species_params <- function(species_params) {
   uniform_params <- c("MaxMassRandom", "MassAtMaturityRelativeRandom",
                       "DispersalKernelRandom", "DispersalKernelAsymmetryRandom",
                       "HeightBreadthRandom")
-  if (!CorrelationMassRecruitment) {
+  if (!species_params$CorrelationMassRecruitment) {
     uniform_params <- c(uniform_params,
                         "RecruitmentInvestmentRelMeanRandom",
                         "RecruitmentIncRandom")
@@ -269,7 +269,7 @@ check_species_params <- function(species_params) {
   # Check that the following parameters are positive:
   positive_params <- c("InterceptAgeMaturity", "DispersalKernelRandom", "HeightBreadthRandom",
                        "Imax", "LAI", "kL")
-  if (CorrelationMassRecruitment) {
+  if (species_params$CorrelationMassRecruitment) {
     positive_params <- c(positive_params, "RecruitmentInvestmentRelMeanCorr")
   } else {
     positive_params <- c(positive_params,
@@ -288,7 +288,7 @@ check_species_params <- function(species_params) {
   prop_params <- c(
     "MassAtMaturityRelativeRandom", "DispersalKernelAsymmetryRandom",
     "AgeAtMaturityDevCorr", "ScalingAgeMaturity")
-  if (CorrelationMassRecruitment) {
+  if (species_params$CorrelationMassRecruitment) {
     prop_params <- c(prop_params, "RecruitmentInvestmentRelDevCorr")
   }
   is_prop <- sapply(species_params[prop_params], function(x) all(x >= 0) && all(x <= 1))
