@@ -46,23 +46,23 @@ create_rnd_species_df <- function(nb_species, species_params = draw_rnd_species_
 draw_rnd_species_params <- function(max_val = 100) {
 
   sp_params <- list(
-    MaxMassLogScaleRandom = runif(1) > 0.5, # coin flip
-    MaxMassRandom = runif(1, 0, max_val),
-    InterceptAgeMaturity = runif(1, 0, max_val),
-    AgeAtMaturityDevCorr = runif(1, 0, 1),
-    ScalingAgeMaturity = runif(1, 0, 1),
-    MassAtMaturityRelativeRandom = runif(1, 0, 1),
+    MaxMassLogScaleRandom = stats::runif(1) > 0.5, # coin flip
+    MaxMassRandom = stats::runif(1, 0, max_val),
+    InterceptAgeMaturity = stats::runif(1, 0, max_val),
+    AgeAtMaturityDevCorr = stats::runif(1, 0, 1),
+    ScalingAgeMaturity = stats::runif(1, 0, 1),
+    MassAtMaturityRelativeRandom = stats::runif(1, 0, 1),
 
-    CorrelationMassRecruitment = runif(1) > 0.5,
+    CorrelationMassRecruitment = stats::runif(1) > 0.5,
 
-    DispersalKernelRandom = runif(1, 0, max_val),
-    DispersalKernelAsymmetryRandom = runif(1, 0, 1),
+    DispersalKernelRandom = stats::runif(1, 0, max_val),
+    DispersalKernelAsymmetryRandom = stats::runif(1, 0, 1),
 
-    HeightBreadthRandom = runif(1, 0, 1),
+    HeightBreadthRandom = stats::runif(1, 0, 1),
 
-    Imax = runif(1, 0, max_val),
-    kL = runif(1, 0, 1),
-    LAI = runif(1, 0, min(10, max_val))
+    Imax = stats::runif(1, 0, max_val),
+    kL = stats::runif(1, 0, 1),
+    LAI = stats::runif(1, 0, min(10, max_val))
   )
 
   sp_params$MaxMassRandom[2] <- draw_max_value(sp_params$MaxMassRandom[1], max_val)
@@ -77,14 +77,14 @@ draw_rnd_species_params <- function(max_val = 100) {
 
   # Parameters that depend on the correlation mass option
   if (sp_params$CorrelationMassRecruitment) {
-    sp_params$RecruitmentInvestmentRelDevCorr <- runif(1, 0, 1)
-    sp_params$RecruitmentInvestmentRelMeanCorr <- runif(1, 0, 1)
+    sp_params$RecruitmentInvestmentRelDevCorr <- stats::runif(1, 0, 1)
+    sp_params$RecruitmentInvestmentRelMeanCorr <- stats::runif(1, 0, 1)
   }
   else {
-    sp_params$RecruitmentIncRandom <- runif(1, 0, 1)
+    sp_params$RecruitmentIncRandom <- stats::runif(1, 0, 1)
     sp_params$RecruitmentIncRandom[2] <- draw_max_value(sp_params$RecruitmentIncRandom[1], 1)
 
-    sp_params$RecruitmentInvestmentRelMeanRandom <- runif(1, 0, 1)
+    sp_params$RecruitmentInvestmentRelMeanRandom <- stats::runif(1, 0, 1)
     sp_params$RecruitmentInvestmentRelMeanRandom[2] <- draw_max_value(sp_params$RecruitmentInvestmentRelMeanRandom[1], 1)
   }
   return(sp_params)
@@ -99,7 +99,7 @@ draw_rnd_species_params <- function(max_val = 100) {
 #' @param upper_bound upper bound to not exceed when drawing the value
 #'
 draw_max_value <- function(min_val, upper_bound) {
-  return(min_val + runif(1, 0, upper_bound - min_val))
+  return(min_val + stats::runif(1, 0, upper_bound - min_val))
 }
 
 #' Draw random values for individual initialisation parameters
@@ -112,10 +112,10 @@ draw_max_value <- function(min_val, upper_bound) {
 #'
 draw_rnd_initial_inds_params <- function() {
   return(list(
-    "SurfaceBiomassScaling" = runif(1, 1e-7, 10),
+    "SurfaceBiomassScaling" = stats::runif(1, 1e-7, 10),
     "IndividualsPerSpecies" = sample(1:100, 1),
     "ScalingPerHa" = FALSE,
-    "PercentageMaturePerSpecies" = runif(1, 0, 100)
+    "PercentageMaturePerSpecies" = stats::runif(1, 0, 100)
   ))
 }
 
@@ -149,7 +149,7 @@ draw_rnd_initial_inds_params <- function() {
 create_rnd_microhabitat <- function(SpeciesPool, dimensions, SurfaceBiomassScaling) {
 
   Microhabitat <- array(0, c(dimensions, 3))
-  nb_suitable_voxels <- round(prod(dimensions) * runif(1, 0, 1))
+  nb_suitable_voxels <- round(prod(dimensions) * stats::runif(1, 0, 1))
   suitable_voxels <- sample(1:prod(dimensions), nb_suitable_voxels)
   reqd_sa_per_ind <- SpeciesPool$MaximumMass[1]^(2/3) / SurfaceBiomassScaling
   surface_area_mat <- array(0, dim = dimensions)

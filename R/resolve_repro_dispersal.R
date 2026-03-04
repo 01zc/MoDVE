@@ -119,7 +119,7 @@ resolve_repro_dispersal <- function(E,
 
     # Calculate number of recruits based on final probability matrix
     nb_recruits_matrix <- array(
-      rpois(length(exptd_nb_recruits_matrix), exptd_nb_recruits_matrix),
+      stats::rpois(length(exptd_nb_recruits_matrix), exptd_nb_recruits_matrix),
       dim = dim(exptd_nb_recruits_matrix)
     )
 

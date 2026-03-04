@@ -28,16 +28,16 @@ create_microhabitat_mat <- function(config, shoot_dt, trunk_dt, vox_dt = NULL,
   # DistVoxToConsider <= corridor
 
   if (is.character(shoot_dt))
-    read.table(shoot_dt, sep = "\t",  header = TRUE, skip = 1)
+    utils::read.table(shoot_dt, sep = "\t",  header = TRUE, skip = 1)
   #check_shoot_dt(shoot_dt)
 
   if (is.character(trunk_dt))
-    read.table(trunk_dt, sep = "\t",  header = TRUE, skip = 8)
+    utils::read.table(trunk_dt, sep = "\t",  header = TRUE, skip = 8)
   #check_trunk_dt(trunk_dt)
 
   if (config$LightConditionsOpt) {
     if (is.character(vox_dt))
-      read.table(vox_dt, sep = "\t",  header = TRUE, skip = 1)
+      utils::read.table(vox_dt, sep = "\t",  header = TRUE, skip = 1)
    # check_vox_dt(vox_dt)
   }
 

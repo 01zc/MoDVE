@@ -12,7 +12,9 @@ Depends: R (>= 3.5.0)
 LinkingTo: 
     Rcpp
 Imports: 
-    Rcpp (>= 1.1.0)
+    Rcpp (>= 1.1.0),
+    stats,
+    utils
 Suggests: 
     testthat (>= 3.0.0),
     tibble,

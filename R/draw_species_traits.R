@@ -102,19 +102,19 @@ draw_species_traits <- function(species_params) {
   # Draw max size
   if (sp$MaxMassLogScaleRandom) {
     if (sp$MaxMassRandom[1] == 0) sp$MaxMassRandom[1] <- 1e-9 # otherwise NaN
-    MaxMassLog <- runif(1, min = log10(sp$MaxMassRandom[1]),
+    MaxMassLog <- stats::runif(1, min = log10(sp$MaxMassRandom[1]),
                         max = log10(sp$MaxMassRandom[2]))
     MaxMass <- 10^MaxMassLog
   } else {
-    MaxMass <- runif(1, min = sp$MaxMassRandom[1], max = sp$MaxMassRandom[2])
+    MaxMass <- stats::runif(1, min = sp$MaxMassRandom[1], max = sp$MaxMassRandom[2])
   }
 
   # Mass at maturity is a function of the maximum size
-  MassAtMaturity <- MaxMass * runif(1, min = sp$MassAtMaturityRelativeRandom[1],
+  MassAtMaturity <- MaxMass * stats::runif(1, min = sp$MassAtMaturityRelativeRandom[1],
                                     max = sp$MassAtMaturityRelativeRandom[2])
 
   AgeAtMaturity <- sp$InterceptAgeMaturity * (MaxMass^sp$ScalingAgeMaturity) *
-    runif(1, min = 1 - sp$AgeAtMaturityDevCorr, max = 1 + sp$AgeAtMaturityDevCorr)
+    stats::runif(1, min = 1 - sp$AgeAtMaturityDevCorr, max = 1 + sp$AgeAtMaturityDevCorr)
 
   # Growth rate of the Bertalanffy growth curve
   K <- min(1, -log(1 - (MassAtMaturity / MaxMass)) / AgeAtMaturity)
@@ -122,17 +122,17 @@ draw_species_traits <- function(species_params) {
 
   # Recruitment
   if (sp$CorrelationMassRecruitment) {
-    RecruitmentInvestmentRel <- runif(1,
+    RecruitmentInvestmentRel <- stats::runif(1,
       sp$RecruitmentInvestmentRelMeanCorr * (1 - sp$RecruitmentInvestmentRelDevCorr),
       sp$RecruitmentInvestmentRelMeanCorr * (1 + sp$RecruitmentInvestmentRelDevCorr)
     )
     RecruitmentInc <- 0
   } else {
-    RecruitmentInvestmentRel <- runif(1,
+    RecruitmentInvestmentRel <- stats::runif(1,
       sp$RecruitmentInvestmentRelMeanRandom[1],
       sp$RecruitmentInvestmentRelMeanRandom[2]
     )
-    RecruitmentInc <- runif(1, sp$RecruitmentIncRandom[1], sp$RecruitmentIncRandom[2])
+    RecruitmentInc <- stats::runif(1, sp$RecruitmentIncRandom[1], sp$RecruitmentIncRandom[2])
       # Not meaningful if no correlation
   }
   # Both parameters must be between 0 and 1
@@ -140,14 +140,14 @@ draw_species_traits <- function(species_params) {
   RecruitmentInc <- min(1, max(0, RecruitmentInc))
 
   # Dispersal
-  DispersalKernel <- runif(1, sp$DispersalKernelRandom[1], sp$DispersalKernelRandom[2])
-  DispersalKernelAsymmetry <- runif(1,
+  DispersalKernel <- stats::runif(1, sp$DispersalKernelRandom[1], sp$DispersalKernelRandom[2])
+  DispersalKernelAsymmetry <- stats::runif(1,
                                     sp$DispersalKernelAsymmetryRandom[1],
                                     sp$DispersalKernelAsymmetryRandom[2])
 
   # Height niche
-  MeanHeight <- runif(1, min = 0, max = 1)  # relative height in relation to canopy height
-  HeightBreadthTheoretical <- runif(1, sp$HeightBreadthRandom[1], sp$HeightBreadthRandom[2])
+  MeanHeight <- stats::runif(1, min = 0, max = 1)  # relative height in relation to canopy height
+  HeightBreadthTheoretical <- stats::runif(1, sp$HeightBreadthRandom[1], sp$HeightBreadthRandom[2])
   MinHeight <- max(c(0, MeanHeight - (HeightBreadthTheoretical / 2)))
   MaxHeight <- min(c(1, MeanHeight + (HeightBreadthTheoretical / 2)))
   HeightBreadth <- MaxHeight - MinHeight

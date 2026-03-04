@@ -105,10 +105,10 @@ draw_initial_individuals <- function(distr_params, species_df,
     massMaturity <- species_df$MassAtMaturity[sp]
     maxMass <- species_df$MaximumMass[sp]
     row_matures <- first_row + nb_mature_inds - 1
-    init_ind_mat[int_seq(first_row, row_matures), col_mass] <- runif(
+    init_ind_mat[int_seq(first_row, row_matures), col_mass] <- stats::runif(
       nb_mature_inds, min = massMaturity, max = maxMass
     )
-    init_ind_mat[int_seq((row_matures + 1), last_row), col_mass] <- runif(
+    init_ind_mat[int_seq((row_matures + 1), last_row), col_mass] <- stats::runif(
       nb_immature_inds, min = 0, max = massMaturity
     )
 
@@ -198,7 +198,7 @@ draw_initial_individuals <- function(distr_params, species_df,
 
   # Save Initial Epiphyte Matrix
   if (!is.null(path_to_output)) {
-    write.csv(init_ind_mat_df, path_to_output, row.names = FALSE)
+    utils::write.csv(init_ind_mat_df, path_to_output, row.names = FALSE)
   } else {
     return(init_ind_mat_df)
   }

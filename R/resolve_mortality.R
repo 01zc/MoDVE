@@ -39,15 +39,15 @@ resolve_mortality <- function(E, SpeciesPool, Microhabitat, use_mass_dep_mortali
       # random/mass mortality could be vectorised
 
       # Branch fall mortality
-      if (!is.nan(vox[2]) && runif(1, min = 0, max = 1) < vox[2]) {
+      if (!is.nan(vox[2]) && stats::runif(1, min = 0, max = 1) < vox[2]) {
         E$Status[i] <- 3
       } else if (vox[3] < min_light | vox[3] > max_light) {
         # Unsuitable light conditions
         E$Status[i] <- 4
-      } else if (!use_mass_dep_mortality && runif(1, min = 0, max = 1) < MortRateRandom) {  # Natural mortality rate
+      } else if (!use_mass_dep_mortality && stats::runif(1, min = 0, max = 1) < MortRateRandom) {  # Natural mortality rate
         # Baseline random mortality
         E$Status[i] <- 5
-      } else if (use_mass_dep_mortality && runif(1, min = 0, max = 1) < (MortRateMass * (E$Mass[i]^MortRateMassScaling))) {
+      } else if (use_mass_dep_mortality && stats::runif(1, min = 0, max = 1) < (MortRateMass * (E$Mass[i]^MortRateMassScaling))) {
         # Mass-dependent mortality
         E$Status[i] <- 5
       }

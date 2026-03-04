@@ -294,7 +294,6 @@ run_modve_sim <- function(sim_params,
     # Command window information
     msg <- "--------------------------------------------"
     msg <- paste_wrap(msg, "Time step: ", gen_nb)
-    msg <- paste_wrap(msg, "Species Pool: ", numPool)
     msg <- paste_wrap(msg, "Number of individuals: ", comm_output$NumberIndividualsEnd[t])
     msg <- paste_wrap(msg, "Number of species: ", comm_output$NumberSpeciesEnd[t])
     msg <- paste_wrap(msg, "Number of recruits: ", NumberRecruits)
@@ -307,15 +306,15 @@ run_modve_sim <- function(sim_params,
 
     # Save Epiphyte matrix for every time step
     ind_output_file <- sub("*.csv$", paste0("_", t, ".csv"), path_to_ind_output)
-    write.csv(E[, inds_output_names()], ind_output_file, row.names = FALSE)
+    utils::write.csv(E[, inds_output_names()], ind_output_file, row.names = FALSE)
 
     # Save sp_output for every time step
     sp_output_df <- as.data.frame(sp_output)
     names(sp_output_df) <- sp_output_headers
-    write.csv(sp_output_df, path_to_sp_output, row.names = FALSE)
+    utils::write.csv(sp_output_df, path_to_sp_output, row.names = FALSE)
 
     # Save comm_output for every time step (overwrite old one)
-    write.csv(comm_output, path_to_comm_output, append = FALSE, row.names = FALSE)
+    utils::write.csv(comm_output, path_to_comm_output, append = FALSE, row.names = FALSE)
 
     # Remove dead individuals from Epimatrix
     E <- E[E$Status <= 1, ]
