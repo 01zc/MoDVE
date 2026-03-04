@@ -1,5 +1,3 @@
-source("../old_funcs.R")
-
 test_that("consistent with previous version", {
 
   dimX <- dimY <- 30

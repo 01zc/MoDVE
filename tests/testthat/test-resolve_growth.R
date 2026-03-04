@@ -1,5 +1,3 @@
-source("../test-utils.R")
-
 test_that("Growth meets expectations", {
 
   # Initialise state

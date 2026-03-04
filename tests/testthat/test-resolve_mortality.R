@@ -1,5 +1,3 @@
-source("../test-utils.R")
-
 test_that("Mortality works as expected", {
 
   nb_inds <- 5000

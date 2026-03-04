@@ -1,3 +1,14 @@
+#' Get the sequential index of a coordinate in a 3D matrix
+#'
+#' Convert an XYZ position into the sequential position (i.e., ranging between
+#' 1 and dimX x dimY x dimZ) inside the matrix
+#'
+#' @param x x-coordinate
+#' @param y y-coordinate
+#' @param z z-coordinate
+#' @param dimX X-dimension of the matrix
+#' @param dimY Y-dimension of the matrix
+#'
 index_3d <- function(x, y, z, dimX, dimY) {
   return(x + dimX * (y - 1) + dimX * dimY * (z - 1))
 }
@@ -71,11 +82,26 @@ draw_rnd_species_params <- function(max_val = 100) {
   return(sp_params)
 }
 
-# Draw second value for uniform parameters
+#' Draw max value for uniform parameters
+#'
+#' Given the minimum value and an upper bound, draw a random max value such that
+#' the max value is larger than the min and smaller than the upper bound
+#'
+#' @param min_val the minimum value of the uniform distribution
+#' @param upper_bound upper bound to not exceed when drawing the value
+#'
 draw_max_value <- function(min_val, upper_bound) {
   return(min_val + runif(1, 0, upper_bound - min_val))
 }
 
+#' Draw random values for individual initialisation parameters
+#'
+#' Returns a list with random values for [draw_initial_individuals()] argument
+#' `distr_params`
+#'
+#' @return a list with four elements: `SurfaceBiomassScaling`,
+#' `IndividualsPerSpecies`, `ScalingPerHa`, and `PercentageMaturePerSpecies`
+#'
 draw_rnd_initial_inds_params <- function() {
   return(list(
     "SurfaceBiomassScaling" = runif(1, 1e-7, 10),

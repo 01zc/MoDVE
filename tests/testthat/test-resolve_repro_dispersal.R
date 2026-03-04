@@ -1,6 +1,3 @@
-source("../old_funcs.R")
-source("../test-utils.R")
-
 test_that("dispersal consistent with the previous version", {
 
   # Generate species

@@ -1,5 +1,3 @@
-source("../test-utils.R")
-
 test_that("Competition works as expected", {
 
   # Initialise habitat matrix

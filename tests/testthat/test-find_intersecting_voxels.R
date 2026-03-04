@@ -1,4 +1,3 @@
-
 test_that("identify correct voxels", {
 
   start_point <- c(-1, 1, 1) # x, y, z
@@ -31,5 +30,4 @@ test_that("identify correct voxels", {
   )
   voxels <- find_intersecting_voxels(start_point, end_point)
   testthat::expect_setequal(voxels, exptd_voxels)
-
 })

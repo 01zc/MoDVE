@@ -1,5 +1,3 @@
-source("../test-utils.R")
-
 test_that("3D coordinates are converted to sequential index correctly", {
 
   rnd_dim <- sample(1:10, 3, replace = TRUE)
