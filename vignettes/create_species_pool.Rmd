@@ -3,7 +3,7 @@ title: "Create species pool"
 output: rmarkdown::html_vignette
 vignette: >
   %\VignetteIndexEntry{species_pool}
-  %\VignetteEngine{knitr::knitr}
+  %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 ---
 

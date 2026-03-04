@@ -3,7 +3,7 @@ title: "Run the simulation"
 output: rmarkdown::html_vignette
 vignette: >
   %\VignetteIndexEntry{simulation}
-  %\VignetteEngine{knitr::knitr}
+  %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 ---
 
