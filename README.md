@@ -1,5 +1,9 @@
 # MoDVE
 
+<!-- badges: start -->
+[![R-CMD-check](https://github.com/01zc/MoDVE/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/01zc/MoDVE/actions/workflows/R-CMD-check.yaml)
+<!-- badges: end -->
+
 MoF3D generates the 3D forest for epiphytes to inhabit, growing across multiple timesteps.
 
 MoDVE scripts:
