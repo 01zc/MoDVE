@@ -9,6 +9,7 @@ save_rng <- function(savefile) {
 }
 
 restore_rng <- function(savefile) {
+  oldRNGkind <- oldseed <- NULL
   load(savefile)
   do.call("RNGkind", as.list(oldRNGkind))
   assign(".Random.seed", oldseed, .GlobalEnv)

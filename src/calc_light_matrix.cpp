@@ -1,3 +1,4 @@
+/*
 #include <Rcpp.h>
 using namespace Rcpp;
 
@@ -5,7 +6,7 @@ int index_3d(const int& x, const int& y, const int& z, const int& rows, const in
   return x * rows * cols + y * cols + z;
 }
 
-/*
+
 // [[Rcpp::export]]
 NumericVector calc_light_matrix(const DataFrame& vox_dt, const List& config) {
 
