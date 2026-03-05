@@ -40,7 +40,7 @@ run_modve_sim <- function(sim_params,
     if (!file.exists(SpeciesPool)) {
       stop(paste0(SpeciesPool, " doesn't exist.\n"))
     } # error
-    else SpeciesPool <- read.csv(SpeciesPool, sep = ",", header = TRUE)
+    else SpeciesPool <- utils::read.csv(SpeciesPool, sep = ",", header = TRUE)
   }
   NumberOfSpecies <- nrow(SpeciesPool)  # number of species per 25x25m plot
 
@@ -52,7 +52,7 @@ run_modve_sim <- function(sim_params,
     if (!file.exists(InitDist)) {
       stop(paste0(InitDist, " doesn't exist.\n"))
     }
-    else InitDist <- read.csv(InitDist, sep = ",", header = TRUE)
+    else InitDist <- utils::read.csv(InitDist, sep = ",", header = TRUE)
   }
   E <- InitDist
   # Add columns to E for additional info
