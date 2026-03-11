@@ -2,26 +2,32 @@
 % Please edit documentation in R/calc_prob_dist_matrix.R
 \name{calc_prob_disp_matrix}
 \alias{calc_prob_disp_matrix}
-\title{Title}
+\title{Calculate the probabilistic distribution of dispersal in a 3D matrix}
 \usage{
-calc_prob_disp_matrix(centralPoint, dimX, dimY, dimZ, SpeciesPool)
+calc_prob_disp_matrix(expanded_mat_central_point, expanded_dims, SpeciesPool)
 }
 \arguments{
-\item{centralPoint}{a numeric vector of length 3 containing the X, Y and Z
-coordinates of the center}
+\item{expanded_mat_central_point}{a numeric vector of length 3 containing the
+X, Y and Z coordinates of the center of the expanded matrix}
 
-\item{dimX}{numeric, the X dimension of the coordinate system}
-
-\item{dimY}{numeric, the Y dimension of the coordinate system}
-
-\item{dimZ}{numeric, the Z dimension of the coordinate system}
+\item{expanded_dims}{3-element vector with the X, Y, Z dimensions of a matrix
+twice as large as the microhabitat matrix}
 
 \item{SpeciesPool}{a data frame containing the species traits of all species}
 }
 \value{
 a matrix with the base probability of dispersing from the central
-point to each cell within reach
+point to each cell within reach. The matrix sums to 1.
 }
 \description{
-Title
+Given a focal point in a 3D matrix, calculate the probability to disperse in
+each voxel around the focal point.
+}
+\details{
+The 3D matrix is an expanded version of the microhabitat matrix used
+in the main simulation, such that the dispersal matrix covers dispersal from
+any given point in the microhabitat matrix.
+During the dispersal step, this matrix is centered on the focal
+individual and cropped to the edges of the microhabitat, giving the
+probabilities of the offspring dispersing in each voxel.
 }

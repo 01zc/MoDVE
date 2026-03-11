@@ -1,28 +1,37 @@
-#' Title
+#' Calculate the probabilistic distribution of dispersal in a 3D matrix
 #'
-#' @param centralPoint a numeric vector of length 3 containing the X, Y and Z
-#' coordinates of the center
-#' @param dimX numeric, the X dimension of the coordinate system
-#' @param dimY numeric, the Y dimension of the coordinate system
-#' @param dimZ numeric, the Z dimension of the coordinate system
+#' Given a focal point in a 3D matrix, calculate the probability to disperse in
+#' each voxel around the focal point.
+#'
+#' @details The 3D matrix is an expanded version of the microhabitat matrix used
+#' in the main simulation, such that the dispersal matrix covers dispersal from
+#' any given point in the microhabitat matrix.
+#' During the dispersal step, this matrix is centered on the focal
+#' individual and cropped to the edges of the microhabitat, giving the
+#' probabilities of the offspring dispersing in each voxel.
+#'
+#' @param expanded_dims 3-element vector with the X, Y, Z dimensions of a matrix
+#' twice as large as the microhabitat matrix
+#' @param expanded_mat_central_point a numeric vector of length 3 containing the
+#'  X, Y and Z coordinates of the center of the expanded matrix
 #' @param SpeciesPool a data frame containing the species traits of all species
 #'
 #' @returns a matrix with the base probability of dispersing from the central
-#' point to each cell within reach
+#' point to each cell within reach. The matrix sums to 1.
 #' @export
 #'
-calc_prob_disp_matrix <- function(centralPoint, dimX, dimY, dimZ, SpeciesPool) {
+calc_prob_disp_matrix <- function(expanded_mat_central_point, expanded_dims, SpeciesPool) {
 
   # Calculate distance to central point
   DistanceMatrix <- array(
-    rep(0, dimX * dimY * dimZ),
-    dim = c(dimX, dimY, dimZ)
+    rep(0, prod(expanded_dims)),
+    dim = expanded_dims
   )
-  for (i in seq_len(dimX)) {
-    for (j in seq_len(dimY)) {
-      for (k in seq_len(dimZ)) {
+  for (i in seq_len(expanded_dims[1])) {
+    for (j in seq_len(expanded_dims[2])) {
+      for (k in seq_len(expanded_dims[3])) {
         x1 <- c(i, j, k)
-        x2 <- c(centralPoint[1], centralPoint[2], centralPoint[3])
+        x2 <- expanded_mat_central_point
         DistanceMatrix[i, j, k] <- sqrt(sum((x1 - x2)^2))  # call to pdist() in the matlab script
       }
     }
@@ -31,8 +40,8 @@ calc_prob_disp_matrix <- function(centralPoint, dimX, dimY, dimZ, SpeciesPool) {
   # Get probabilities to disperse in each voxel
   NumberOfSpecies <- nrow(SpeciesPool)
   ProbabilityMatrix <- prob_disp_matrix <- array(
-    rep(0, dimX * dimY * dimZ * NumberOfSpecies),
-    dim = c(dimX, dimY, dimZ, NumberOfSpecies)
+    rep(0, prod(expanded_dims) * NumberOfSpecies),
+    dim = c(expanded_dims, NumberOfSpecies)
   )
 
   for (i in seq_len(NumberOfSpecies)) {
@@ -43,11 +52,19 @@ calc_prob_disp_matrix <- function(centralPoint, dimX, dimY, dimZ, SpeciesPool) {
 
     # Dispersal asymmetry (probability to disperse downwards > upwards)
     dispersalAsymmetry <- SpeciesPool$DispersalKernelAsymmetry[i]
-    z_seq_up <- int_seq(from = centralPoint[3], to = dimZ, by = 1)
-    z_seq_down <- int_seq(from = 1, to = centralPoint[3] - 1, by = 1)
-    ProbabilityMatrix[, , z_seq_up, i] <- ProbabilityMatrix[, , z_seq_up, i] *
+    z_seq_up <- int_seq(
+      from = expanded_mat_central_point[3],
+      to = expanded_dims[3],
+      by = 1
+      )
+    z_seq_down <- int_seq(
+      from = 1,
+      to = expanded_mat_central_point[3] - 1,
+      by = 1
+      )
+    ProbabilityMatrix[,,z_seq_up, i] <- ProbabilityMatrix[, , z_seq_up, i] *
       2 * (1 - dispersalAsymmetry)
-    ProbabilityMatrix[, , z_seq_down, i] <- ProbabilityMatrix[, , z_seq_down, i] *
+    ProbabilityMatrix[,,z_seq_down, i] <- ProbabilityMatrix[, , z_seq_down, i] *
       2 * dispersalAsymmetry
 
     # Normalize
@@ -57,26 +74,3 @@ calc_prob_disp_matrix <- function(centralPoint, dimX, dimY, dimZ, SpeciesPool) {
   return(prob_disp_matrix)
 }
 
-#' Find the central point of the dispersal matrix
-#'
-#' Given dimensions X, Y and Z of the microhabitat matrix, returns the central
-#' point of the corresponding dispersal matrix, which has dimensions (2X+1, 2Y+1,
-#' 2Z+1).
-#'
-#' @param dims a length-3 numeric vector containing dimension sizes X, Y and Z
-#' of the coordinate system
-#'
-#' @returns a length-3 numeric vector containing the X, Y and Z coordinates of
-#' the central point
-#'  @export
-#'
-find_central_point <- function(dims) {
-  dimX <- dims[1] * 2 + 1
-  dimY <- dims[2] * 2 + 1
-  dimZ <- dims[3] * 2 + 1
-  return(c(
-    floor(dimX/2) + 1,
-    floor(dimY/2) + 1,
-    floor(dimZ/2) + 1
-  ))
-}

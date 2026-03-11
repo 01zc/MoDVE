@@ -84,10 +84,11 @@ run_modve_sim <- function(sim_params,
   }
 
   #  Convert relative light values to absolute ?mol*m-2*s-1
-  Microhabitat[, , , 3] <- Microhabitat[, , , 3] * sim_params$Imax
-  dimX <- dim(Microhabitat)[1]
-  dimY <- dim(Microhabitat)[2]
-  dimZ <- dim(Microhabitat)[3]
+  Microhabitat[,,,3] <- Microhabitat[,,,3] * sim_params$Imax
+  dims <- dim(Microhabitat)
+  dimX <- dims[1]
+  dimY <- dims[2]
+  dimZ <- dims[3]
 
   # Prepare output
   dir_output <- dirname(path_to_ind_output)
@@ -142,12 +143,12 @@ run_modve_sim <- function(sim_params,
   StopNbInds <- sim_params$StopCriterionHa / 10000 * dimX * dimY
 
   # Calculate the probability to disperse in surrounding voxels
-  centralPoint <- find_central_point(c(dimX, dimY, dimZ))
+  # Generate probabilities for a matrix twice as large as microhabitat
+  expanded_dims <- dims[1:3] * 2 + 1
+  expanded_mat_central_point <- floor(expanded_dims / 2) + 1
   prob_disp_matrix <- calc_prob_disp_matrix(
-    centralPoint,
-    dimX = dimX * 2 + 1,
-    dimY = dimY * 2 + 1,
-    dimZ = dimZ * 2 + 1,
+    expanded_mat_central_point,
+    expanded_dims,
     SpeciesPool
   )
 
@@ -169,7 +170,13 @@ run_modve_sim <- function(sim_params,
     # Update microhabitat if applicable
     if (isHabitatDynamic && t > 1) {
       Microhabitat <- readRDS(microhab_files[t])
-      Microhabitat[, , , 3] <- Microhabitat[, , , 3] * sim_params$Imax
+      if (!all.equal(dim(Microhabitat), dims)) {
+        stop(
+          paste("Invalid microhabitat matrix at time", t,
+                ": number of dimensions must be the same as the first matrix")
+          )
+      }
+      Microhabitat[,,,3] <- Microhabitat[,,,3] * sim_params$Imax
     }
 
     # Update how many species are alive at beginning of generation
@@ -177,11 +184,10 @@ run_modve_sim <- function(sim_params,
     nbIndsBeforeDispTotal <- length(which(E$Status == 1))
 
     # Dispersal
-    stop("TODO: change calls from E columns to SpeciesPool")
     stop("TODO: make sure we use the expanded prob matrix as in old script")
     disp_items <- resolve_repro_dispersal(
       E, Microhabitat, sim_params$SurfaceBiomassScaling,
-      centralPoint, sim_params$InterceptRecruitment,
+      expanded_mat_central_point, sim_params$InterceptRecruitment,
       sim_params$SlopeRecruitment,
       prob_disp_matrix,  SpeciesPool, max_id
     )
@@ -202,11 +208,6 @@ run_modve_sim <- function(sim_params,
     NumberRecruits <- length(which(E$Status == 1)) - nbIndsBeforeDispTotal
     nbRecruitsPerSpecies <- disp_items$recruitment_df$nb_recruits
 
-    # TODO: Unclear what this line in the Matlab script is supposed to do.
-    # From what I understand, the first column in E ("SpeciesID") takes non-zero values
-    # only, so I think that E(:,1)==0 will always be empty.
-    # E(E(:,1)==0,:)=[]; %in rare case, some individuals with only zeros are creates, which is wrong. This is to prevent the script to stop.
-
     # Growth
     E <- resolve_growth(E, SpeciesPool, Microhabitat, sim_params$SurfaceBiomassScaling)
 
@@ -222,27 +223,27 @@ run_modve_sim <- function(sim_params,
     E$Age <- E$Age + 1
 
     # Species-level output
-    for (nb_sp in seq_len(NumberOfSpecies)) {
+    for (sp in seq_len(NumberOfSpecies)) {
 
       nb_alive <- sum(E$Status == 1 & is_sp, na.rm = TRUE)
       nb_dead_comp <- sum(E$Status == 2 & is_sp, na.rm = TRUE)
       nb_dead_branch <- sum(E$Status == 3 & is_sp, na.rm = TRUE)
       nb_dead_light <- sum(E$Status == 4 & is_sp, na.rm = TRUE)
       nb_dead_base <- sum(E$Status == 5 & is_sp, na.rm = TRUE)
-      nb_inds_begin <- nbIndsBeforeDisp[nb_sp]
+      nb_inds_begin <- nbIndsBeforeDisp[sp]
 
-      row_nb <- (nb_sp - 1) * timeSteps + t
-      is_sp <- E$SpeciesID == nb_sp
+      row_nb <- (sp - 1) * timeSteps + t
+      is_sp <- E$SpeciesID == sp
 
       sp_output[row_nb, col_sp_t] <- gen_nb
-      sp_output[row_nb, col_sp_id] <- nb_sp
+      sp_output[row_nb, col_sp_id] <- sp
       sp_output[row_nb, col_nb_inds_begin] <- nb_inds_begin
       sp_output[row_nb, col_nb_inds_end] <- nb_alive
       sp_output[row_nb, col_nb_mature_inds] <- sum(
-        E$Status == 1 & is_sp & E$Mass >= E$MassAtMaturity,
+        E$Status == 1 & is_sp & E$Mass >= SpeciesPool$MassAtMaturity[sp],
         na.rm = TRUE
       )
-      sp_output[row_nb, col_nb_rec] <- nbRecruitsPerSpecies[nb_sp]
+      sp_output[row_nb, col_nb_rec] <- nbRecruitsPerSpecies[sp]
       sp_output[row_nb, col_nb_dead_branch] <- nb_dead_branch
       sp_output[row_nb, col_nb_dead_light] <- nb_dead_light
       sp_output[row_nb, col_nb_dead_comp] <- nb_dead_comp
@@ -252,7 +253,7 @@ run_modve_sim <- function(sim_params,
         sp_output[row_nb, col_growth_rate] <- sp_output[row_nb, col_nb_inds_end] /
           sp_output[row_nb, col_nb_inds_begin]
         sp_output[row_nb, col_growth_log] <- log(sp_output[row_nb, col_growth_rate])
-        sp_output[row_nb, col_birth] <- nbRecruitsPerSpecies[nb_sp] /
+        sp_output[row_nb, col_birth] <- nbRecruitsPerSpecies[sp] /
           nb_inds_begin
         sp_output[row_nb, col_death] <- (
           nb_dead_branch + nb_dead_light + nb_dead_comp + nb_dead_base

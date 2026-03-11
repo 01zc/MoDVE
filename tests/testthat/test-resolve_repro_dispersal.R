@@ -13,7 +13,6 @@ test_that("dispersal consistent with the previous version", {
 
   # Initialise a random 3D grid with individuals
   dimPlot <- sample(2:10, 3)
-  centralPoint <- find_central_point(dimPlot)
 
   # Initialise microhabitat
   Microhabitat <- create_rnd_microhabitat(SpeciesPool, dimPlot, SurfaceBiomassScaling)
@@ -30,11 +29,10 @@ test_that("dispersal consistent with the previous version", {
 
   # Compute the dispersal matrix
   expanded_dims <- dimPlot * 2 + 1
+  centralPoint <- floor(expanded_dims / 2) + 1
   ProbabilityMatrixNormalized <- calc_prob_disp_matrix(
     centralPoint,
-    expanded_dims[1],
-    expanded_dims[2],
-    expanded_dims[3],
+    expanded_dims,
     SpeciesPool
   )
 
