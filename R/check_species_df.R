@@ -1,5 +1,9 @@
 check_species_df <- function(species_df) {
 
+  if (nrow(species_df) < 1) {
+    stop("Species trait table is empty.")
+  }
+
   exptd_params <- c("SpeciesID", species_trait_names())
 
   missing_params <- exptd_params[!exptd_params %in% names(species_df)]
@@ -36,6 +40,10 @@ check_species_df <- function(species_df) {
     stop(paste(c(
       "The following elements of species_df contain negative values:",
       wrong_params), rep(" ", length(wrong_params) + 1)))
+  }
+
+  if (any(duplicated(species_df$SpeciesID))) {
+    stop("species_df contains multiple entries for the same species")
   }
 
   if (any(species_df$MaximumMass < species_df$MassAtMaturity)) {

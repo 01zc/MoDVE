@@ -33,9 +33,63 @@
 #' - SlopeRecruitment: a number between 0 and 1, the slope of the relation
 #' between mass and fecundity
 #'
-#' @param SpeciesPool descriptioflm
-#' @param Microhabitat desc
-#' @param InitDist description
+#' @param SpeciesPool a `data.frame` containing the species traits, as generated
+#' e.g. with [draw_species_traits()]. Contains one row per species and the
+#' following columns:
+#' * `MaximumMass` positive numeric, the maximum mass an individual can reach.
+#'  * `MassAtMaturity` numeric between 0 and and `MaximumMass`,
+#'  fraction of `MaximumMass` above which at individual can reproduce.
+#'  * `GrowthRate` numeric between 0 an 1, the fraction of remaining growth an
+#'  individual gains in a single generation (i.e, mass increase = growth_rate *
+#'  (max_mass - mass)), under optimal light conditions.
+#'  * `DispersalKernel` positive numeric, the dispersal kernel.
+#'  * `DispersalKernelAsymmetry` numeric between 0 and 1, the dispersal asymmetry.
+#'  D_k_A = 0.5 corresponds to symmetric dispersal; with D_k_A = 1 individuals
+#'  disperse stricly below themselves; with D_k_A = 0 individuals never disperse
+#'  only above themselves or at their height.
+#'  * `RecruitmentInvestmentRel` numeric between 0 and 1, a coefficient scaling
+#'  the mass-dependent fecundity coefficient (see [resolve_repro_dispersal()]),
+#'  representing the fraction of available biomass invested in fecundity
+#'  * `RecruitmentInc` numeric between 0 and 1, scaling how fecundity increases
+#'  with the growth stage of the epiphyte. This factor ranges from `1` when
+#'  `Mass` = `MassAtMaturity`, and `2 * RecruitmentInc` when
+#'  `Mass` = `MaximumMass`.
+#'  * `MinLight` positive numeric, minimum light conditions under which this species can survive
+#'  * `MaxLight` positive numeric, maximum light conditions under which this species can survive
+#'  * `OptimumLight` positive numeric, optimum light conditions under which individuals of this species
+#'  grow and reproduce at the maximum rate. It is calculated as the average of `MinLight` and `MaxLight.`
+#'  * `LightBreadth` positive numeric, range between `MinLight` and `MaxLight`
+#'  * `LightResponseA` first term of the parabolic light-growth response function.
+#'  * `LightResponseB` second term of the parabolic light-growth response function.
+#'  * `LightResponseC` third term of the parabolic light-growth response function.
+#'  * `MinHeightRel` minimum relative height (between 0 and 1) at which the species can survive, used to compute `MinLight`
+#'  * `MaxHeightRel` maximum relative height (between 0 and 1) at which the species can survive, used to compute `MaxLight`
+#'  * `MeanHeightRel` average of `MinHeightRel` and `MaxHeightRel`
+#'  * `HeightBreadth` range between `MinHeightRel` and `MaxHeightRel`
+#'
+#' @param Microhabitat a 4D matrix where the first three dimensions
+#' corresponding to a 3D habitat space, and the last one containing values of
+#' the microhabitat for the available surface area, % of surface area lost in
+#' the previous generation (if dynamic) and light intensity; or a path to a csv
+#' file containing such a matrix.
+#' If `hasDynamicMicrohabitat` is `TRUE`, `Microhabitat` must be a vector of
+#' paths to such matrices`,` with length `Timesteps`.
+#' @param InitDist a `data.frame` containing the distribution and initial
+#' attributes of individuals at the beginning of the simulation, as generated
+#' e.g. with [draw_initial_individuals()]. Contains one row per initial individual,
+#' and the following columns:
+#' * `X` the x-coordinate of the individual
+#' * `Y` the y-coordinate of the individual
+#' * `Z` the z-coordinate of the individual
+#' * `Mass` the mass of the individual
+#' * `Status`, the status of the individual either 1 (alive) or 2 (dead, due to
+#' a lack of available surface area to allocate this individual)
+#' * `IndividualID` a unique identifier for this individual
+#' * `SurfaceAreaOccupied` the amount of surface area that this individual
+#' requires and uses
+#' * `Age` age of the individual in generations
+#' * `SpeciesID` which species this individual belongs
+#' to.
 #'
 #' @param path_to_ind_output where to save the individual-level output.
 #' Must end with `.csv` and point to an existing folder.
@@ -67,22 +121,8 @@ run_modve_sim <- function(sim_params,
     } # error
     else SpeciesPool <- utils::read.csv(SpeciesPool, sep = ",", header = TRUE)
   }
+  check_species_df(SpeciesPool)
   NumberOfSpecies <- nrow(SpeciesPool)  # number of species per 25x25m plot
-
-  if (!is.data.frame(InitDist)) {
-    # Then it must be a path to the input
-    if (!grepl("*.csv$", InitDist)) {
-      stop("InitDist should be a data frame or a valid path to a .csv file.")
-    }
-    if (!file.exists(InitDist)) {
-      stop(paste0(InitDist, " doesn't exist.\n"))
-    }
-    else InitDist <- utils::read.csv(InitDist, sep = ",", header = TRUE)
-  }
-  E <- InitDist
-  # Add columns to E for additional info
-  E[, c("TotalSurfaceInVoxel", "LightInVoxel", "SurfaceLossInVoxel")] <- 0
-  max_id <- nrow(E)  # to trace individual IDs
 
   isHabitatDynamic <- sim_params$MicrohabitatType == 1
   if (!is.array(Microhabitat)) {
@@ -106,6 +146,7 @@ run_modve_sim <- function(sim_params,
     }
     # If all checks ok, read the first one
     Microhabitat <- readRDS(Microhabitat[1])
+    check_microhabitat(Microhabitat)
   }
 
   #  Convert relative light values to absolute ?mol*m-2*s-1
@@ -114,6 +155,22 @@ run_modve_sim <- function(sim_params,
   dimX <- dims[1]
   dimY <- dims[2]
   dimZ <- dims[3]
+
+  if (!is.data.frame(InitDist)) {
+    # Then it must be a path to the input
+    if (!grepl("*.csv$", InitDist)) {
+      stop("InitDist should be a data frame or a valid path to a .csv file.")
+    }
+    if (!file.exists(InitDist)) {
+      stop(paste0(InitDist, " doesn't exist.\n"))
+    }
+    else InitDist <- utils::read.csv(InitDist, sep = ",", header = TRUE)
+  }
+  check_init_dist(InitDist, SpeciesPool, dims)
+  E <- InitDist
+  # Add columns to E for additional info
+  E[, c("TotalSurfaceInVoxel", "LightInVoxel", "SurfaceLossInVoxel")] <- 0
+  max_id <- nrow(E)  # to trace individual IDs
 
   # Prepare output
   dir_output <- dirname(path_to_ind_output)
@@ -195,6 +252,7 @@ run_modve_sim <- function(sim_params,
     # Update microhabitat if applicable
     if (isHabitatDynamic && t > 1) {
       Microhabitat <- readRDS(microhab_files[t])
+      check_microhabitat(Microhabitat)
       if (!all.equal(dim(Microhabitat), dims)) {
         stop(
           paste("Invalid microhabitat matrix at time", gen_nb,

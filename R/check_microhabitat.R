@@ -16,7 +16,7 @@ check_microhabitat <- function(microhab_mat) {
      stop("Microhabitat matrix contains NAs.")
    }
 
-   if(any(is.null(microhab_mat))) {
+   if (any(is.null(microhab_mat))) {
      stop("Microhabitat matrix contains NULL elements.")
    }
 

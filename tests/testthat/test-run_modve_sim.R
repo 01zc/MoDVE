@@ -1,14 +1,19 @@
 test_that("reads input", {
+  skip() # wip
   # check that input matrices / dfs are read correctly when a path is passed
 
+  sim_params <- parse_config(test_path("configs", "config_a4.toml"))
 
-  # Microhabitat[,,,3] cannot be less than 0
-  # Microhabitat[,,,2] cannot be less than 0, more than 1
-  # use_mass_dep_mortality if TRUE/FALSE
-  # MortRateRandom is between 0 and 1
-  # MortRateMass is between 0 and 1
-  # MortRateMassScaling is negative or 0
+    # InitDist
 
-  # what if NaNs / NAs are introduced in the matrix at some point?
+  run_modve_sim(
+    sim_params,
+    SpeciesPool,
+    Microhabitat,
+    InitDist,
+    path_to_ind_output = NULL,
+    path_to_sp_output = NULL,
+    path_to_comm_output = NULL
+  )
 
 })

@@ -50,11 +50,68 @@ relation between mass and fecundity.
 between mass and fecundity
 }}
 
-\item{SpeciesPool}{descriptioflm}
+\item{SpeciesPool}{a \code{data.frame} containing the species traits, as generated
+e.g. with \code{\link[=draw_species_traits]{draw_species_traits()}}. Contains one row per species and the
+following columns:
+\itemize{
+\item \code{MaximumMass} positive numeric, the maximum mass an individual can reach.
+\item \code{MassAtMaturity} numeric between 0 and and \code{MaximumMass},
+fraction of \code{MaximumMass} above which at individual can reproduce.
+\item \code{GrowthRate} numeric between 0 an 1, the fraction of remaining growth an
+individual gains in a single generation (i.e, mass increase = growth_rate *
+(max_mass - mass)), under optimal light conditions.
+\item \code{DispersalKernel} positive numeric, the dispersal kernel.
+\item \code{DispersalKernelAsymmetry} numeric between 0 and 1, the dispersal asymmetry.
+D_k_A = 0.5 corresponds to symmetric dispersal; with D_k_A = 1 individuals
+disperse stricly below themselves; with D_k_A = 0 individuals never disperse
+only above themselves or at their height.
+\item \code{RecruitmentInvestmentRel} numeric between 0 and 1, a coefficient scaling
+the mass-dependent fecundity coefficient (see \code{\link[=resolve_repro_dispersal]{resolve_repro_dispersal()}}),
+representing the fraction of available biomass invested in fecundity
+\item \code{RecruitmentInc} numeric between 0 and 1, scaling how fecundity increases
+with the growth stage of the epiphyte. This factor ranges from \code{1} when
+\code{Mass} = \code{MassAtMaturity}, and \code{2 * RecruitmentInc} when
+\code{Mass} = \code{MaximumMass}.
+\item \code{MinLight} positive numeric, minimum light conditions under which this species can survive
+\item \code{MaxLight} positive numeric, maximum light conditions under which this species can survive
+\item \code{OptimumLight} positive numeric, optimum light conditions under which individuals of this species
+grow and reproduce at the maximum rate. It is calculated as the average of \code{MinLight} and \code{MaxLight.}
+\item \code{LightBreadth} positive numeric, range between \code{MinLight} and \code{MaxLight}
+\item \code{LightResponseA} first term of the parabolic light-growth response function.
+\item \code{LightResponseB} second term of the parabolic light-growth response function.
+\item \code{LightResponseC} third term of the parabolic light-growth response function.
+\item \code{MinHeightRel} minimum relative height (between 0 and 1) at which the species can survive, used to compute \code{MinLight}
+\item \code{MaxHeightRel} maximum relative height (between 0 and 1) at which the species can survive, used to compute \code{MaxLight}
+\item \code{MeanHeightRel} average of \code{MinHeightRel} and \code{MaxHeightRel}
+\item \code{HeightBreadth} range between \code{MinHeightRel} and \code{MaxHeightRel}
+}}
 
-\item{Microhabitat}{desc}
+\item{Microhabitat}{a 4D matrix where the first three dimensions
+corresponding to a 3D habitat space, and the last one containing values of
+the microhabitat for the available surface area, \% of surface area lost in
+the previous generation (if dynamic) and light intensity; or a path to a csv
+file containing such a matrix.
+If \code{hasDynamicMicrohabitat} is \code{TRUE}, \code{Microhabitat} must be a vector of
+paths to such matrices\verb{,} with length \code{Timesteps}.}
 
-\item{InitDist}{description}
+\item{InitDist}{a \code{data.frame} containing the distribution and initial
+attributes of individuals at the beginning of the simulation, as generated
+e.g. with \code{\link[=draw_initial_individuals]{draw_initial_individuals()}}. Contains one row per initial individual,
+and the following columns:
+\itemize{
+\item \code{X} the x-coordinate of the individual
+\item \code{Y} the y-coordinate of the individual
+\item \code{Z} the z-coordinate of the individual
+\item \code{Mass} the mass of the individual
+\item \code{Status}, the status of the individual either 1 (alive) or 2 (dead, due to
+a lack of available surface area to allocate this individual)
+\item \code{IndividualID} a unique identifier for this individual
+\item \code{SurfaceAreaOccupied} the amount of surface area that this individual
+requires and uses
+\item \code{Age} age of the individual in generations
+\item \code{SpeciesID} which species this individual belongs
+to.
+}}
 
 \item{path_to_ind_output}{where to save the individual-level output.
 Must end with \code{.csv} and point to an existing folder.}

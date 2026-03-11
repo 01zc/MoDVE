@@ -40,7 +40,7 @@
 #' * `SurfaceAreaOccupied` the amount of surface area that this individual
 #' requires and uses
 #' * `Age` age of the individual in generations
-#' * `SpeciesID` which species (from the `species_df`) this individual belongs
+#' * `SpeciesID` which speciesthis individual belongs
 #' to.
 #'
 #' @export
