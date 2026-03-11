@@ -2,13 +2,13 @@
 #'
 #' @param E epiphyte data frame
 #' @param Microhabitat microhabitat matrix
-#' @param larger_first boolean, `TRUE` = larger individuals get priority in
+#' @param massDepCompetition boolean, `TRUE` = larger individuals get priority in
 #' voxel attribution, otherwise (`FALSE`) individuals are distributed randomly.
 #'
 #' @returns the modified epiphyte data frame
 #' @export
 #'
-resolve_competition <- function(E, Microhabitat, larger_first) {
+resolve_competition <- function(E, Microhabitat, massDepCompetition) {
 
   # Calculate total surface area occupied by epiphytes per voxel
   dims <- dim(Microhabitat)
@@ -41,7 +41,7 @@ resolve_competition <- function(E, Microhabitat, larger_first) {
     indsInVoxel <- E[isInVoxel & E$Status == 1, ]
 
     # Sort individuals
-    if (larger_first) { # priority to larger individuals
+    if (massDepCompetition) { # priority to larger individuals
       ind_seq <- order(indsInVoxel$SurfaceAreaOccupied, decreasing = TRUE)
     } else { # random
       ind_seq <- sample(seq_len(nrow(indsInVoxel)))

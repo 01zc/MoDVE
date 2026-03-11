@@ -9,8 +9,6 @@ test_that("dispersal consistent with the previous version", {
   SlopeRecruitment <- runif(1, 0, 1)
   SurfaceBiomassScaling <- runif(1, 0, 100)
 
-  SpeciesPool$MassAtMaturity * SlopeRecruitment + InterceptRecruitment
-
   # Initialise a random 3D grid with individuals
   dimPlot <- sample(2:10, 3)
 

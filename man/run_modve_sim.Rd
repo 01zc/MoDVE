@@ -15,7 +15,40 @@ run_modve_sim(
 )
 }
 \arguments{
-\item{sim_params}{description}
+\item{sim_params}{a list of parameters containing at least the following
+elements:
+\itemize{
+\item \code{InitialTimeSteps}: index for the first generation
+\item \code{TimeSteps}: number of time steps (generations) to run the simulation for
+\item \code{StopCriterionHa}: limit density of individuals per ha. If the number of
+individuals exceeds \code{StopCriterionHa / 10000 * dimX * dimY}, the simulation
+exits.
+\item \code{hasDynamicMicrohabitat}: \code{TRUE/FALSE}, does the microhabitat matrix change
+with each time steps? If \code{TRUE}, \code{Microhabitat} must be a vector of paths
+to each of the microhabitat matrices (one per generation).
+\item \code{Imax}: maximum light intensity above the canopy
+\item \code{massDepCompetition}: \code{TRUE} = larger individuals get priority in
+voxel attribution, otherwise (\code{FALSE}) individuals are distributed randomly.
+\item \code{use_mass_dep_mortality}: if \code{FALSE} individuals die randomly
+according to \code{MortRateRandom}, if \code{TRUE} mortality is mass-dependent, using
+\code{MortRateMass * (mass^MortRateMassScaling)}.
+\item \code{MortRateRandom}: numeric between 0 and 1, the probability of an
+individual dying if \code{use_mass_dep_mortality == FALSE}
+\item \code{MortRateMass}: numeric, if \code{use_mass_dep_mortality == TRUE} the
+coefficient for the effect of mass on the probability of death
+\item \code{MortRateMassScaling}: numeric between \code{-Inf} and \code{0}, if
+\code{use_mass_dep_mortality == TRUE} the exponent for the effect of mass on the
+probability of death. Must be negative or zero.
+\item \code{SurfaceBiomassScaling}: a strictly positive parameter scaling how much
+surface area an individual occupies as a function of its mass:
+\deqn{S = M^{2/3} / g_S}
+}
+\itemize{
+\item InterceptRecruitment: a positive number (or zero), the intercept of the
+relation between mass and fecundity.
+\item SlopeRecruitment: a number between 0 and 1, the slope of the relation
+between mass and fecundity
+}}
 
 \item{SpeciesPool}{descriptioflm}
 
@@ -23,11 +56,14 @@ run_modve_sim(
 
 \item{InitDist}{description}
 
-\item{path_to_ind_output}{description}
+\item{path_to_ind_output}{where to save the individual-level output.
+Must end with \code{.csv} and point to an existing folder.}
 
-\item{path_to_sp_output}{description}
+\item{path_to_sp_output}{where to save the species-level output.
+Must end with \code{.csv} and point to an existing folder.}
 
-\item{path_to_comm_output}{description}
+\item{path_to_comm_output}{where to save the community-level output.
+Must end with \code{.csv} and point to an existing folder.}
 }
 \description{
 Main function of the package, runs the epiphyte lifecycle simulation.

@@ -2,13 +2,47 @@
 #'
 #' Main function of the package, runs the epiphyte lifecycle simulation.
 #'
-#' @param sim_params description
+#' @param sim_params a list of parameters containing at least the following
+#' elements:
+#'  * `InitialTimeSteps`: index for the first generation
+#'  * `TimeSteps`: number of time steps (generations) to run the simulation for
+#'  * `StopCriterionHa`: limit density of individuals per ha. If the number of
+#' individuals exceeds `StopCriterionHa / 10000 * dimX * dimY`, the simulation
+#' exits.
+#'  * `hasDynamicMicrohabitat`: `TRUE/FALSE`, does the microhabitat matrix change
+#' with each time steps? If `TRUE`, `Microhabitat` must be a vector of paths
+#' to each of the microhabitat matrices (one per generation).
+#' * `Imax`: maximum light intensity above the canopy
+#' * `massDepCompetition`: `TRUE` = larger individuals get priority in
+#' voxel attribution, otherwise (`FALSE`) individuals are distributed randomly.
+#' * `use_mass_dep_mortality`: if `FALSE` individuals die randomly
+#' according to `MortRateRandom`, if `TRUE` mortality is mass-dependent, using
+#' `MortRateMass * (mass^MortRateMassScaling)`.
+#' * `MortRateRandom`: numeric between 0 and 1, the probability of an
+#' individual dying if `use_mass_dep_mortality == FALSE`
+#' * `MortRateMass`: numeric, if `use_mass_dep_mortality == TRUE` the
+#' coefficient for the effect of mass on the probability of death
+#' * `MortRateMassScaling`: numeric between `-Inf` and `0`, if
+#' `use_mass_dep_mortality == TRUE` the exponent for the effect of mass on the
+#' probability of death. Must be negative or zero.
+#' * `SurfaceBiomassScaling`: a strictly positive parameter scaling how much
+#' surface area an individual occupies as a function of its mass:
+#' \deqn{S = M^{2/3} / g_S}
+#' - InterceptRecruitment: a positive number (or zero), the intercept of the
+#' relation between mass and fecundity.
+#' - SlopeRecruitment: a number between 0 and 1, the slope of the relation
+#' between mass and fecundity
+#'
 #' @param SpeciesPool descriptioflm
 #' @param Microhabitat desc
 #' @param InitDist description
-#' @param path_to_ind_output description
-#' @param path_to_sp_output description
-#' @param path_to_comm_output description
+#'
+#' @param path_to_ind_output where to save the individual-level output.
+#' Must end with `.csv` and point to an existing folder.
+#' @param path_to_sp_output where to save the species-level output.
+#' Must end with `.csv` and point to an existing folder.
+#' @param path_to_comm_output where to save the community-level output.
+#' Must end with `.csv` and point to an existing folder.
 #'
 #'@export
 run_modve_sim <- function(sim_params,
@@ -20,16 +54,7 @@ run_modve_sim <- function(sim_params,
                           path_to_comm_output) {
 
   # Check parameters and read input if necessary
-  exptd_params <- c(
-    "InitialTimeStep", "timeSteps", "StopCriterionHa","MicrohabitatType",
-    "Imax", "CompetitionMethod", "MortalityMethod", "MortRateMass",
-    "MortRateMassScaling", "MortRateRandom", "SurfaceBiomassScaling",
-    "SlopeRecruitment", "InterceptRecruitment"
-  )
-  missing_params <- exptd_params[!exptd_params %in% names(sim_params)]
-  if (length(missing_params > 0)) {
-    stop(err_msg_missing_params("sim_params", missing_params))
-  }
+  check_sim_params(sim_params)
   timeSteps <- sim_params$timeSteps
 
   if (!is.data.frame(SpeciesPool)) {
@@ -172,7 +197,7 @@ run_modve_sim <- function(sim_params,
       Microhabitat <- readRDS(microhab_files[t])
       if (!all.equal(dim(Microhabitat), dims)) {
         stop(
-          paste("Invalid microhabitat matrix at time", t,
+          paste("Invalid microhabitat matrix at time", gen_nb,
                 ": number of dimensions must be the same as the first matrix")
           )
       }
@@ -184,12 +209,10 @@ run_modve_sim <- function(sim_params,
     nbIndsBeforeDispTotal <- length(which(E$Status == 1))
 
     # Dispersal
-    stop("TODO: make sure we use the expanded prob matrix as in old script")
     disp_items <- resolve_repro_dispersal(
       E, Microhabitat, sim_params$SurfaceBiomassScaling,
       expanded_mat_central_point, sim_params$InterceptRecruitment,
-      sim_params$SlopeRecruitment,
-      prob_disp_matrix,  SpeciesPool, max_id
+      sim_params$SlopeRecruitment, prob_disp_matrix,  SpeciesPool, max_id
     )
 
     # Unwrap dispersal output
@@ -212,7 +235,7 @@ run_modve_sim <- function(sim_params,
     E <- resolve_growth(E, SpeciesPool, Microhabitat, sim_params$SurfaceBiomassScaling)
 
     # Mortality (except from competition)
-    E <- resolve_mortality(E, SpeciesPool, Microhabitat, sim_params$MortalityMethod,
+    E <- resolve_mortality(E, SpeciesPool, Microhabitat, sim_params$use_mass_dep_mortality,
                            sim_params$MortRateRandom, sim_params$MortRateMass,
                            sim_params$MortRateMassScaling)
 
@@ -307,15 +330,28 @@ run_modve_sim <- function(sim_params,
 
     # Save Epiphyte matrix for every time step
     ind_output_file <- sub("*.csv$", paste0("_", t, ".csv"), path_to_ind_output)
-    utils::write.csv(E[, inds_output_names()], ind_output_file, row.names = FALSE)
+    utils::write.csv(
+      E[, inds_output_names()],
+      ind_output_file,
+      row.names = FALSE
+      )
 
     # Save sp_output for every time step
     sp_output_df <- as.data.frame(sp_output)
     names(sp_output_df) <- sp_output_headers
-    utils::write.csv(sp_output_df, path_to_sp_output, row.names = FALSE)
+    utils::write.csv(
+      sp_output_df,
+      path_to_sp_output,
+      row.names = FALSE
+      )
 
     # Save comm_output for every time step (overwrite old one)
-    utils::write.csv(comm_output, path_to_comm_output, append = FALSE, row.names = FALSE)
+    utils::write.csv(
+      comm_output,
+      path_to_comm_output,
+      append = FALSE,
+      row.names = FALSE
+      )
 
     # Remove dead individuals from Epimatrix
     E <- E[E$Status <= 1, ]

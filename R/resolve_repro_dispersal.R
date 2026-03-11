@@ -2,11 +2,16 @@
 #'
 #' @param E epiphyte data frame
 #' @param Microhabitat microhabitat matrix
-#' @param SurfaceBiomassScaling numeric
-#' @param centralPoint numeric vector of length 3 with coordinates of the central point
-#' @param InterceptRecruitment numeric parameter
-#' @param SlopeRecruitment numeric parameter
+#' @param SurfaceBiomassScaling a strictly positive parameter scaling how much
+#' surface area an individual occupies as a function of its mass:
+#' \deqn{S = M^{2/3} / g_S}
+#' @param InterceptRecruitment a positive number (or zero), the intercept of the
+#' relation between mass and fecundity.
+#' @param SlopeRecruitment a number between 0 and 1, the slope of the relation
+#' between mass and fecundity.
 #' @param prob_disp_matrix matrix, the output of `calc_prob_dist_matrix()`
+#' @param centralPoint a numeric vector of length 3 containing the central
+#'  X, Y and Z coordinates of `prob_disp_matrix`
 #' @param SpeciesPool data frame containing the species parameters
 #' @param max_id integer, the highest ID among all individuals
 #'

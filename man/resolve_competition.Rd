@@ -4,14 +4,14 @@
 \alias{resolve_competition}
 \title{Title}
 \usage{
-resolve_competition(E, Microhabitat, larger_first)
+resolve_competition(E, Microhabitat, massDepCompetition)
 }
 \arguments{
 \item{E}{epiphyte data frame}
 
 \item{Microhabitat}{microhabitat matrix}
 
-\item{larger_first}{boolean, \code{TRUE} = larger individuals get priority in
+\item{massDepCompetition}{boolean, \code{TRUE} = larger individuals get priority in
 voxel attribution, otherwise (\code{FALSE}) individuals are distributed randomly.}
 }
 \value{

@@ -21,13 +21,18 @@ resolve_repro_dispersal(
 
 \item{Microhabitat}{microhabitat matrix}
 
-\item{SurfaceBiomassScaling}{numeric}
+\item{SurfaceBiomassScaling}{a strictly positive parameter scaling how much
+surface area an individual occupies as a function of its mass:
+\deqn{S = M^{2/3} / g_S}}
 
-\item{centralPoint}{numeric vector of length 3 with coordinates of the central point}
+\item{centralPoint}{a numeric vector of length 3 containing the central
+X, Y and Z coordinates of \code{prob_disp_matrix}}
 
-\item{InterceptRecruitment}{numeric parameter}
+\item{InterceptRecruitment}{a positive number (or zero), the intercept of the
+relation between mass and fecundity.}
 
-\item{SlopeRecruitment}{numeric parameter}
+\item{SlopeRecruitment}{a number between 0 and 1, the slope of the relation
+between mass and fecundity.}
 
 \item{prob_disp_matrix}{matrix, the output of \code{calc_prob_dist_matrix()}}
 

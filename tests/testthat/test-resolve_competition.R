@@ -44,7 +44,7 @@ test_that("Competition works as expected", {
   surf_area_layer[index_undersatd] <- total_sa_undersatd
   Microhabitat[,,,1] <- surf_area_layer
 
-  E <- resolve_competition(E_init, Microhabitat, larger_first = FALSE)
+  E <- resolve_competition(E_init, Microhabitat, massDepCompetition = FALSE)
 
   # After competition is resolved, epiphytes in oversaturated voxel have died
   # down such that voxel is no longer oversaturated.
@@ -60,10 +60,10 @@ test_that("Competition works as expected", {
     dplyr::pull(Status) |> magrittr::equals(2) |> sum()
   expect_equal(nb_dead_undersatd, 0)
 
-  # larger_first --> lightest X are dead
+  # massDepCompetition --> lightest X are dead
   # otherwise a random succession (!= sort individuals)
   # take mass off some individuals and add it to others
-  E <- resolve_competition(E_init, Microhabitat, larger_first = TRUE)
+  E <- resolve_competition(E_init, Microhabitat, massDepCompetition = TRUE)
   which_dead <- E$IndividualID[which(E$Status == 2)]
   smallest_inds <- E |> dplyr::filter(is_oversaturated) |>
     dplyr::arrange(SurfaceAreaOccupied) |>
@@ -80,7 +80,7 @@ test_that("Competition works as expected", {
     dplyr::slice_sample(n = nb_dead)
   E_dead$Status <- sample(2:5, nb_dead, replace = TRUE)
   E <- rbind(E_init, E_dead)
-  E <- resolve_competition(E, Microhabitat, larger_first = FALSE)
+  E <- resolve_competition(E, Microhabitat, massDepCompetition = FALSE)
   nb_dead_undersatd <- E |> dplyr::filter(!is_oversaturated) |>
     dplyr::pull(Status) |> dplyr::between(2, 5) |> sum()
   expect_equal(nb_dead_undersatd, nb_dead)
@@ -90,14 +90,14 @@ test_that("Competition works as expected", {
   surf_area_layer <- rep(0, prod(dimensions))
   surf_area_layer[index_oversatd] <- sum(E$SurfaceAreaOccupied)
   Microhabitat[,,,1] <- surf_area_layer
-  E <- resolve_competition(E, Microhabitat, larger_first = FALSE)
+  E <- resolve_competition(E, Microhabitat, massDepCompetition = FALSE)
   nb_dead <- sum(E$Status == 2)
   expect_equal(nb_dead, 0)
 
   # If surface area is zero, all epiphytes die
   E <- E_init
   Microhabitat[,,,1] <- 0
-  E <- resolve_competition(E, Microhabitat, larger_first = FALSE)
+  E <- resolve_competition(E, Microhabitat, massDepCompetition = FALSE)
   all_dead <- all(E$Status == 2)
   expect_true(all_dead)
 
