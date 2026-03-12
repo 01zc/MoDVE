@@ -1,10 +1,10 @@
-MicrohabitatType = 1
+hasDynamicMicrohabitat = true
 kL = 0.6
 DistVoxToConsider = 8
-TotalSurfaceAreaOpt = 1
-SurfaceAreaLossOpt = 1
-LightConditionsOpt = 1
-AverageWeightedAngles = 0
+calcSurfaceArea = true
+calcSurfaceAreaLoss = true
+calcLightConditions = true
+calcWeightedAngles = false
 DirectoryGroIMP = "tests/data/groimp"
 DirectorySaveMain = "tests/data/output_a1"
 ReplicateForest = 0

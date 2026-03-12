@@ -59,7 +59,6 @@ heights are then used to sample the minimum and maximum of the light niche:
 }
 \value{
 a named list of numeric containing the following traits:
-`
 \itemize{
 \item \code{MaximumMass} positive numeric, the maximum mass an individual can reach.
 \item \code{MassAtMaturity} numeric between 0 and and \code{MaximumMass},

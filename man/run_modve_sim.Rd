@@ -123,5 +123,5 @@ Must end with \code{.csv} and point to an existing folder.}
 Must end with \code{.csv} and point to an existing folder.}
 }
 \description{
-Main function of the package, runs the epiphyte lifecycle simulation.
+Main function of the package, runs the epiphyte community simulation.
 }

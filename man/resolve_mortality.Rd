@@ -2,7 +2,7 @@
 % Please edit documentation in R/resolve_mortality.R
 \name{resolve_mortality}
 \alias{resolve_mortality}
-\title{Title}
+\title{Resolve the mortality step of the epiphyte simulation}
 \usage{
 resolve_mortality(
   E,
@@ -15,11 +15,13 @@ resolve_mortality(
 )
 }
 \arguments{
-\item{E}{epiphyte data frame}
+\item{E}{a \code{data.frame} containing the individual epiphytes present in the
+landscape}
 
-\item{SpeciesPool}{species data frame}
+\item{SpeciesPool}{a \code{data.frame} containing species-level traits}
 
-\item{Microhabitat}{microhabitat matrix}
+\item{Microhabitat}{the microhabitat matrix, containing surface area, loss
+and light conditions.}
 
 \item{use_mass_dep_mortality}{boolean, if \code{FALSE} individuals die randomly
 according to \code{MortRateRandom}, if \code{TRUE} mortality is mass-dependent, using
@@ -39,5 +41,14 @@ probability of death. Must be negative or zero.}
 the modified epiphyte data frame
 }
 \description{
-Title
+Each generation, epiphytes may die from either of the following sources:
+\itemize{
+\item Branch fall: each epiphytes dies (status 3) with a probability equal to the
+proportion of surface area loss (branch fall) in its voxel this generation
+\item Light conditions: if light in the voxels falls outside of the epiphyte's
+light niche, it dies (status 4).
+\item Base mortality (status 5): each epiphyte dies with probability
+\code{MortRateRandom}, or if \code{use_mass_dep_mortality == TRUE}, with probability
+\deqn{MortRateMass * mass ^{MortRateMassScaling}}.
+}
 }

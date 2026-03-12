@@ -2,7 +2,7 @@
 % Please edit documentation in R/create_microhab_mat.R
 \name{create_microhabitat_mat}
 \alias{create_microhabitat_mat}
-\title{Title}
+\title{Assemble the microhabitat matrix from forest simulation outputs}
 \usage{
 create_microhabitat_mat(
   config,
@@ -15,29 +15,76 @@ create_microhabitat_mat(
 )
 }
 \arguments{
-\item{config}{a list with \itemize{
-\item MicrohabitatType  # 1: real GroIMP forest with dynamics
-\item kL light extinction coefficient
-\item DistVoxToConsider How many ring around focal voxel to consider in light model (5 voxels in x and y direction)
-\item TotalSurfaceAreaOpt which of these parameters should be used and added to microhab variables
-\item SurfaceAreaLossOpt
-\item LightConditionsOpt
-\item AverageWeightedAngles
+\item{config}{a list of parameters with at least the following elements:
+\itemize{
+\item \code{corridor} size (in number of voxels) of the corridor, that is a band
+of voxels on the edge of forest plots without trees.
+\item \code{MaxX} maximum coordinate of the forest plot along the x direction
+\item \code{MaxY} maximum coordinate of the forest plot along the y direction
+\item \code{MaxZ} maximum coordinate of the forest plot along the z direction
+\item \code{hasDynamicMicrohabitat} does the forest (and thus microhabitat) change
+at every time step?
+\item \code{kL} light extinction coefficient
+\item \code{DistVoxToConsider} how far (in voxels and in every x and y direction)
+does light diffuse horizontally?
+\item \code{calcSurfaceArea} TRUE/FALSE, should available surface area be
+calculated?
+\item \code{calcSurfaceAreaLoss} TRUE/FALSE, should loss of surface are
+(between timesteps) be calculated?
+\item \code{calcLightConditions} TRUE/FALSE, should light intensity in each voxel
+be calculated?
+\item \code{calcWeightedAngles} TRUE/FALSE, should the branch angle be calculated?
+This option is not used in the simulation yet.
 }}
 
-\item{shoot_dt}{matrix with branch information}
+\item{shoot_dt}{a \code{data.frame} with branch information, with one row per
+branch segment and the following columns:
+*ize{
+\itemize{
+\item \code{xbegin} x-coordinate of the start of the segment
+\item \code{ybegin} y-coordinate of the start of the segment
+\item \code{zbegin} z-coordinate of the start of the segment
+\item \code{xend} x-coordinate of the end of the segment
+\item \code{yend} y-coordinate of the end of the segment
+\item \code{zend} z-coordinate of the end of the segment
+\item \code{length} length of the branch segment
+\item \code{diameter} diameter of the branch segment
+\item \code{shootID} unique identifier for this branch segment
+}
+}}
 
-\item{trunk_dt}{matrix with trunk information}
+\item{trunk_dt}{\code{data.frame} containing trunk information, with one row per
+tree and the following columns:
+*ize {
+\itemize{
+\item \code{x} the x coordinate of the tree trunk
+\item \code{y} the y coordinate of the tree trunk
+\item \code{height} height of the tree trunk
+\item \code{diameter} diameter of the tree trunk
+\item \code{treeID} unique identifier for this tree.
+}
+}}
 
-\item{vox_dt}{only required if LightConditionsOpt is TRUE}
+\item{vox_dt}{only required if \code{calcLightConditionsOpt = TRUE},
+a \code{data.frame} specifying the total leaf area in each voxel, with the
+following columns:
+\itemize{
+\item \code{x} x-coordinate of the voxel
+\item \code{y} y-coordinate of the voxel
+\item \code{z} z-coordinate of the voxel
+\item \code{leafarea} leaf area in this voxel
+}}
 
-\item{path_to_output}{string, where to save output? Must be an rds file or \code{NULL},
-in which case the result matrix is returned.}
+\item{path_to_output}{string, where to save output? Must be an \code{.rds} file
+or \code{NULL}, in which case the result matrix is returned.}
 
-\item{dead_branches_id}{integer vector containing the IDs of all branches dying this time step}
+\item{dead_branches_id}{integer vector containing the IDs of all branches
+that will die this timestep}
 
-\item{dead_trees_id}{integer vector containing the IDs of all trees dying this time step}
+\item{dead_trees_id}{integer vector containing the IDs of all trees that
+will die this timestep}
 }
 \description{
-Title
+Read in forest stand simulation data from MoF3D, and compute the surface area,
+surface area loss, and/or light conditions available for epiphytes.
 }

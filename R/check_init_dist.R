@@ -8,7 +8,7 @@ check_init_dist <- function(InitDist, SpeciesPool, dimensions) {
 
   missing_cols <- exptd_cols[!exptd_cols %in% names(InitDist)]
   if (length(missing_cols > 0)) {
-    stop(err_msg_missing_cols("InitDist", missing_cols))
+    stop(err_msg_missing_params("InitDist", missing_cols))
   }
 
   colnames <- names(InitDist)

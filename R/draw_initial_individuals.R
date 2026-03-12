@@ -1,4 +1,3 @@
-
 #' Draw the trait value and location of initial individuals
 #'
 #' Draw the initial mass, age, occupied surface area of initial individuals
@@ -40,8 +39,7 @@
 #' * `SurfaceAreaOccupied` the amount of surface area that this individual
 #' requires and uses
 #' * `Age` age of the individual in generations
-#' * `SpeciesID` which speciesthis individual belongs
-#' to.
+#' * `SpeciesID` which species this individual belongs to.
 #'
 #' @export
 #'

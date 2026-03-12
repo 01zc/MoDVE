@@ -1,9 +1,21 @@
-#' Title
+#' Resolve the growth step of the simulation
 #'
-#' @param E epiphyte data frame
-#' @param SpeciesPool species data frame
-#' @param Microhabitat microhabitat matrix
-#' @param SurfaceBiomassScaling numeric parameter
+#' Each generation, all living epiphytes grow by an amount corresponding to
+#' \deqn{k * (M_{max} - M) * I}, where *k* is the growth rate, *M* the epiphyte's
+#' mass, \deqn{M_{max}} it's species maximum mass, and I is the parabolic light
+#' response curve:
+#' \deqn{I = I_A * (I^{XYZ})^2 + I_B * I^{XYZ} + I_C}, where \deqn{I_A, I_B, I_C}
+#' are species parameters derived from the species' light niche, and
+#' \deqn{I^{XYZ}} is the current light intensity in the voxel.
+#'
+#' @param E a `data.frame` containing the individual epiphytes present in the
+#' landscape
+#' @param SpeciesPool a `data.frame` containing species-level traits
+#' @param Microhabitat the microhabitat matrix, containing surface area, loss
+#' and light conditions.
+#' @param SurfaceBiomassScaling numeric parameter determining the surface area
+#' occupied by an epiphyte as a function of its mass:
+#' \deqn{Mass^{\frac{2}{3}} / SurfaceBiomassScaling}
 #'
 #' @returns the modified epiphyte data frame
 #' @export

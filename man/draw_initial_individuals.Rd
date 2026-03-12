@@ -59,8 +59,7 @@ a lack of available surface area to allocate this individual)
 \item \code{SurfaceAreaOccupied} the amount of surface area that this individual
 requires and uses
 \item \code{Age} age of the individual in generations
-\item \code{SpeciesID} which speciesthis individual belongs
-to.
+\item \code{SpeciesID} which species this individual belongs to.
 }
 }
 \description{

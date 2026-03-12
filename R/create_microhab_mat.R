@@ -1,22 +1,64 @@
-#' Title
+#' Assemble the microhabitat matrix from forest simulation outputs
 #'
-#' @param config a list with \itemize{
-#' \item MicrohabitatType  # 1: real GroIMP forest with dynamics
-# 2: static GroIMP forest (only forest at timeStepStart is used)
-#' \item kL light extinction coefficient
-#' \item DistVoxToConsider How many ring around focal voxel to consider in light model (5 voxels in x and y direction)
-#' \item TotalSurfaceAreaOpt which of these parameters should be used and added to microhab variables
-#' \item SurfaceAreaLossOpt
-#' \item LightConditionsOpt
-#' \item AverageWeightedAngles
+#' Read in forest stand simulation data from MoF3D, and compute the surface area,
+#' surface area loss, and/or light conditions available for epiphytes.
+#'
+#' @param config a list of parameters with at least the following elements:
+#' * `corridor` size (in number of voxels) of the corridor, that is a band
+#' of voxels on the edge of forest plots without trees.
+#' * `MaxX` maximum coordinate of the forest plot along the x direction
+#' * `MaxY` maximum coordinate of the forest plot along the y direction
+#' * `MaxZ` maximum coordinate of the forest plot along the z direction
+#' * `hasDynamicMicrohabitat` does the forest (and thus microhabitat) change
+#' at every time step?
+#' * `kL` light extinction coefficient
+#' * `DistVoxToConsider` how far (in voxels and in every x and y direction)
+#' does light diffuse horizontally?
+#' * `calcSurfaceArea` TRUE/FALSE, should available surface area be
+#' calculated?
+#' * `calcSurfaceAreaLoss` TRUE/FALSE, should loss of surface are
+#' (between timesteps) be calculated?
+#' * `calcLightConditions` TRUE/FALSE, should light intensity in each voxel
+#' be calculated?
+#' * `calcWeightedAngles` TRUE/FALSE, should the branch angle be calculated?
+#' This option is not used in the simulation yet.
+#'
+#' @param shoot_dt a `data.frame` with branch information, with one row per
+#' branch segment and the following columns:
+#' *ize{
+#' * `xbegin` x-coordinate of the start of the segment
+#' * `ybegin` y-coordinate of the start of the segment
+#' * `zbegin` z-coordinate of the start of the segment
+#' * `xend` x-coordinate of the end of the segment
+#' * `yend` y-coordinate of the end of the segment
+#' * `zend` z-coordinate of the end of the segment
+#' * `length` length of the branch segment
+#' * `diameter` diameter of the branch segment
+#' * `shootID` unique identifier for this branch segment
 #' }
-#' @param shoot_dt matrix with branch information
-#' @param trunk_dt matrix with trunk information
-#' @param vox_dt only required if LightConditionsOpt is TRUE
-#' @param path_to_output string, where to save output? Must be an rds file or `NULL`,
-#' in which case the result matrix is returned.
-#' @param dead_branches_id integer vector containing the IDs of all branches dying this time step
-#' @param dead_trees_id integer vector containing the IDs of all trees dying this time step
+#' @param trunk_dt `data.frame` containing trunk information, with one row per
+#' tree and the following columns:
+#' *ize {
+#' * `x` the x coordinate of the tree trunk
+#' * `y` the y coordinate of the tree trunk
+#' * `height` height of the tree trunk
+#' * `diameter` diameter of the tree trunk
+#' * `treeID` unique identifier for this tree.
+#' }
+#' @param vox_dt only required if `calcLightConditionsOpt = TRUE`,
+#' a `data.frame` specifying the total leaf area in each voxel, with the
+#' following columns:
+#' * `x` x-coordinate of the voxel
+#' * `y` y-coordinate of the voxel
+#' * `z` z-coordinate of the voxel
+#' * `leafarea` leaf area in this voxel
+#'
+#' @param path_to_output string, where to save output? Must be an `.rds` file
+#' or `NULL`, in which case the result matrix is returned.
+#' @param dead_branches_id integer vector containing the IDs of all branches
+#' that will die this timestep
+#' @param dead_trees_id integer vector containing the IDs of all trees that
+#' will die this timestep
 #'
 #' @export
 #'
@@ -24,21 +66,21 @@ create_microhabitat_mat <- function(config, shoot_dt, trunk_dt, vox_dt = NULL,
                                     path_to_output = NULL, dead_branches_id = NULL,
                                     dead_trees_id = NULL) {
   # Inputs are correct
-  #check_config(config)
+  # check_config(config)
   # DistVoxToConsider <= corridor
 
   if (is.character(shoot_dt))
     utils::read.table(shoot_dt, sep = "\t",  header = TRUE, skip = 1)
-  #check_shoot_dt(shoot_dt)
+  check_shoot_dt(shoot_dt)
 
   if (is.character(trunk_dt))
     utils::read.table(trunk_dt, sep = "\t",  header = TRUE, skip = 8)
-  #check_trunk_dt(trunk_dt)
+  check_trunk_dt(trunk_dt)
 
-  if (config$LightConditionsOpt) {
+  if (config$calcLightConditions) {
     if (is.character(vox_dt))
       utils::read.table(vox_dt, sep = "\t",  header = TRUE, skip = 1)
-   # check_vox_dt(vox_dt)
+   check_vox_dt(vox_dt)
   }
 
   if (!is.null(path_to_output)) {
@@ -101,16 +143,16 @@ create_microhabitat_mat <- function(config, shoot_dt, trunk_dt, vox_dt = NULL,
       z <- v[3]
       voxel <- microhab_mat[x, y, z, ]
 
-      if (config$TotalSurfaceAreaOpt) {
+      if (config$calcSurfaceArea) {
         microhab_mat[x, y, z, sa_elt] <- voxel[sa_elt] + seg_surface_area
       }
 
-      if (config$SurfaceAreaLossOpt && shoot_dt$shootID[s] %in% dead_branches_id) {
+      if (config$calcSurfaceAreaLoss && shoot_dt$shootID[s] %in% dead_branches_id) {
         microhab_mat[x, y, z, sa_loss_elt] <- voxel[sa_loss_elt] +
         seg_surface_area
       }
 
-      if (config$AverageWeightedAngles) {
+      if (config$calcWeightedAngles) {
         V <- seg_end - seg_start
         alpha <- V[1] / sqrt(V[1]^2 + V[2]^2 + V[3]^2)
         shoot_angle <- abs(90 - (acos(alpha) / pi * 180))
@@ -151,7 +193,7 @@ create_microhabitat_mat <- function(config, shoot_dt, trunk_dt, vox_dt = NULL,
       # Update total surface area of cylinder so far (to use in next step)
       SurfaceAreaTotal <- SurfaceAreaTotal + SurfaceAreaInVoxel
 
-      if (config$TotalSurfaceAreaOpt) {
+      if (config$calcSurfaceArea) {
         microhab_mat[x, y, z, sa_elt] <- microhab_mat[x, y, z, sa_elt] +
           SurfaceAreaInVoxel
       }
@@ -163,7 +205,7 @@ create_microhabitat_mat <- function(config, shoot_dt, trunk_dt, vox_dt = NULL,
       }
 
       # Update weighted angle for the voxel
-      if (config$AverageWeightedAngles) {
+      if (config$calcWeightedAngles) {
 
         tmp1 <- (microhab_mat[x, y, z, sa_elt] - SurfaceAreaInVoxel) /
           microhab_mat[x, y, z, sa_elt] * microhab_mat[x, y, z, angle_elt]
@@ -178,7 +220,7 @@ create_microhabitat_mat <- function(config, shoot_dt, trunk_dt, vox_dt = NULL,
   } # t in trunk set
 
   # Calculate light conditions in voxels (relative light conditions)
-  if (config$LightConditionsOpt) {
+  if (config$calcLightConditions) {
 
     light_range <- config$DistVoxToConsider
 
@@ -231,7 +273,7 @@ create_microhabitat_mat <- function(config, shoot_dt, trunk_dt, vox_dt = NULL,
       } # y
     } # x
 
-  } # lightConditionsOpt
+  } # lightConditions
 
   if (!is.null(path_to_output)) {
     saveRDS(microhab_mat, path_to_output)
@@ -239,3 +281,131 @@ create_microhabitat_mat <- function(config, shoot_dt, trunk_dt, vox_dt = NULL,
     return(microhab_mat)
   }
 }
+
+check_shoot_dt <- function(shoot_dt) {
+
+  exptd_cols <- c("xbegin", "ybegin", "zbegin", "xend", "yend", "zend", "length",
+                  "diameter", "shootID")
+
+  missing_params <- exptd_cols[!exptd_cols %in% names(shoot_dt)]
+  if (length(missing_params > 0)) {
+    stop(err_msg_missing_params("shoot_dt", missing_params))
+  }
+
+  col_names <- names(shoot_dt)
+
+  # No NAs, NULL, or NaN!
+  is_missing_val <- sapply(shoot_dt, function(x)  {
+    any(is.na(x)) || any(is.nan(x)) || any(is.null(x))
+  })
+  if (any(is_missing_val)) {
+    wrong_params <- col_names[is_missing_val]
+    stop(paste(c(
+      "The following elements of shoot_dt contain NAs, NaN, or NULL:",
+      wrong_params), rep(" ", length(wrong_params) + 1)))
+  }
+
+  is_numeric <- sapply(shoot_dt, function(x) all(is.numeric(x)))
+  if (any(!is_numeric)) {
+    wrong_params <- col_names[!is_numeric]
+    stop(paste(c(
+      "The following elements of shoot_dt contain non-numeric values:",
+      wrong_params), rep(" ", length(wrong_params) + 1)))
+  }
+
+  is_positive <- sapply(shoot_dt[col_names], function(x) all(x >= 0))
+  if (any(!is_positive)) {
+    wrong_params <- col_names[!is_positive]
+    stop(paste(c(
+      "The following elements of shoot_dt contain negative values:",
+      wrong_params), rep(" ", length(wrong_params) + 1)))
+  }
+
+  if (any(duplicated(shoot_dt$shootID))) {
+    stop("shoot_dt contains multiple entries for the same branch (same shootID)")
+  }
+}
+
+check_trunk_dt <- function(trunk_dt) {
+
+  exptd_cols <- c("x", "y", "height", "diameter", "treeID")
+
+  missing_params <- exptd_cols[!exptd_cols %in% names(trunk_dt)]
+  if (length(missing_params > 0)) {
+    stop(err_msg_missing_params("trunk_dt", missing_params))
+  }
+
+  col_names <- names(trunk_dt)
+
+  # No NAs, NULL, or NaN!
+  is_missing_val <- sapply(trunk_dt, function(x)  {
+    any(is.na(x)) || any(is.nan(x)) || any(is.null(x))
+  })
+  if (any(is_missing_val)) {
+    wrong_params <- col_names[is_missing_val]
+    stop(paste(c(
+      "The following elements of trunk_dt contain NAs, NaN, or NULL:",
+      wrong_params), rep(" ", length(wrong_params) + 1)))
+  }
+
+  is_numeric <- sapply(trunk_dt, function(x) all(is.numeric(x)))
+  if (any(!is_numeric)) {
+    wrong_params <- col_names[!is_numeric]
+    stop(paste(c(
+      "The following elements of trunk_dt contain non-numeric values:",
+      wrong_params), rep(" ", length(wrong_params) + 1)))
+  }
+
+  is_positive <- sapply(trunk_dt[col_names], function(x) all(x >= 0))
+  if (any(!is_positive)) {
+    wrong_params <- col_names[!is_positive]
+    stop(paste(c(
+      "The following elements of trunk_dt contain negative values:",
+      wrong_params), rep(" ", length(wrong_params) + 1)))
+  }
+
+  if (any(duplicated(trunk_dt$treeID))) {
+    stop("trunk_dt contains multiple entries for the same tree (same treeID)")
+  }
+}
+
+check_vox_dt <- function(vox_dt) {
+
+  exptd_cols <- c("x", "y", "z", "leafarea")
+
+  missing_params <- exptd_cols[!exptd_cols %in% names(vox_dt)]
+  if (length(missing_params > 0)) {
+    stop(err_msg_missing_params("vox_dt", missing_params))
+  }
+
+  col_names <- names(vox_dt)
+
+  # No NAs, NULL, or NaN!
+  is_missing_val <- sapply(vox_dt, function(x)  {
+    any(is.na(x)) || any(is.nan(x)) || any(is.null(x))
+  })
+  if (any(is_missing_val)) {
+    wrong_params <- col_names[is_missing_val]
+    stop(paste(c(
+      "The following elements of vox_dt contain NAs, NaN, or NULL:",
+      wrong_params), rep(" ", length(wrong_params) + 1)))
+  }
+
+  is_numeric <- sapply(vox_dt, function(x) all(is.numeric(x)))
+  if (any(!is_numeric)) {
+    wrong_params <- col_names[!is_numeric]
+    stop(paste(c(
+      "The following elements of vox_dt contain non-numeric values:",
+      wrong_params), rep(" ", length(wrong_params) + 1)))
+  }
+
+  is_positive <- sapply(vox_dt[col_names], function(x) all(x >= 0))
+  if (any(!is_positive)) {
+    wrong_params <- col_names[!is_positive]
+    stop(paste(c(
+      "The following elements of vox_dt contain negative values:",
+      wrong_params), rep(" ", length(wrong_params) + 1)))
+  }
+}
+
+

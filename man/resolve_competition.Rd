@@ -2,21 +2,27 @@
 % Please edit documentation in R/resolve_competition.R
 \name{resolve_competition}
 \alias{resolve_competition}
-\title{Title}
+\title{Resolve the competition step of the epiphyte simulation}
 \usage{
 resolve_competition(E, Microhabitat, massDepCompetition)
 }
 \arguments{
-\item{E}{epiphyte data frame}
+\item{E}{a \code{data.frame} containing the individual epiphytes present in the
+landscape.}
 
-\item{Microhabitat}{microhabitat matrix}
+\item{Microhabitat}{the microhabitat matrix, containing surface area, loss
+and light conditions.}
 
-\item{massDepCompetition}{boolean, \code{TRUE} = larger individuals get priority in
+\item{massDepCompetition, }{\code{TRUE} = larger individuals get priority in
 voxel attribution, otherwise (\code{FALSE}) individuals are distributed randomly.}
 }
 \value{
 the modified epiphyte data frame
 }
 \description{
-Title
+Each generation, the capacity (surface area) of each voxel is compared to its
+occupancy (sum of surface area requirements of all epiphytes in the voxel).
+If occupancy exceeds capacity, either random (if \code{massDepCompetiton = FALSE})
+or the smallest epiphytes (if \code{massDepCompetiton = TRUE}) are killed (i.e,
+marked with status 2) until the voxel is no longer oversaturated.
 }

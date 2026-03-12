@@ -2,22 +2,32 @@
 % Please edit documentation in R/resolve_growth.R
 \name{resolve_growth}
 \alias{resolve_growth}
-\title{Title}
+\title{Resolve the growth step of the simulation}
 \usage{
 resolve_growth(E, SpeciesPool, Microhabitat, SurfaceBiomassScaling)
 }
 \arguments{
-\item{E}{epiphyte data frame}
+\item{E}{a \code{data.frame} containing the individual epiphytes present in the
+landscape}
 
-\item{SpeciesPool}{species data frame}
+\item{SpeciesPool}{a \code{data.frame} containing species-level traits}
 
-\item{Microhabitat}{microhabitat matrix}
+\item{Microhabitat}{the microhabitat matrix, containing surface area, loss
+and light conditions.}
 
-\item{SurfaceBiomassScaling}{numeric parameter}
+\item{SurfaceBiomassScaling}{numeric parameter determining the surface area
+occupied by an epiphyte as a function of its mass:
+\deqn{Mass^{\frac{2}{3}} / SurfaceBiomassScaling}}
 }
 \value{
 the modified epiphyte data frame
 }
 \description{
-Title
+Each generation, all living epiphytes grow by an amount corresponding to
+\deqn{k * (M_{max} - M) * I}, where \emph{k} is the growth rate, \emph{M} the epiphyte's
+mass, \deqn{M_{max}} it's species maximum mass, and I is the parabolic light
+response curve:
+\deqn{I = I_A * (I^{XYZ})^2 + I_B * I^{XYZ} + I_C}, where \deqn{I_A, I_B, I_C}
+are species parameters derived from the species' light niche, and
+\deqn{I^{XYZ}} is the current light intensity in the voxel.
 }

@@ -1,6 +1,6 @@
 #' Run the MoDVE simulation
 #'
-#' Main function of the package, runs the epiphyte lifecycle simulation.
+#' Main function of the package, runs the epiphyte community simulation.
 #'
 #' @param sim_params a list of parameters containing at least the following
 #' elements:
@@ -124,7 +124,6 @@ run_modve_sim <- function(sim_params,
   check_species_df(SpeciesPool)
   NumberOfSpecies <- nrow(SpeciesPool)  # number of species per 25x25m plot
 
-  isHabitatDynamic <- sim_params$MicrohabitatType == 1
   if (!is.array(Microhabitat)) {
     # Then it must be a path or vector of paths
     for (i in seq_along(Microhabitat)) {
@@ -136,7 +135,7 @@ run_modve_sim <- function(sim_params,
       }
     }
 
-    if (isHabitatDynamic) {
+    if (sim_params$hasDynamicMicrohabitat) {
       if (!length(Microhabitat) == timeSteps) {
         stop("For dynamic habitats, Microhabitat should have one element for each time step.\n")
       } else {
@@ -250,7 +249,7 @@ run_modve_sim <- function(sim_params,
     }
 
     # Update microhabitat if applicable
-    if (isHabitatDynamic && t > 1) {
+    if (sim_params$hasDynamicMicrohabitat && t > 1) {
       Microhabitat <- readRDS(microhab_files[t])
       check_microhabitat(Microhabitat)
       if (!all.equal(dim(Microhabitat), dims)) {

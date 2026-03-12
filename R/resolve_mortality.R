@@ -1,8 +1,19 @@
-#' Title
+#' Resolve the mortality step of the epiphyte simulation
 #'
-#' @param E epiphyte data frame
-#' @param SpeciesPool species data frame
-#' @param Microhabitat microhabitat matrix
+#' Each generation, epiphytes may die from either of the following sources:
+#' * Branch fall: each epiphytes dies (status 3) with a probability equal to the
+#'  proportion of surface area loss (branch fall) in its voxel this generation
+#' * Light conditions: if light in the voxels falls outside of the epiphyte's
+#' light niche, it dies (status 4).
+#' * Base mortality (status 5): each epiphyte dies with probability
+#' `MortRateRandom`, or if `use_mass_dep_mortality == TRUE`, with probability
+#' \deqn{MortRateMass * mass ^{MortRateMassScaling}}.
+#'
+#' @param E a `data.frame` containing the individual epiphytes present in the
+#' landscape
+#' @param SpeciesPool a `data.frame` containing species-level traits
+#' @param Microhabitat the microhabitat matrix, containing surface area, loss
+#' and light conditions.
 #' @param use_mass_dep_mortality boolean, if `FALSE` individuals die randomly
 #' according to `MortRateRandom`, if `TRUE` mortality is mass-dependent, using
 #' `MortRateMass * (mass^MortRateMassScaling)`.

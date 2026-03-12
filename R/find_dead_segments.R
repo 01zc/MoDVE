@@ -11,10 +11,7 @@
 #'
 find_dead_segments <- function(shoot_dt, shoot_dt_next) {
 
-  #check_shoot_dt(shoot_dt)
-  #check_shoot_dt(shoot_dt_next)
-
-  # Get all branch segments that die during time step
+  # Get all branch segments that died during time step
   dead_segments <- shoot_dt$shootID[!is.element(shoot_dt$treeID, shoot_dt_next$treeID)]
 
   return(dead_segments)
@@ -33,9 +30,6 @@ find_dead_segments <- function(shoot_dt, shoot_dt_next) {
 #' @export
 #'
 find_dead_trees <- function(trunk_dt, trunk_dt_next) {
-
-  #check_trunk_dt(trunk_dt)
-  #check_trunk_dt(trunk_dt_next)
 
   # Get all branch segments that die during time step
   DeadSegments <- trunk_dt$treeID[!is.element(trunk_dt$treeID, trunk_dt_next$treeID)]

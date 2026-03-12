@@ -1,8 +1,16 @@
-#' Title
+#' Resolve the competition step of the epiphyte simulation
 #'
-#' @param E epiphyte data frame
-#' @param Microhabitat microhabitat matrix
-#' @param massDepCompetition boolean, `TRUE` = larger individuals get priority in
+#' Each generation, the capacity (surface area) of each voxel is compared to its
+#' occupancy (sum of surface area requirements of all epiphytes in the voxel).
+#' If occupancy exceeds capacity, either random (if `massDepCompetiton = FALSE`)
+#' or the smallest epiphytes (if `massDepCompetiton = TRUE`) are killed (i.e,
+#' marked with status 2) until the voxel is no longer oversaturated.
+#'
+#' @param E a `data.frame` containing the individual epiphytes present in the
+#' landscape.
+#' @param Microhabitat the microhabitat matrix, containing surface area, loss
+#' and light conditions.
+#' @param massDepCompetition, `TRUE` = larger individuals get priority in
 #' voxel attribution, otherwise (`FALSE`) individuals are distributed randomly.
 #'
 #' @returns the modified epiphyte data frame

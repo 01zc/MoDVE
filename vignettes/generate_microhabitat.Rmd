@@ -25,8 +25,6 @@ library(MoDVE)
 ```{r generate_microhab, eval=FALSE}
 config <- parse_config("tests/config_a1.toml")
 
-# only for MicrohabitatType 1 or 2
-
 read_vox_dt <- function(voxelsFileName) {
 
   colnames <- voxelsFileName |>
@@ -54,7 +52,7 @@ read_vox_dt <- function(voxelsFileName) {
   # This parameter determines which type of microhatiat matrices are generated:
   # 1: real GroIMP forest with dynamics
   # 2: static GroIMP forest (only forest at timeStepStart is used)
-  MicrohabitatType <- config$MicrohabitatType
+  hasDynamicMicrohabitat <- config$hasDynamicMicrohabitat
 
   # Parameters that need to be specified if MicrohabitatType=1 or MicrohabitatType=2
   # Directory of GroIMP files (this directory is stored in the Microhabitat folder so that the
@@ -104,7 +102,7 @@ ShootsBegin <- file.path(mof3d_res_dir, paste(shootFile, timeStepStart, ".txt", 
 TrunksBegin <-   file.path(mof3d_res_dir, paste(trunkFile, timeStepStart, ".txt", sep = "")) |>
   read.table(sep = "\t", header = TRUE, skip = 8)
 
-if (MicrohabitatType == 2) timeStepEnd <- timeStepStart
+if (!hasDynamicMicrohabitat) timeStepEnd <- timeStepStart
 
 for (i in timeStepStart:timeStepEnd) {
 
@@ -128,7 +126,7 @@ for (i in timeStepStart:timeStepEnd) {
   dead_trees_id <- find_dead_trees(TrunksBegin, TrunksEnd)
 
   # Load file containing information about leaf area per voxel
-  if (config$LightConditionsOpt) {
+  if (config$calcLightConditions) {
     vox_dt <- file.path(mof3d_res_dir, paste(voxFile, i, ".txt", sep = "")) |>
       read_vox_dt()
   } else vox_dt <- NULL

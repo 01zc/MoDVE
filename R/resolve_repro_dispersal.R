@@ -1,7 +1,12 @@
 #' Resolve the dispersal step of the simulation
 #'
-#' @param E epiphyte data frame
-#' @param Microhabitat microhabitat matrix
+#' Each generation,
+#'
+#' @param E a `data.frame` containing the individual epiphytes present in the
+#' landscape
+#' @param SpeciesPool a `data.frame` containing species-level traits
+#' @param Microhabitat the microhabitat matrix, containing surface area, loss
+#' and light conditions.
 #' @param SurfaceBiomassScaling a strictly positive parameter scaling how much
 #' surface area an individual occupies as a function of its mass:
 #' \deqn{S = M^{2/3} / g_S}
@@ -12,10 +17,14 @@
 #' @param prob_disp_matrix matrix, the output of `calc_prob_dist_matrix()`
 #' @param centralPoint a numeric vector of length 3 containing the central
 #'  X, Y and Z coordinates of `prob_disp_matrix`
-#' @param SpeciesPool data frame containing the species parameters
 #' @param max_id integer, the highest ID among all individuals
 #'
-#' @returns a list
+#' @returns a list containing the following elements:
+#' * `nbIndsBeforeDisp`
+#' * `E` the updated individual `data.frame`
+#' * `recruitment_df`
+#' * `max_id` the updated maximum individual ID
+#'
 #' @export
 #'
 resolve_repro_dispersal <- function(E,

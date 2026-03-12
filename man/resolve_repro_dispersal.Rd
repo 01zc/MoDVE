@@ -17,9 +17,11 @@ resolve_repro_dispersal(
 )
 }
 \arguments{
-\item{E}{epiphyte data frame}
+\item{E}{a \code{data.frame} containing the individual epiphytes present in the
+landscape}
 
-\item{Microhabitat}{microhabitat matrix}
+\item{Microhabitat}{the microhabitat matrix, containing surface area, loss
+and light conditions.}
 
 \item{SurfaceBiomassScaling}{a strictly positive parameter scaling how much
 surface area an individual occupies as a function of its mass:
@@ -36,13 +38,19 @@ between mass and fecundity.}
 
 \item{prob_disp_matrix}{matrix, the output of \code{calc_prob_dist_matrix()}}
 
-\item{SpeciesPool}{data frame containing the species parameters}
+\item{SpeciesPool}{a \code{data.frame} containing species-level traits}
 
 \item{max_id}{integer, the highest ID among all individuals}
 }
 \value{
-a list
+a list containing the following elements:
+\itemize{
+\item \code{nbIndsBeforeDisp}
+\item \code{E} the updated individual \code{data.frame}
+\item \code{recruitment_df}
+\item \code{max_id} the updated maximum individual ID
+}
 }
 \description{
-Resolve the dispersal step of the simulation
+Each generation,
 }

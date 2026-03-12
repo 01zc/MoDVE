@@ -53,13 +53,11 @@
 #'  * `LAI` numeric, the leaf area index of this species
 #'  * `kL`, the light extinction coefficient used to generate the light niche
 #'
-#'
 #' @details
 #' Additional details... Age-mass equation, light equation,...
 #'
 #'
 #' @returns a named list of numeric containing the following traits:
-#'`
 #'  * `MaximumMass` positive numeric, the maximum mass an individual can reach.
 #'  * `MassAtMaturity` numeric between 0 and and `MaximumMass`,
 #'  fraction of `MaximumMass` above which at individual can reproduce.

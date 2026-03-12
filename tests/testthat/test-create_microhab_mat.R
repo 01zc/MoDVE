@@ -52,10 +52,10 @@ test_that("Branch surface area is calculated correctly", {
   microhab_extent <- c(corridor, dim + corridor)
 
   config <- list(
-    TotalSurfaceAreaOpt = 1,
-    SurfaceAreaLossOpt = 0,
-    LightConditionsOpt = 0,
-    AverageWeightedAngles = 0,
+    calcSurfaceArea = TRUE,
+    calcSurfaceAreaLoss = FALSE,
+    calcLightConditions = FALSE,
+    calcWeightedAngles = FALSE,
     MaxX = dim,
     MaxY = dim,
     MaxZ = 1, # 2D
@@ -141,10 +141,10 @@ test_that("Trunk surface area is calculated correctly", {
   dim_xy <- 2
   dim_z <- 5
   config <- list(
-    TotalSurfaceAreaOpt = 1,
-    SurfaceAreaLossOpt = 0,
-    LightConditionsOpt = 0,
-    AverageWeightedAngles = 0,
+    calcSurfaceArea = TRUE,
+    calcSurfaceAreaLoss = FALSE,
+    calcLightConditions = FALSE,
+    calcWeightedAngles = FALSE,
     MaxX = dim_xy,
     MaxY = dim_xy,
     MaxZ = dim_z, # 2D
@@ -209,13 +209,13 @@ test_that("Available light is calculated correctly", {
   dim_corr <- dim_xy + 2 * corridor
 
   config <- list(
-    LightConditionsOpt = 1,
+    calcSurfaceArea = FALSE,
+    calcSurfaceAreaLoss = FALSE,
+    calcLightConditions = TRUE,
+    calcWeightedAngles = FALSE,
     # At first only above voxels affect light availability
     DistVoxToConsider = 0,
     kL = exp(runif(1, -4, 1)), # reasonable values
-    TotalSurfaceAreaOpt = 0,
-    SurfaceAreaLossOpt = 0,
-    AverageWeightedAngles = 0,
     MaxX = dim_xy,
     MaxY = dim_xy,
     MaxZ = dim_z, # 2D
