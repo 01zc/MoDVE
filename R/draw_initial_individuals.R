@@ -18,7 +18,7 @@
 #' @param species_df a data frame containing the species traits, as created by
 #' `draw_species_traits`
 #' @param microhab_mat a matrix containing the surface area and light conditions
-#' in each voxel, as created by `create_microhab_mat()`
+#' in each voxel, as created by [create_microhabitat_mat()]
 #' @param path_to_output a string, where (folder and name) should the output
 #' be saved? Must be `.csv`. If `NULL` (the default), no output is saved and the
 #' output is returned as a data frame instead.

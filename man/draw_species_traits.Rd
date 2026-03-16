@@ -2,7 +2,7 @@
 % Please edit documentation in R/draw_species_traits.R
 \name{draw_species_traits}
 \alias{draw_species_traits}
-\title{Draw species traits from generating parameters}
+\title{Draw species traits from generating hyperparameters}
 \usage{
 draw_species_traits(species_params)
 }
@@ -13,19 +13,20 @@ contain the following elements:
 \item \code{MaxMassLogScaleRandom} logical. If \code{FALSE}, \code{MaxMass} is sampled in a
 uniform distribution with parameters \code{MaxMassRandom}. If \code{TRUE}, the value
 is instead sampled in a uniform of the log10's of \code{MaxMassRandom}, and the
-sampled value is then transformed back. This inflates the frequency of
-sampling values closer to the minimum.
+sampled value is then transformed back. This produces the same range of
+values, but skews the distribution towards the minimum.
 \item \code{MaxMassRandom} a length-2 numeric vector containing the minimum and
 maximum MaxMass
 \item \code{MassAtMaturityRelativeRandom} a length-2 numeric vector containing the
-minimum and maximum bounds (between 0 and 1) in which to sample what fraction
-of MaxMass the mass at maturity corresponds to.
+minimum and maximum bounds (between 0 and 1) in which to sample what
+fraction of \code{MaxMass} the mass at maturity corresponds to.
 \item \code{InterceptAgeMaturity} numeric, the intercept of the function generating
-the age at maturity as a function of mass at maturity
-\item \code{ScalingAgeMaturity} numeric between 0 and 1, the exponent of the function generating
-the age at maturity as a function of mass at maturity
+the age at maturity as a function of mass at maturity (see details)
+\item \code{ScalingAgeMaturity} numeric between 0 and 1, the exponent of the function
+generating the age at maturity as a function of mass at maturity
 \item \code{AgeAtMaturityDevCorr} numeric, the range of possible deviation
-coefficients in the function generating age at maturity from mass at maturity.
+coefficients in the function generating age at maturity from mass at
+maturity.
 \item \code{CorrelationMassRecruitment} logical, controls the option used to
 generate the parameters of the mass-to-reproduction allocation function.
 If \code{TRUE}:
@@ -93,8 +94,26 @@ grow and reproduce at the maximum rate. It is calculated as the average of \code
 }
 }
 \description{
-Draw species traits from generating parameters
+Draw random values for the demographic and niche traits that define an
+epiphyte species in the simulation.
 }
 \details{
-Additional details... Age-mass equation, light equation,...
+\itemize{
+\item Mass at maturity is drawn as a random fraction of the maximum mass.
+\item Age at maturity is sampled as \code{InterceptAgeMaturity} times
+\code{MaxMass^ScalingAgeMaturity} times a random deviation sampled in a uniform
+with parameters \code{1 - AgeAtMaturityDevCorr}, \code{1 + AgeAtMaturityDevCorr}.
+\item The growth rate (K) is derived after the Bertalanffy growth curve,
+\deqn{M = M_{max} (1 - e^(-K*Age))}, which we resolve for \deqn{K} at the
+maturity age and mass.
+\item The center of the height niche (relative to canopy height) is
+sampled between 0 and 1. The breadth of this height niche is sampled between
+the values of \code{HeightBreadthRandom}.
+\item The light niche is derived from the height niche, according to
+\deqn{I_{max} e^{k_L LAI (1 - height)}}, which is resolved for \code{MinHeight}
+and \code{MaxHeight} to obtain \code{MinLight} and \code{MaxLight}, with \code{OptimumLight}
+being their mean. These values are used to define the parabolic light
+response with parameters \code{LightResponseA}, \code{LightResponseB}, \code{LightResponseC}
+such that \code{MinLight} and \code{MaxLight} correspond to 0 and \code{OptimumLight} to 1.
+}
 }

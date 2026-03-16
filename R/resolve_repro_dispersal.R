@@ -1,6 +1,27 @@
 #' Resolve the dispersal step of the simulation
 #'
-#' Each generation,
+#' Each generation, reproduction (recruitment) and seed dispersal are resolved
+#' in a singe step.
+#'
+#' Fecundity corresponds to the potential average number of recruits per
+#' individual (\deqn{n_{RPot}}) and is the product of three elements:
+#' * the linear, mass-dependent base fecundity: \deqn{a + b \times M}, where M
+#' is the mass, a is `InterceptRecruitment` and b is `SlopeRecruitment`.
+#' * the mass-to-reproduction allocation, `RecruitmentInvestmentRel` (a species
+#' trait).
+#' * a relative increase in mass reproduction allocation as the individual gets
+#' closer to the maximum mass:
+#' \deqn{1 + Rec_{inc} \frac{M - M_{mat}}{M_{max} - M_{mat}}}, where
+#' \deqn{Rec_{inc}} is species trait `RecruitmentInc`.
+#' This gives the expected number of offspring in a voxel with a 1m square
+#' surface area of available substrate.
+#'
+#' The fecundity is multiplied by the dispersal probability matrix
+#' (`prob_disp_matrix`) and the available surface area matrix to obtain the
+#' expected number of offspring in each voxel, which is then sampled in a
+#' Poisson distribution.
+#' Probabilities are set to 0 in all voxels that fall outside of the
+#' light niche of the species.
 #'
 #' @param E a `data.frame` containing the individual epiphytes present in the
 #' landscape
@@ -14,15 +35,19 @@
 #' relation between mass and fecundity.
 #' @param SlopeRecruitment a number between 0 and 1, the slope of the relation
 #' between mass and fecundity.
-#' @param prob_disp_matrix matrix, the output of `calc_prob_dist_matrix()`
+#' @param prob_disp_matrix matrix, the output of [calc_prob_disp_matrix()].
+#' Contains the 3D probability distribution of dispersing to all surrounding
+#' voxels within a matrix twice as large as the `Microhabitat` matrix.
 #' @param centralPoint a numeric vector of length 3 containing the central
 #'  X, Y and Z coordinates of `prob_disp_matrix`
 #' @param max_id integer, the highest ID among all individuals
 #'
 #' @returns a list containing the following elements:
-#' * `nbIndsBeforeDisp`
+#' * `nbIndsBeforeDisp` a 1D array containing the number of individuals alive
+#' for each species *before* dispersal and recruitment.
 #' * `E` the updated individual `data.frame`
-#' * `recruitment_df`
+#' * `recruitment_df` a `data.frame` summarising recruitment (expected and
+#' realised number of recruits for each species) for the output.
 #' * `max_id` the updated maximum individual ID
 #'
 #' @export
@@ -57,9 +82,9 @@ resolve_repro_dispersal <- function(E,
   # Initialize potential recruitment dataframe
   unique_species <- unique(E$SpeciesID)
   recruitment_df <- data.frame(
-    species_index = seq_len(NumberOfSpecies),
-    exptd_nb_recruits = numeric(NumberOfSpecies),
-    nb_recruits = numeric(NumberOfSpecies)
+    "species_index" = seq_len(NumberOfSpecies),
+    "exptd_nb_recruits" = numeric(NumberOfSpecies),
+    "nb_recruits" = numeric(NumberOfSpecies)
   )
 
   # Loop over all species
@@ -113,7 +138,8 @@ resolve_repro_dispersal <- function(E,
 
       # Dispersal probability * fecundity = expected nb offspring in each xyz
       exptd_nb_recruits_matrix <- exptd_nb_recruits_matrix +
-        prob_disp_matrix[x_coords, y_coords, z_coords, sp] * mass_coeff * incr_alloc_coeff
+        prob_disp_matrix[x_coords, y_coords, z_coords, sp] *
+        mass_coeff * incr_alloc_coeff
     }
 
     # Store potential normalized number of recruits
@@ -122,8 +148,7 @@ resolve_repro_dispersal <- function(E,
 
     # Matrix containing all voxel for which the light requirements are fulfilled
     pot_hab_matrix <- ifelse(
-      light_mat >= minLight &
-        light_mat <= maxLight,
+      light_mat >= minLight & light_mat <= maxLight,
       1, 0
     )
 

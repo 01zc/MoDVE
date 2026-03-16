@@ -28,9 +28,9 @@
 #' * `SurfaceBiomassScaling`: a strictly positive parameter scaling how much
 #' surface area an individual occupies as a function of its mass:
 #' \deqn{S = M^{2/3} / g_S}
-#' - InterceptRecruitment: a positive number (or zero), the intercept of the
+#' * `InterceptRecruitment`: a positive number (or zero), the intercept of the
 #' relation between mass and fecundity.
-#' - SlopeRecruitment: a number between 0 and 1, the slope of the relation
+#' * `SlopeRecruitment`: a number between 0 and 1, the slope of the relation
 #' between mass and fecundity
 #'
 #' @param SpeciesPool a `data.frame` containing the species traits, as generated
@@ -74,6 +74,7 @@
 #' file containing such a matrix.
 #' If `hasDynamicMicrohabitat` is `TRUE`, `Microhabitat` must be a vector of
 #' paths to such matrices`,` with length `Timesteps`.
+#'
 #' @param InitDist a `data.frame` containing the distribution and initial
 #' attributes of individuals at the beginning of the simulation, as generated
 #' e.g. with [draw_initial_individuals()]. Contains one row per initial individual,

@@ -36,7 +36,9 @@ relation between mass and fecundity.}
 \item{SlopeRecruitment}{a number between 0 and 1, the slope of the relation
 between mass and fecundity.}
 
-\item{prob_disp_matrix}{matrix, the output of \code{calc_prob_dist_matrix()}}
+\item{prob_disp_matrix}{matrix, the output of \code{\link[=calc_prob_disp_matrix]{calc_prob_disp_matrix()}}.
+Contains the 3D probability distribution of dispersing to all surrounding
+voxels within a matrix twice as large as the \code{Microhabitat} matrix.}
 
 \item{SpeciesPool}{a \code{data.frame} containing species-level traits}
 
@@ -45,12 +47,38 @@ between mass and fecundity.}
 \value{
 a list containing the following elements:
 \itemize{
-\item \code{nbIndsBeforeDisp}
+\item \code{nbIndsBeforeDisp} a 1D array containing the number of individuals alive
+for each species \emph{before} dispersal and recruitment.
 \item \code{E} the updated individual \code{data.frame}
-\item \code{recruitment_df}
+\item \code{recruitment_df} a \code{data.frame} summarising recruitment (expected and
+realised number of recruits for each species) for the output.
 \item \code{max_id} the updated maximum individual ID
 }
 }
 \description{
-Each generation,
+Each generation, reproduction (recruitment) and seed dispersal are resolved
+in a singe step.
+}
+\details{
+Fecundity corresponds to the potential average number of recruits per
+individual (\deqn{n_{RPot}}) and is the product of three elements:
+\itemize{
+\item the linear, mass-dependent base fecundity: \deqn{a + b \times M}, where M
+is the mass, a is \code{InterceptRecruitment} and b is \code{SlopeRecruitment}.
+\item the mass-to-reproduction allocation, \code{RecruitmentInvestmentRel} (a species
+trait).
+\item a relative increase in mass reproduction allocation as the individual gets
+closer to the maximum mass:
+\deqn{1 + Rec_{inc} \frac{M - M_{mat}}{M_{max} - M_{mat}}}, where
+\deqn{Rec_{inc}} is species trait \code{RecruitmentInc}.
+This gives the expected number of offspring in a voxel with a 1m square
+surface area of available substrate.
+}
+
+The fecundity is multiplied by the dispersal probability matrix
+(\code{prob_disp_matrix}) and the available surface area matrix to obtain the
+expected number of offspring in each voxel, which is then sampled in a
+Poisson distribution.
+Probabilities are set to 0 in all voxels that fall outside of the
+light niche of the species.
 }

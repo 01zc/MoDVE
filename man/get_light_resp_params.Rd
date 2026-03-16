@@ -2,7 +2,7 @@
 % Please edit documentation in R/get_light_resp_params.R
 \name{get_light_resp_params}
 \alias{get_light_resp_params}
-\title{Derive coefficients of the growth-light response from light parameters}
+\title{Derive parameters of the growth-light response from light niche parameters}
 \usage{
 get_light_resp_params(MinLight, MaxLight, OptimumLight)
 }
@@ -18,8 +18,9 @@ a vector of three numerics, parameters a, b, c of the parabolic function
 }
 \description{
 The growth response is a parabolic function of light intensity:
-\deqn{y = a * light^2 + b*light + c}
+\deqn{y = a * light^2 + b*light + c}.
 }
 \details{
-This function derives the coefficients
+This function finds a, b, c such that \deqn{y = 0} when \deqn{x = MinLight}
+or \deqn{x = MaxLight} and \deqn{y = 1} when \deqn{x = OptimumLight}
 }

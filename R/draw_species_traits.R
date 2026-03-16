@@ -1,4 +1,7 @@
-#' Draw species traits from generating parameters
+#' Draw species traits from generating hyperparameters
+#'
+#' Draw random values for the demographic and niche traits that define an
+#' epiphyte species in the simulation.
 #'
 #' @param species_params a list of trait-generating parameter, which must
 #' contain the following elements:
@@ -6,20 +9,21 @@
 #'  * `MaxMassLogScaleRandom` logical. If `FALSE`, `MaxMass` is sampled in a
 #'  uniform distribution with parameters `MaxMassRandom`. If `TRUE`, the value
 #'  is instead sampled in a uniform of the log10's of `MaxMassRandom`, and the
-#'  sampled value is then transformed back. This inflates the frequency of
-#'  sampling values closer to the minimum.
+#'  sampled value is then transformed back. This produces the same range of
+#'  values, but skews the distribution towards the minimum.
 #'  * `MaxMassRandom` a length-2 numeric vector containing the minimum and
 #'  maximum MaxMass
 #'  * `MassAtMaturityRelativeRandom` a length-2 numeric vector containing the
-#'  minimum and maximum bounds (between 0 and 1) in which to sample what fraction
-#'  of MaxMass the mass at maturity corresponds to.
+#'  minimum and maximum bounds (between 0 and 1) in which to sample what
+#'  fraction of `MaxMass` the mass at maturity corresponds to.
 #'
 #'  * `InterceptAgeMaturity` numeric, the intercept of the function generating
-#'  the age at maturity as a function of mass at maturity
-#'  * `ScalingAgeMaturity` numeric between 0 and 1, the exponent of the function generating
-#'  the age at maturity as a function of mass at maturity
+#'  the age at maturity as a function of mass at maturity (see details)
+#'  * `ScalingAgeMaturity` numeric between 0 and 1, the exponent of the function
+#' generating the age at maturity as a function of mass at maturity
 #'  * `AgeAtMaturityDevCorr` numeric, the range of possible deviation
-#'  coefficients in the function generating age at maturity from mass at maturity.
+#'  coefficients in the function generating age at maturity from mass at
+#'  maturity.
 #'
 #'  * `CorrelationMassRecruitment` logical, controls the option used to
 #'  generate the parameters of the mass-to-reproduction allocation function.
@@ -54,8 +58,22 @@
 #'  * `kL`, the light extinction coefficient used to generate the light niche
 #'
 #' @details
-#' Additional details... Age-mass equation, light equation,...
-#'
+#' * Mass at maturity is drawn as a random fraction of the maximum mass.
+#' * Age at maturity is sampled as `InterceptAgeMaturity` times
+#' `MaxMass^ScalingAgeMaturity` times a random deviation sampled in a uniform
+#' with parameters `1 - AgeAtMaturityDevCorr`, `1 + AgeAtMaturityDevCorr`.
+#' * The growth rate (K) is derived after the Bertalanffy growth curve,
+#' \deqn{M = M_{max} (1 - e^(-K*Age))}, which we resolve for \deqn{K} at the
+#' maturity age and mass.
+#' * The center of the height niche (relative to canopy height) is
+#' sampled between 0 and 1. The breadth of this height niche is sampled between
+#' the values of `HeightBreadthRandom`.
+#' * The light niche is derived from the height niche, according to
+#' \deqn{I_{max} e^{k_L LAI (1 - height)}}, which is resolved for `MinHeight`
+#' and `MaxHeight` to obtain `MinLight` and `MaxLight`, with `OptimumLight`
+#' being their mean. These values are used to define the parabolic light
+#' response with parameters `LightResponseA`, `LightResponseB`, `LightResponseC`
+#' such that `MinLight` and `MaxLight` correspond to 0 and `OptimumLight` to 1.
 #'
 #' @returns a named list of numeric containing the following traits:
 #'  * `MaximumMass` positive numeric, the maximum mass an individual can reach.
@@ -115,6 +133,7 @@ draw_species_traits <- function(species_params) {
     stats::runif(1, min = 1 - sp$AgeAtMaturityDevCorr, max = 1 + sp$AgeAtMaturityDevCorr)
 
   # Growth rate of the Bertalanffy growth curve
+  # Mass = MaxMass * (1 - exp(-K*Age)) --> resolved for K
   K <- min(1, -log(1 - (MassAtMaturity / MaxMass)) / AgeAtMaturity)
   # Age cannot be more than 1, otherwise risk of overshooting max mass
 

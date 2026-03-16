@@ -42,11 +42,9 @@ probability of death. Must be negative or zero.
 \item \code{SurfaceBiomassScaling}: a strictly positive parameter scaling how much
 surface area an individual occupies as a function of its mass:
 \deqn{S = M^{2/3} / g_S}
-}
-\itemize{
-\item InterceptRecruitment: a positive number (or zero), the intercept of the
+\item \code{InterceptRecruitment}: a positive number (or zero), the intercept of the
 relation between mass and fecundity.
-\item SlopeRecruitment: a number between 0 and 1, the slope of the relation
+\item \code{SlopeRecruitment}: a number between 0 and 1, the slope of the relation
 between mass and fecundity
 }}
 

@@ -1,9 +1,10 @@
-#' Derive coefficients of the growth-light response from light parameters
+#' Derive parameters of the growth-light response from light niche parameters
 #'
 #' The growth response is a parabolic function of light intensity:
-#' \deqn{y = a * light^2 + b*light + c}
+#' \deqn{y = a * light^2 + b*light + c}.
 #'
-#' This function derives the coefficients
+#' This function finds a, b, c such that \deqn{y = 0} when \deqn{x = MinLight}
+#' or \deqn{x = MaxLight} and \deqn{y = 1} when \deqn{x = OptimumLight}
 #'
 #' @param MinLight numeric, the minimum light in which the species can survive
 #' @param MaxLight numeric, the maximum light at which the species can suvive
@@ -13,11 +14,6 @@
 #' @export
 #'
 get_light_resp_params <- function(MinLight, MaxLight, OptimumLight) {
-
-  # Parameters of parabolic response curve y = ax^2 + bx + c such that:
-  # f(MinLight) = 0
-  # f(MaxLight) = 0
-  # f(OptimumLight) = 1
 
   x1 <- MinLight
   y1 <- 0

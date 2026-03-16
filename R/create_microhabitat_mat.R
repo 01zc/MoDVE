@@ -25,7 +25,6 @@
 #'
 #' @param shoot_dt a `data.frame` with branch information, with one row per
 #' branch segment and the following columns:
-#' *ize{
 #' * `xbegin` x-coordinate of the start of the segment
 #' * `ybegin` y-coordinate of the start of the segment
 #' * `zbegin` z-coordinate of the start of the segment
@@ -35,16 +34,15 @@
 #' * `length` length of the branch segment
 #' * `diameter` diameter of the branch segment
 #' * `shootID` unique identifier for this branch segment
-#' }
+#'
 #' @param trunk_dt `data.frame` containing trunk information, with one row per
 #' tree and the following columns:
-#' *ize {
 #' * `x` the x coordinate of the tree trunk
 #' * `y` the y coordinate of the tree trunk
 #' * `height` height of the tree trunk
 #' * `diameter` diameter of the tree trunk
 #' * `treeID` unique identifier for this tree.
-#' }
+#'
 #' @param vox_dt only required if `calcLightConditionsOpt = TRUE`,
 #' a `data.frame` specifying the total leaf area in each voxel, with the
 #' following columns:

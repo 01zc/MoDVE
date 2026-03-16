@@ -33,7 +33,7 @@ area requirement as a function of the mass of the individual:
 \code{draw_species_traits}}
 
 \item{microhab_mat}{a matrix containing the surface area and light conditions
-in each voxel, as created by \code{create_microhab_mat()}}
+in each voxel, as created by \code{\link[=create_microhabitat_mat]{create_microhabitat_mat()}}}
 
 \item{path_to_output}{a string, where (folder and name) should the output
 be saved? Must be \code{.csv}. If \code{NULL} (the default), no output is saved and the
