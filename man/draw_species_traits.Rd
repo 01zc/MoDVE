@@ -31,8 +31,8 @@ maturity.
 generate the parameters of the mass-to-reproduction allocation function.
 If \code{TRUE}:
 \item \code{RecruitmentInvestmentRel} is sampled in a uniform distribution
-with min and max values \eqn{`RecruitmentInvestmentRelMeanCorr` *
-  (1 +- `RecruitmentInvestmentRelDevCorr`)},
+with min and max values \code{RecruitmentInvestmentRelMeanCorr} *
+(1 \eqn{\pm} \code{RecruitmentInvestmentRelDevCorr}),
 \item \code{RecruitmentInc} is set to 0.
 If \code{FALSE}:
 \item \code{RecruitmentInvestmentRel} is sampled in a uniform distribution
@@ -49,10 +49,11 @@ values of the dispersal kernel.
 values of the asymmetry coefficient, between 0 and 1.
 \item \code{HeightBreadthRandom} a length-2 numeric vector, min and max possible
 values for the breadth of the height niche. The minimum and maximum relative
-heights for the species are MeanHeight +- (HeightBreadth /2), where MeanHeight
-is sampled randomly between 0 and 1. The resulting min and max relative
-heights are then used to sample the minimum and maximum of the light niche:
-\deqn{I_{max} e^{-k_L LAI (1 - MinHeight)}}
+heights for the species are \code{MeanHeight} \eqn{\pm} (\code{HeightBreadth} /2),
+where \code{MeanHeight} is sampled randomly between 0 and 1.
+The resulting min and max relative heights are then used to sample the
+minimum and maximum of the light niche:
+\deqn{I_{max} * e^{-k_L \times LAI (1 - MinHeight)}}
 \item \code{Imax} numeric, maximum light intensity used to generate the light niche
 \item \code{LAI} numeric, the leaf area index of this species
 \item \code{kL}, the light extinction coefficient used to generate the light niche
@@ -65,13 +66,14 @@ a named list of numeric containing the following traits:
 \item \code{MassAtMaturity} numeric between 0 and and \code{MaximumMass},
 fraction of \code{MaximumMass} above which at individual can reproduce.
 \item \code{GrowthRate} numeric between 0 an 1, the fraction of remaining growth an
-individual gains in a single generation (i.e, mass increase = growth_rate *
-(max_mass - mass)), under optimal light conditions.
+individual gains in a single generation
+(i.e, \eqn{\Delta M = K \times (M_{max} - M)} under optimal light conditions.
 \item \code{DispersalKernel} positive numeric, the dispersal kernel.
 \item \code{DispersalKernelAsymmetry} numeric between 0 and 1, the dispersal asymmetry.
-D_k_A = 0.5 corresponds to symmetric dispersal; with D_k_A = 1 individuals
-disperse stricly below themselves; with D_k_A = 0 individuals never disperse
-only above themselves or at their height.
+\eqn{D_{k_A} = 0.5} corresponds to symmetric dispersal; with
+\eqn{D_{k_A} = 1} individuals disperse stricly below themselves; with
+\eqn{D_{k_A} = 0} individuals never disperse only above themselves or at
+their height.
 \item \code{RecruitmentInvestmentRel} numeric between 0 and 1, a coefficient scaling
 the mass-dependent fecundity coefficient (see \code{\link[=resolve_repro_dispersal]{resolve_repro_dispersal()}}),
 representing the fraction of available biomass invested in fecundity
@@ -79,16 +81,22 @@ representing the fraction of available biomass invested in fecundity
 with the growth stage of the epiphyte. This factor ranges from \code{1} when
 \code{Mass} = \code{MassAtMaturity}, and \code{2 * RecruitmentInc} when
 \code{Mass} = \code{MaximumMass}.
-\item \code{MinLight} positive numeric, minimum light conditions under which this species can survive
-\item \code{MaxLight} positive numeric, maximum light conditions under which this species can survive
-\item \code{OptimumLight} positive numeric, optimum light conditions under which individuals of this species
-grow and reproduce at the maximum rate. It is calculated as the average of \code{MinLight} and \code{MaxLight.}
+\item \code{MinLight} positive numeric, minimum light conditions under which this
+species can survive
+\item \code{MaxLight} positive numeric, maximum light conditions under which this
+species can survive
+\item \code{OptimumLight} positive numeric, optimum light conditions under which
+individuals of this species
+grow and reproduce at the maximum rate. It is calculated as the average of
+\code{MinLight} and \code{MaxLight.}
 \item \code{LightBreadth} positive numeric, range between \code{MinLight} and \code{MaxLight}
 \item \code{LightResponseA} first term of the parabolic light-growth response function.
 \item \code{LightResponseB} second term of the parabolic light-growth response function.
 \item \code{LightResponseC} third term of the parabolic light-growth response function.
-\item \code{MinHeightRel} minimum relative height (between 0 and 1) at which the species can survive, used to compute \code{MinLight}
-\item \code{MaxHeightRel} maximum relative height (between 0 and 1) at which the species can survive, used to compute \code{MaxLight}
+\item \code{MinHeightRel} minimum relative height (between 0 and 1) at which the
+species can survive, used to compute \code{MinLight}
+\item \code{MaxHeightRel} maximum relative height (between 0 and 1) at which the
+species can survive, used to compute \code{MaxLight}
 \item \code{MeanHeightRel} average of \code{MinHeightRel} and \code{MaxHeightRel}
 \item \code{HeightBreadth} range between \code{MinHeightRel} and \code{MaxHeightRel}
 }
@@ -103,16 +111,16 @@ epiphyte species in the simulation.
 \item Age at maturity is sampled as \code{InterceptAgeMaturity} times
 \code{MaxMass^ScalingAgeMaturity} times a random deviation sampled in a uniform
 with parameters \code{1 - AgeAtMaturityDevCorr}, \code{1 + AgeAtMaturityDevCorr}.
-\item The growth rate (K) is derived after the Bertalanffy growth curve,
-\deqn{M = M_{max} (1 - e^(-K*Age))}, which we resolve for \deqn{K} at the
+\item The growth rate (\eqn{K}) is derived after the Bertalanffy growth curve,
+\deqn{M = M_{max} (1 - e^{-K*Age})}, which we resolve for \eqn{K} at the
 maturity age and mass.
 \item The center of the height niche (relative to canopy height) is
 sampled between 0 and 1. The breadth of this height niche is sampled between
 the values of \code{HeightBreadthRandom}.
 \item The light niche is derived from the height niche, according to
-\deqn{I_{max} e^{k_L LAI (1 - height)}}, which is resolved for \code{MinHeight}
+\deqn{I_{max} \times e^{k_L \times LAI (1 - height)}} which is resolved for \code{MinHeight}
 and \code{MaxHeight} to obtain \code{MinLight} and \code{MaxLight}, with \code{OptimumLight}
-being their mean. These values are used to define the parabolic light
+being their mean. These values are use to define the parabolic light
 response with parameters \code{LightResponseA}, \code{LightResponseB}, \code{LightResponseC}
 such that \code{MinLight} and \code{MaxLight} correspond to 0 and \code{OptimumLight} to 1.
 }

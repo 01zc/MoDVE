@@ -7,7 +7,7 @@
 #' light niche, it dies (status 4).
 #' * Base mortality (status 5): each epiphyte dies with probability
 #' `MortRateRandom`, or if `use_mass_dep_mortality == TRUE`, with probability
-#' \deqn{MortRateMass * mass ^{MortRateMassScaling}}.
+#' `MortRateMass` * mass ^`MortRateMassScaling.`
 #'
 #' @param E a `data.frame` containing the individual epiphytes present in the
 #' landscape

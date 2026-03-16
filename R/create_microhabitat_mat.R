@@ -1,6 +1,6 @@
 #' Assemble the microhabitat matrix from forest simulation outputs
 #'
-#' Read in forest stand simulation data from MoF3D, and compute the surface area,
+#' Read in forest stand simulation data from `MoF3D`, and compute the surface area,
 #' surface area loss, and/or light conditions available for epiphytes.
 #'
 #' @param config a list of parameters with at least the following elements:

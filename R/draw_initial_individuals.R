@@ -12,8 +12,8 @@
 #' * `PercentageMaturePerSpecies` a number between 0 and 100 indicating the
 #' percentage of initial individuals that should start as mature individuals
 #' able to reproduce
-#' * `SurfaceBiomassScaling` a strictly positive parameter scaling the surface
-#'  area requirement as a function of the mass of the individual:
+#' * `SurfaceBiomassScaling` a strictly positive parameter (\eqn{g_S}) scaling
+#' the surface area requirement as a function of the mass of the individual:
 #' \deqn{S = M^{2/3} / g_S}
 #' @param species_df a data frame containing the species traits, as created by
 #' `draw_species_traits`

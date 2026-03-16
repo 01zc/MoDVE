@@ -49,6 +49,6 @@ proportion of surface area loss (branch fall) in its voxel this generation
 light niche, it dies (status 4).
 \item Base mortality (status 5): each epiphyte dies with probability
 \code{MortRateRandom}, or if \code{use_mass_dep_mortality == TRUE}, with probability
-\deqn{MortRateMass * mass ^{MortRateMassScaling}}.
+\code{MortRateMass} * mass ^\code{MortRateMassScaling.}
 }
 }

@@ -1,10 +1,10 @@
 #' Resolve the growth step of the simulation
 #'
 #' Each generation, all living epiphytes grow by an amount corresponding to
-#' \deqn{k * (M_{max} - M) * I}, where *k* is the growth rate, *M* the epiphyte's
-#' mass, \deqn{M_{max}} it's species maximum mass, and I is the parabolic light
+#' \eqn{k * (M_{max} - M) * I}, where *k* is the growth rate, *M* the epiphyte's
+#' mass, \eqn{M_{max}} its species maximum mass, and I is the parabolic light
 #' response curve:
-#' \deqn{I = I_A * (I^{XYZ})^2 + I_B * I^{XYZ} + I_C}, where \deqn{I_A, I_B, I_C}
+#' \deqn{I = I_A * (I^{XYZ})^2 + I_B * I^{XYZ} + I_C} where \eqn{I_A, I_B, I_C}
 #' are species parameters derived from the species' light niche, and
 #' \deqn{I^{XYZ}} is the current light intensity in the voxel.
 #'
@@ -15,7 +15,7 @@
 #' and light conditions.
 #' @param SurfaceBiomassScaling numeric parameter determining the surface area
 #' occupied by an epiphyte as a function of its mass:
-#' \deqn{Mass^{\frac{2}{3}} / SurfaceBiomassScaling}
+#' \deqn{M^{2/3} / g_S}
 #'
 #' @returns the modified epiphyte data frame
 #' @export

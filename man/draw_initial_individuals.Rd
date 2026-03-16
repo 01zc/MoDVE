@@ -24,8 +24,8 @@ hectar and are scaled to the model area (\code{FALSE})
 \item \code{PercentageMaturePerSpecies} a number between 0 and 100 indicating the
 percentage of initial individuals that should start as mature individuals
 able to reproduce
-\item \code{SurfaceBiomassScaling} a strictly positive parameter scaling the surface
-area requirement as a function of the mass of the individual:
+\item \code{SurfaceBiomassScaling} a strictly positive parameter (\eqn{g_S}) scaling
+the surface area requirement as a function of the mass of the individual:
 \deqn{S = M^{2/3} / g_S}
 }}
 

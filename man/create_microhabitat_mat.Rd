@@ -81,6 +81,6 @@ that will die this timestep}
 will die this timestep}
 }
 \description{
-Read in forest stand simulation data from MoF3D, and compute the surface area,
+Read in forest stand simulation data from \code{MoF3D}, and compute the surface area,
 surface area loss, and/or light conditions available for epiphytes.
 }

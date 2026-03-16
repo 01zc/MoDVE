@@ -29,8 +29,8 @@
 #'  generate the parameters of the mass-to-reproduction allocation function.
 #'   If `TRUE`:
 #'   * `RecruitmentInvestmentRel` is sampled in a uniform distribution
-#'   with min and max values \eqn{`RecruitmentInvestmentRelMeanCorr` *
-#'   (1 +- `RecruitmentInvestmentRelDevCorr`)},
+#'   with min and max values `RecruitmentInvestmentRelMeanCorr` *
+#'   (1 \eqn{\pm} `RecruitmentInvestmentRelDevCorr`),
 #'   * `RecruitmentInc` is set to 0.
 #'   If `FALSE`:
 #'   * `RecruitmentInvestmentRel` is sampled in a uniform distribution
@@ -49,10 +49,11 @@
 #'  values of the asymmetry coefficient, between 0 and 1.
 #'  * `HeightBreadthRandom` a length-2 numeric vector, min and max possible
 #'  values for the breadth of the height niche. The minimum and maximum relative
-#'  heights for the species are MeanHeight +- (HeightBreadth /2), where MeanHeight
-#'  is sampled randomly between 0 and 1. The resulting min and max relative
-#'  heights are then used to sample the minimum and maximum of the light niche:
-#'   \deqn{I_{max} e^{-k_L LAI (1 - MinHeight)}}
+#'  heights for the species are `MeanHeight` \eqn{\pm} (`HeightBreadth` /2),
+#'  where `MeanHeight` is sampled randomly between 0 and 1.
+#'  The resulting min and max relative heights are then used to sample the
+#'  minimum and maximum of the light niche:
+#'   \deqn{I_{max} * e^{-k_L \times LAI (1 - MinHeight)}}
 #'  * `Imax` numeric, maximum light intensity used to generate the light niche
 #'  * `LAI` numeric, the leaf area index of this species
 #'  * `kL`, the light extinction coefficient used to generate the light niche
@@ -62,16 +63,16 @@
 #' * Age at maturity is sampled as `InterceptAgeMaturity` times
 #' `MaxMass^ScalingAgeMaturity` times a random deviation sampled in a uniform
 #' with parameters `1 - AgeAtMaturityDevCorr`, `1 + AgeAtMaturityDevCorr`.
-#' * The growth rate (K) is derived after the Bertalanffy growth curve,
-#' \deqn{M = M_{max} (1 - e^(-K*Age))}, which we resolve for \deqn{K} at the
+#' * The growth rate (\eqn{K}) is derived after the Bertalanffy growth curve,
+#' \deqn{M = M_{max} (1 - e^{-K*Age})}, which we resolve for \eqn{K} at the
 #' maturity age and mass.
 #' * The center of the height niche (relative to canopy height) is
 #' sampled between 0 and 1. The breadth of this height niche is sampled between
 #' the values of `HeightBreadthRandom`.
 #' * The light niche is derived from the height niche, according to
-#' \deqn{I_{max} e^{k_L LAI (1 - height)}}, which is resolved for `MinHeight`
+#' \deqn{I_{max} \times e^{k_L \times LAI (1 - height)}} which is resolved for `MinHeight`
 #' and `MaxHeight` to obtain `MinLight` and `MaxLight`, with `OptimumLight`
-#' being their mean. These values are used to define the parabolic light
+#' being their mean. These values are use to define the parabolic light
 #' response with parameters `LightResponseA`, `LightResponseB`, `LightResponseC`
 #' such that `MinLight` and `MaxLight` correspond to 0 and `OptimumLight` to 1.
 #'
@@ -80,13 +81,14 @@
 #'  * `MassAtMaturity` numeric between 0 and and `MaximumMass`,
 #'  fraction of `MaximumMass` above which at individual can reproduce.
 #'  * `GrowthRate` numeric between 0 an 1, the fraction of remaining growth an
-#'  individual gains in a single generation (i.e, mass increase = growth_rate *
-#'  (max_mass - mass)), under optimal light conditions.
+#'  individual gains in a single generation
+#'  (i.e, \eqn{\Delta M = K \times (M_{max} - M)} under optimal light conditions.
 #'  * `DispersalKernel` positive numeric, the dispersal kernel.
 #'  * `DispersalKernelAsymmetry` numeric between 0 and 1, the dispersal asymmetry.
-#'  D_k_A = 0.5 corresponds to symmetric dispersal; with D_k_A = 1 individuals
-#'  disperse stricly below themselves; with D_k_A = 0 individuals never disperse
-#'  only above themselves or at their height.
+#'  \eqn{D_{k_A} = 0.5} corresponds to symmetric dispersal; with
+#'  \eqn{D_{k_A} = 1} individuals disperse stricly below themselves; with
+#'  \eqn{D_{k_A} = 0} individuals never disperse only above themselves or at
+#'  their height.
 #'  * `RecruitmentInvestmentRel` numeric between 0 and 1, a coefficient scaling
 #'  the mass-dependent fecundity coefficient (see [resolve_repro_dispersal()]),
 #'  representing the fraction of available biomass invested in fecundity
@@ -94,16 +96,22 @@
 #'  with the growth stage of the epiphyte. This factor ranges from `1` when
 #'  `Mass` = `MassAtMaturity`, and `2 * RecruitmentInc` when
 #'  `Mass` = `MaximumMass`.
-#'  * `MinLight` positive numeric, minimum light conditions under which this species can survive
-#'  * `MaxLight` positive numeric, maximum light conditions under which this species can survive
-#'  * `OptimumLight` positive numeric, optimum light conditions under which individuals of this species
-#'  grow and reproduce at the maximum rate. It is calculated as the average of `MinLight` and `MaxLight.`
+#'  * `MinLight` positive numeric, minimum light conditions under which this
+#'  species can survive
+#'  * `MaxLight` positive numeric, maximum light conditions under which this
+#'  species can survive
+#'  * `OptimumLight` positive numeric, optimum light conditions under which
+#'  individuals of this species
+#'  grow and reproduce at the maximum rate. It is calculated as the average of
+#'  `MinLight` and `MaxLight.`
 #'  * `LightBreadth` positive numeric, range between `MinLight` and `MaxLight`
 #'  * `LightResponseA` first term of the parabolic light-growth response function.
 #'  * `LightResponseB` second term of the parabolic light-growth response function.
 #'  * `LightResponseC` third term of the parabolic light-growth response function.
-#'  * `MinHeightRel` minimum relative height (between 0 and 1) at which the species can survive, used to compute `MinLight`
-#'  * `MaxHeightRel` maximum relative height (between 0 and 1) at which the species can survive, used to compute `MaxLight`
+#'  * `MinHeightRel` minimum relative height (between 0 and 1) at which the
+#'  species can survive, used to compute `MinLight`
+#'  * `MaxHeightRel` maximum relative height (between 0 and 1) at which the
+#'  species can survive, used to compute `MaxLight`
 #'  * `MeanHeightRel` average of `MinHeightRel` and `MaxHeightRel`
 #'  * `HeightBreadth` range between `MinHeightRel` and `MaxHeightRel`
 #'

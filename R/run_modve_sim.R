@@ -25,7 +25,7 @@
 #' * `MortRateMassScaling`: numeric between `-Inf` and `0`, if
 #' `use_mass_dep_mortality == TRUE` the exponent for the effect of mass on the
 #' probability of death. Must be negative or zero.
-#' * `SurfaceBiomassScaling`: a strictly positive parameter scaling how much
+#' * `SurfaceBiomassScaling`: a strictly positive parameter (\deqn{g_S}) scaling how much
 #' surface area an individual occupies as a function of its mass:
 #' \deqn{S = M^{2/3} / g_S}
 #' * `InterceptRecruitment`: a positive number (or zero), the intercept of the
@@ -40,12 +40,12 @@
 #'  * `MassAtMaturity` numeric between 0 and and `MaximumMass`,
 #'  fraction of `MaximumMass` above which at individual can reproduce.
 #'  * `GrowthRate` numeric between 0 an 1, the fraction of remaining growth an
-#'  individual gains in a single generation (i.e, mass increase = growth_rate *
-#'  (max_mass - mass)), under optimal light conditions.
+#'  individual gains in a single generation (i.e, \eqn{\Delta m = K *
+#'  (M_{max} - M)}), under optimal light conditions.
 #'  * `DispersalKernel` positive numeric, the dispersal kernel.
 #'  * `DispersalKernelAsymmetry` numeric between 0 and 1, the dispersal asymmetry.
-#'  D_k_A = 0.5 corresponds to symmetric dispersal; with D_k_A = 1 individuals
-#'  disperse stricly below themselves; with D_k_A = 0 individuals never disperse
+#'  \eqn{D_{k_A} = 0.5} corresponds to symmetric dispersal; with \eqn{D_{k_A} = 1} individuals
+#'  disperse stricly below themselves; with \eqn{D_{k_A} = 0} individuals never disperse
 #'  only above themselves or at their height.
 #'  * `RecruitmentInvestmentRel` numeric between 0 and 1, a coefficient scaling
 #'  the mass-dependent fecundity coefficient (see [resolve_repro_dispersal()]),
@@ -68,10 +68,11 @@
 #'  * `HeightBreadth` range between `MinHeightRel` and `MaxHeightRel`
 #'
 #' @param Microhabitat a 4D matrix where the first three dimensions
-#' corresponding to a 3D habitat space, and the last one containing values of
-#' the microhabitat for the available surface area, % of surface area lost in
-#' the previous generation (if dynamic) and light intensity; or a path to a csv
-#' file containing such a matrix.
+#' corresponding to a 3D habitat space, and the last one containing values of:
+#' 1. the microhabitat for the available surface area,
+#' 2. % of surface area lost in the previous generation (if dynamic) and
+#' 3. light intensity in each voxel;
+#' or a path to a csv file containing such a matrix.
 #' If `hasDynamicMicrohabitat` is `TRUE`, `Microhabitat` must be a vector of
 #' paths to such matrices`,` with length `Timesteps`.
 #'
@@ -93,11 +94,11 @@
 #' to.
 #'
 #' @param path_to_ind_output where to save the individual-level output.
-#' Must end with `.csv` and point to an existing folder.
+#' Must end with `.csv`.
 #' @param path_to_sp_output where to save the species-level output.
-#' Must end with `.csv` and point to an existing folder.
+#' Must end with `.csv`.
 #' @param path_to_comm_output where to save the community-level output.
-#' Must end with `.csv` and point to an existing folder.
+#' Must end with `.csv`.
 #'
 #'@export
 run_modve_sim <- function(sim_params,

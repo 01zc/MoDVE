@@ -4,15 +4,15 @@
 #' in a singe step.
 #'
 #' Fecundity corresponds to the potential average number of recruits per
-#' individual (\deqn{n_{RPot}}) and is the product of three elements:
-#' * the linear, mass-dependent base fecundity: \deqn{a + b \times M}, where M
+#' individual (\eqn{n_{RPot}}) and is the product of three elements:
+#' * the linear, mass-dependent base fecundity: \eqn{a + b \times M}, where M
 #' is the mass, a is `InterceptRecruitment` and b is `SlopeRecruitment`.
 #' * the mass-to-reproduction allocation, `RecruitmentInvestmentRel` (a species
 #' trait).
 #' * a relative increase in mass reproduction allocation as the individual gets
 #' closer to the maximum mass:
-#' \deqn{1 + Rec_{inc} \frac{M - M_{mat}}{M_{max} - M_{mat}}}, where
-#' \deqn{Rec_{inc}} is species trait `RecruitmentInc`.
+#' \deqn{1 + Rec_{inc} \frac{M - M_{mat}}{M_{max} - M_{mat}}} where
+#' \eqn{Rec_{inc}} is species trait `RecruitmentInc`.
 #' This gives the expected number of offspring in a voxel with a 1m square
 #' surface area of available substrate.
 #'

@@ -39,7 +39,7 @@ coefficient for the effect of mass on the probability of death
 \item \code{MortRateMassScaling}: numeric between \code{-Inf} and \code{0}, if
 \code{use_mass_dep_mortality == TRUE} the exponent for the effect of mass on the
 probability of death. Must be negative or zero.
-\item \code{SurfaceBiomassScaling}: a strictly positive parameter scaling how much
+\item \code{SurfaceBiomassScaling}: a strictly positive parameter (\deqn{g_S}) scaling how much
 surface area an individual occupies as a function of its mass:
 \deqn{S = M^{2/3} / g_S}
 \item \code{InterceptRecruitment}: a positive number (or zero), the intercept of the
@@ -56,12 +56,12 @@ following columns:
 \item \code{MassAtMaturity} numeric between 0 and and \code{MaximumMass},
 fraction of \code{MaximumMass} above which at individual can reproduce.
 \item \code{GrowthRate} numeric between 0 an 1, the fraction of remaining growth an
-individual gains in a single generation (i.e, mass increase = growth_rate *
-(max_mass - mass)), under optimal light conditions.
+individual gains in a single generation (i.e, \eqn{\Delta m = K *
+ (M_{max} - M)}), under optimal light conditions.
 \item \code{DispersalKernel} positive numeric, the dispersal kernel.
 \item \code{DispersalKernelAsymmetry} numeric between 0 and 1, the dispersal asymmetry.
-D_k_A = 0.5 corresponds to symmetric dispersal; with D_k_A = 1 individuals
-disperse stricly below themselves; with D_k_A = 0 individuals never disperse
+\eqn{D_{k_A} = 0.5} corresponds to symmetric dispersal; with \eqn{D_{k_A} = 1} individuals
+disperse stricly below themselves; with \eqn{D_{k_A} = 0} individuals never disperse
 only above themselves or at their height.
 \item \code{RecruitmentInvestmentRel} numeric between 0 and 1, a coefficient scaling
 the mass-dependent fecundity coefficient (see \code{\link[=resolve_repro_dispersal]{resolve_repro_dispersal()}}),
@@ -85,12 +85,15 @@ grow and reproduce at the maximum rate. It is calculated as the average of \code
 }}
 
 \item{Microhabitat}{a 4D matrix where the first three dimensions
-corresponding to a 3D habitat space, and the last one containing values of
-the microhabitat for the available surface area, \% of surface area lost in
-the previous generation (if dynamic) and light intensity; or a path to a csv
-file containing such a matrix.
+corresponding to a 3D habitat space, and the last one containing values of:
+\enumerate{
+\item the microhabitat for the available surface area,
+\item \% of surface area lost in the previous generation (if dynamic) and
+\item light intensity in each voxel;
+or a path to a csv file containing such a matrix.
 If \code{hasDynamicMicrohabitat} is \code{TRUE}, \code{Microhabitat} must be a vector of
-paths to such matrices\verb{,} with length \code{Timesteps}.}
+paths to such matrices\verb{,} with length \code{Timesteps}.
+}}
 
 \item{InitDist}{a \code{data.frame} containing the distribution and initial
 attributes of individuals at the beginning of the simulation, as generated
@@ -112,13 +115,13 @@ to.
 }}
 
 \item{path_to_ind_output}{where to save the individual-level output.
-Must end with \code{.csv} and point to an existing folder.}
+Must end with \code{.csv}.}
 
 \item{path_to_sp_output}{where to save the species-level output.
-Must end with \code{.csv} and point to an existing folder.}
+Must end with \code{.csv}.}
 
 \item{path_to_comm_output}{where to save the community-level output.
-Must end with \code{.csv} and point to an existing folder.}
+Must end with \code{.csv}.}
 }
 \description{
 Main function of the package, runs the epiphyte community simulation.
