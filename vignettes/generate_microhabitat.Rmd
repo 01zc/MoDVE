@@ -21,6 +21,7 @@ package with R scripts.
 library(MoDVE)
 ```
 
+One o 
 
 ```{r generate_microhab, eval=FALSE}
 config <- parse_config("tests/config_a1.toml")
@@ -151,3 +152,19 @@ for (i in timeStepStart:timeStepEnd) {
 
 
 ```
+
+# Generating the microhabitat withouth MoF3D
+
+You can, you will just need to make sure that your data conforms to the expected
+format.
+
+We have included functions that assert data is in the correct format
+
+```{r no_mof3d, eval=FALSE}
+check_microhabitat(Microhabitat)
+``` 
+
+The main `MoDVE` functions (`run_modve_sim()`) also call this function before
+executing.
+
+

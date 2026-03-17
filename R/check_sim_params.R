@@ -2,10 +2,19 @@ check_sim_params <- function(sim_params) {
 
   exptd_params <- c(
     "InitialTimeStep", "timeSteps", "StopCriterionHa","hasDynamicMicrohabitat",
-    "Imax", "massDepCompetition", "use_mass_dep_mortality", "MortRateMass",
-    "MortRateMassScaling", "MortRateRandom", "SurfaceBiomassScaling",
-    "SlopeRecruitment", "InterceptRecruitment"
+    "Imax", "massDepCompetition", "use_mass_dep_mortality",
+    "SurfaceBiomassScaling", "SlopeRecruitment", "InterceptRecruitment"
   )
+
+  if (!is.logical(sim_params$massDepCompetition)) {
+    stop("massDepCompetition must be TRUE or FALSE.")
+  }
+  if (sim_params$use_mass_dep_mortality) {
+    exptd_params <- c(exptd_params, "MortRateMass", "MortRateMassScaling")
+  } else {
+    exptd_params <- c(exptd_params, "MortRateRandom")
+  }
+
   missing_params <- exptd_params[!exptd_params %in% names(sim_params)]
   if (length(missing_params > 0)) {
     stop(err_msg_missing_params("sim_params", missing_params))
@@ -40,24 +49,22 @@ check_sim_params <- function(sim_params) {
     stop("Imax cannot be negative.")
   }
 
-  if (!is.logical(sim_params$massDepCompetition)) {
-    stop("massDepCompetition must be TRUE or FALSE.")
-  }
 
   if (!is.logical(sim_params$use_mass_dep_mortality)) {
     stop("use_mass_dep_mortality must be TRUE or FALSE.")
   }
 
-  if (sim_params$MortRateRandom < 0 || sim_params$MortRateRandom > 1) {
-    stop("MortRateRandom must be between 0 and 1")
-  }
-
-  if (sim_params$MortRateMass < 0 || sim_params$MortRateMass > 1) {
-    stop("MortRateMass must be between 0 and 1")
-  }
-
-  if (sim_params$MortRateMassScaling >= 0) {
-    stop("MortRateMassScaling must be negative or zero.")
+  if (sim_params$use_mass_dep_mortality) {
+    if (sim_params$MortRateMass < 0 || sim_params$MortRateMass > 1) {
+      stop("MortRateMass must be between 0 and 1")
+    }
+    if (sim_params$MortRateMassScaling >= 0) {
+      stop("MortRateMassScaling must be negative or zero.")
+    }
+  } else {
+    if (sim_params$MortRateRandom < 0 || sim_params$MortRateRandom > 1) {
+      stop("MortRateRandom must be between 0 and 1")
+    }
   }
 
   if (sim_params$SurfaceBiomassScaling <= 0) {

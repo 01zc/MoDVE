@@ -388,7 +388,7 @@ run_modve_sim <- function(sim_params,
     writeLines(msg)
 
     # Save Epiphyte matrix for every time step
-    ind_output_file <- sub("*.csv$", paste0("_", t, ".csv"), path_to_ind_output)
+    ind_output_file <- sub("*.csv$", paste0("_", gen_nb, ".csv"), path_to_ind_output)
     utils::write.csv(
       E[, inds_output_names()],
       ind_output_file,

@@ -12,20 +12,97 @@ knitr::opts_chunk$set(
   collapse = TRUE,
   comment = "#>"
 )
+#options(warn=-1)  # Suppress warnings
+#options(digits.secs=3)  # 3 decimal digits for seconds
 ```
 
-Work in progress, currently only used to hold the R code without shipping the 
-package with R scripts.
-
-```{r setup}
+```{r setup, eval=FALSE}
 library(MoDVE)
 ```
 
+# Global simulation parameters
+
+`run_modve_sim()` requires the following list of simulation controls:
+
+```{r sim_params}
+sim_params <- list(
+  # Simulation loop controls
+  "InitialTimeStep" = 1, # When does the simulation start ?
+  "timeSteps" = 5, # For how many generations should the simulation run?
+  "StopCriterionHa" = 3 * 10000, # will stop if global density per hectare goes above this
+  # Environmental controls
+  "hasDynamicMicrohabitat" = FALSE, # is the forest static or dynamic?
+  "Imax" = 500, # Light intensity above the canopy
+  "SurfaceBiomassScaling" = 100, # required S.A. = mass^(2/3) / SurfaceBiomassScaling
+  # Reproduction parameters
+  "InterceptRecruitment" = 30,  # intercept of the mass-to-fecundity function
+  "SlopeRecruitment" = 0.1, # slope of the mass-to-fecundity function
+  # Competition parameters
+  "massDepCompetition" = TRUE, # do largest individuals win competition?
+  # Mortality parameters
+  "use_mass_dep_mortality" = FALSE, 
+  # Only required if use_mass_dep_mortality = FALSE
+  "MortRateRandom" = 0.1, # base mortality rate
+  # Only required if use_mass_dep_mortality = TRUE
+  "MortRateMass" = NULL,
+  "MortRateMassScaling" = NULL
+)
+```
+
+More details on the simulation parameters can be found on the help page (`?run_modve_sim`) and in the user guide.
+
+The validity of the parameters can be checked with `check_sim_params()`, which is called before the simulation.
+
+# Inputs
+
+In addition to the simulation parameters, the MoDVE simulation requires three inputs. The preparation of each of these inputs is the subject of a vignette. If you haven't done so already, please go through them first before tackling the simulation.
+
+| Input | Description | Vignette | Check |
+|---------------|----------------------------|---------------|---------------|
+| `Microhabitat` | Generation of the microhabitat matrix from MoF3D output | `vignette("")` | `check_microhabitat()` |
+| `SpeciesPool` | Generation of the species traits | `vignette("")` | `check_species_df()` |
+| `InitDist` | Generation of the initial individuals and their distribution | `vignette("")` | `check_init_dist()` |
+
+Alternatively, one can also provide inputs generated from other sources, provided they conform to the data format expected by the simulation (this can be verified with the `check_*()` functions).
+
+For this vignette, we assume these inputs have already been generated and we simply load them in the environment:
+
+```{r load_inputs,  eval=FALSE}
+path_to_microhabitat <- "my_data/microhabitat.csv"
+Microhabitat <- utils::read.csv(path_to_microhabitat, sep = ",", header = TRUE)
+
+```
+
+For convenience, `run_modve_sim()` also accepts paths to CSV tables and loads them before the simulation, which may sometimes be preferable to passing large data frames.
+
+In the case of dynamic forest landscapes `sim_params$hasDynamicMicrohabitat = TRUE`), `Microhabitat` must be a vector of either paths or `data.frame`s with one element per time step.
+
+# Running the simulation
+
+Once the inputs and parameters have been assembled, running the model is straightforward:
 
 ```{r run_model, eval=FALSE}
-{
-options(warn=-1)  # Suppress warnings
-options(digits.secs=3)  # 3 decimal digits for seconds
+
+  run_modve_sim(
+    sim_params = sim_params,
+    SpeciesPool = SpeciesPoolFileName,
+    Microhabitat = Microhabitat,
+    InitDist = path_to_init_file,
+    path_to_ind_output = "my_data/outputs/individual_output.csv",
+    path_to_sp_output = "my_data/outputs/species_output.csv",
+    path_to_comm_output = "my_data/outputs/community_output.csv"
+  )
+```
+
+# Outputs
+
+The output is written once per generation. For individual output, the simulation loop saves a separate file for each generation (by inserting the generation number at the end of `path_to_ind_output()`), while the species and community outputs are overwritten with the last generation.
+
+# Example simulation script
+
+The script below runs the simulation across multiple sets of species traits, with multiple replicates for each trait set, and includes RNG management and parallelisation of the simulation.
+
+```{r run_model, eval=FALSE}
 
 # Parse input configuration file
 config <- parse_config("tests/config_a4.toml")
@@ -34,15 +111,14 @@ config <- parse_config("tests/config_a4.toml")
 dir_output <- config$DirectoryModelResults
 dir.create(dir_output, recursive = TRUE)
 
-# Detect the number of CPU cores and register the parallel backend
-# Note: detectCores() will detect the total number of cores on a HPC node,
-# so use the $SLURM_NTASKS env var if defined.
+# Detect the number of CPU cores.
+# On a HPC node, use the $SLURM_NTASKS env var if defined.
 nTasks <- Sys.getenv("SLURM_NTASKS")
-if (nTasks != "") {
-  numCores <- strtoi(nTasks)
-} else {
-  numCores <- parallel::detectCores()
-}
+if (nTasks != "") { 
+  numCores <- strtoi(nTasks) 
+  } else { 
+  numCores <- parallel::detectCores() 
+  }
 doParallel::registerDoParallel(numCores)
 
 # RNG seed
@@ -51,29 +127,17 @@ if (!is.null(random_state_file) && file.exists(random_state_file)) {
   writeLines("Loading previous random number generator state from ", random_state_file)
   restore_rng(random_state_file)
 } else {
-  # If we provide an integer, use it to set the seed otherwise it will
-  # be NULL and therefore a random seed will be created.
-  seed <- config$seed
-  set.seed(seed, kind = "Mersenne-Twister")
+  set.seed(config$seed, kind = "Mersenne-Twister")
 }
 # Save current random state.
 writeLines("Storing the random number generator state...")
 save_rng(file.path(dir_output, "random_state_seed.RData"))
 
 # Main loop for the community model for each species pool and for each replicate
-# Each loop employs a different random number generator (RNG) stream, resulting in distinct,
-# statistically independent random sequences. These sequences are reproducible across multiple
-# runs, provided the master seed and other input parameters remain unchanged. Importantly, the
-# number of cores does not influence the sequences, only the order in which the loops are
-# processed. Consequently, parallel and serial execution will yield identical results.
-# Internally, the foreach package employs the L'Ecuyer-CMRG RNG algorithm for reliable random
-# number generation, ensuring reproducible results even in parallel computing environments.
-# Choose species pools to use and number of replicates per species pool
+# Replicates use different RNG streams, but the same seed, so reproducible even when parallelised.
 pairs <- expand.grid(config$numSpeciesPools, config$replicatePerSpeciesPool)
 colnames(pairs) <- c("numPool", "r")
-pair_idx <- 1
-#output <- foreach::foreach(pair_idx = seq_len(nrow(pairs))) %dorng% {
-
+output <- foreach::foreach(pair_idx = seq_len(nrow(pairs))) %dorng% {
 
   numPool <- pairs$numPool[pair_idx]
   r <- pairs$r[pair_idx]
@@ -87,7 +151,6 @@ pair_idx <- 1
   SpeciesPoolFileName <- file.path(config$DirectorySpeciesPools, sp_filename)
 
   # Load microhabitat (static forest)
-  #Microhabitat <- readRDS(file.path(config$DirectoryMicrohabitat, "MicrohabitatMatrix1.rds"))
   time_seq <- config$InitialTimeStep + seq_len(config$timeSteps) - 1
   path_to_microhab <- paste("MicrohabitatMatrix", time_seq, ".rds", sep="")
   Microhabitat <- file.path(config$DirectoryMicrohabitat, path_to_microhab)
@@ -99,18 +162,11 @@ pair_idx <- 1
   path_to_sp_output <- file.path(dir_output_this_run, "SpeciesSummary.csv")
   path_to_comm_output <- file.path(dir_output_this_run, "CommunitySummary.csv")
 
-  {
-    sim_params = config
-    SpeciesPool = SpeciesPoolFileName
-    InitDist = path_to_init_file
-  }
-}
-
   # Run the IBM
   run_modve_sim(
     sim_params = config,
     SpeciesPool = SpeciesPoolFileName,
-    Microhabitat,
+    Microhabitat = Microhabitat,
     InitDist = path_to_init_file,
     path_to_ind_output,
     path_to_sp_output,
