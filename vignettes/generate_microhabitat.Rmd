@@ -21,63 +21,56 @@ package with R scripts.
 library(MoDVE)
 ```
 
-One o 
+
+```{r, create_mhb, eval=FALSE}
+create_microhabitat_mat(
+    config = config,
+    shoot_dt = ShootsBegin,
+    trunk_dt = TrunksBegin,
+    vox_dt = vox_dt,
+    path_to_output = path_to_output,
+    dead_branches_id = dead_branches_id,
+    dead_trees_id = dead_trees_id
+    )
+```
+
+
+# Generating the microhabitat withouth MoF3D
+
+You can, you will just need to make sure that your data conforms to the expected
+format.
+
+We have included functions that assert data is in the correct format
+
+```{r no_mof3d, eval=FALSE}
+check_microhabitat(Microhabitat)
+``` 
+
+The main `MoDVE` functions (`run_modve_sim()`) also call this function before
+executing.
+
+
+# Example script
+
+The script below
+uses input parameters in config and simulation data from Mof3d in the accompanying folder
 
 ```{r generate_microhab, eval=FALSE}
-config <- parse_config("tests/config_a1.toml")
+config <- parse_config("../tests/testthat/configs/config_a1.toml")
 
-read_vox_dt <- function(voxelsFileName) {
+# Iteration controls
+rep_forest <- config$ReplicateForest
+time_start <- config$time_start
+time_end <- config$time_end
 
-  colnames <- voxelsFileName |>
-    utils::read.table(sep = "\t", skip = 1, nrows = 1) |>
-    as.character()
-
-  Voxels <- voxelsFileName |>
-    read.table(sep = "\t", header = FALSE, skip = 2,
-               col.names = append(colnames, "empty_column"))
-  Voxels <- Voxels[colnames]
-
-  # Voxel file start with x=y=z=0 => synchronize with matrices used here
-  # TODO: this is quite bad, MoF3D outputs need to be made consistent
-  Voxels$x <- Voxels$x + 1
-  Voxels$y <- Voxels$y + 1
-  Voxels$z <- Voxels$z + 1
-
-  return(Voxels)
-}
-
-{
-  # ------------------- Parameters ----------------------- #
-  # Parameters that need to be specified/checked before running this script
-
-  # This parameter determines which type of microhatiat matrices are generated:
-  # 1: real GroIMP forest with dynamics
-  # 2: static GroIMP forest (only forest at timeStepStart is used)
-  hasDynamicMicrohabitat <- config$hasDynamicMicrohabitat
-
-  # Parameters that need to be specified if MicrohabitatType=1 or MicrohabitatType=2
-  # Directory of GroIMP files (this directory is stored in the Microhabitat folder so that the
-  # connection to the input GroIMP files is always clear)
-  mof3d_dir <- config$DirectoryGroIMP
-  # Directory to save results
-  DirectorySaveMain <- config$DirectorySaveMain
-
-  rep_forest <- config$ReplicateForest
-
-  # start and end timestep
-  timeStepStart <- config$timeStepStart
-  timeStepEnd <- config$timeStepEnd
-}
-
-# Other parameters created during porting to R
-# Those are needed because of GroIMPs output dir structure
-mof3d_res_dir <- file.path(mof3d_dir, "Results")
-mof3d_model_dir <- file.path(mof3d_dir, "Model")
+# Folder structure
+mof3d_res_dir <- file.path(config$DirectoryGroIMP, "Results")
+mof3d_model_dir <- file.path(config$DirectoryGroIMP, "Model")
 forest_global_file <- "Forest_param_global.txt"
 forest_pass_file <- paste("Forest_param_pass", rep_forest, ".txt", sep = "")
 
-# Create folder to save the microhabitat matrices
-output_dir <- file.path(DirectorySaveMain)
+# Set up output folder
+output_dir <- file.path(config$DirectorySaveMain)
 dir.create(output_dir, recursive = TRUE)
 # Copy Mof3D forest data to result directory
 file.path(mof3d_model_dir, forest_global_file) |>
@@ -96,23 +89,24 @@ config$corridor <- GlobalForest["WidthCorridor", 1]
 shootFile <- paste("shoots_replicate_", rep_forest, "_time_step_", sep = "")
 trunkFile <- paste("trees_replicate_", rep_forest, "_time_step_", sep = "")
 voxFile <- paste("voxel_replicate_", rep_forest, "_time_step_", sep = "")
+vox_colnames <- c("x", "y", "z", "leafarea")
 
 # Load data for first time step
-ShootsBegin <- file.path(mof3d_res_dir, paste(shootFile, timeStepStart, ".txt", sep = "")) |>
+ShootsBegin <- file.path(mof3d_res_dir, paste(shootFile, time_start, ".txt", sep = "")) |>
   read.table(sep = "\t", header = TRUE, skip = 1)
-TrunksBegin <-   file.path(mof3d_res_dir, paste(trunkFile, timeStepStart, ".txt", sep = "")) |>
+TrunksBegin <-   file.path(mof3d_res_dir, paste(trunkFile, time_start, ".txt", sep = "")) |>
   read.table(sep = "\t", header = TRUE, skip = 8)
 
-if (!hasDynamicMicrohabitat) timeStepEnd <- timeStepStart
+if (!config$hasDynamicMicrohabitat) time_end <- time_start
 
-for (i in timeStepStart:timeStepEnd) {
+for (i in time_start:time_end) {
 
   print(paste("Time step", i))
 
   # Load shoot and trunk files of actual and next timestep: Shoots at begin of year
   # and at the end of year/begin of next year
   # Previous time step
-  if (i != timeStepStart) {
+  if (i != time_start) {
     # Last step end becomes beginning of this step
     ShootsBegin <- ShootsEnd
     TrunksBegin <- TrunksEnd
@@ -128,15 +122,23 @@ for (i in timeStepStart:timeStepEnd) {
 
   # Load file containing information about leaf area per voxel
   if (config$calcLightConditions) {
-    vox_dt <- file.path(mof3d_res_dir, paste(voxFile, i, ".txt", sep = "")) |>
-      read_vox_dt()
+    vox_dt <- read.table(
+      file.path(mof3d_res_dir, paste(voxFile, i, ".txt", sep = "")), 
+      sep = "\t", 
+      header = FALSE, 
+      skip = 2,
+      col.names = append(vox_colnames, "empty_column") # issue with reading cols
+      )[vox_colnames]
+    
+    # Convert indexing from Java (first = 0) to R indexing convention (first = 1)
+    Voxels[, 1:3] <- Voxels[, 1:3] + 1
+    
   } else vox_dt <- NULL
 
   path_to_output <- file.path(
     output_dir, paste("MicrohabitatMatrix_new", i, ".rds", sep = "")
   )
 
-  start_time <- Sys.time()
   create_microhabitat_mat(
     config = config,
     shoot_dt = ShootsBegin,
@@ -146,25 +148,6 @@ for (i in timeStepStart:timeStepEnd) {
     dead_branches_id = dead_branches_id,
     dead_trees_id = dead_trees_id
     )
-  end_time <- Sys.time()
-  print(end_time - start_time)
 }
 
-
 ```
-
-# Generating the microhabitat withouth MoF3D
-
-You can, you will just need to make sure that your data conforms to the expected
-format.
-
-We have included functions that assert data is in the correct format
-
-```{r no_mof3d, eval=FALSE}
-check_microhabitat(Microhabitat)
-``` 
-
-The main `MoDVE` functions (`run_modve_sim()`) also call this function before
-executing.
-
-
