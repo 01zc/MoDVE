@@ -58,7 +58,7 @@ The validity of the parameters can be checked with `check_sim_params()`, which i
 In addition to the simulation parameters, the MoDVE simulation requires three inputs. The preparation of each of these inputs is the subject of a vignette. If you haven't done so already, please go through them first before tackling the simulation.
 
 | Input | Description | Vignette | Check |
-|---------------|----------------------------|---------------|---------------|
+|----|----|----|----|
 | `Microhabitat` | Generation of the microhabitat matrix from MoF3D output | `vignette("")` | `check_microhabitat()` |
 | `SpeciesPool` | Generation of the species traits | `vignette("")` | `check_species_df()` |
 | `InitDist` | Generation of the initial individuals and their distribution | `vignette("")` | `check_init_dist()` |

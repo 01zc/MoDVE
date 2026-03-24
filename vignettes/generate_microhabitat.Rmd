@@ -21,21 +21,101 @@ package with R scripts.
 library(MoDVE)
 ```
 
+# The microhabitat matrix in MoDVE
+
+To run the simulation, MoDVE requires a 3D matrix (the microhabitat) containing
+three layers of data, for each voxel:
+- the amount of surface area available for epiphytes to grow on. Surface area
+comprises the surface of trunks and the upper half of all branch segments of
+all trees in the plot. It determines the total mass (and therefore, number) of
+epiphytes that the voxel can support. This influences fecundity and mortality,
+through the carrying capacity.
+- the amount of surface area that is going to be lost in this generation due
+to branch fall and tree mortality. 
+Surface area loss is one of the sources of epiphyte mortality.
+- the intensity of light in the voxel, determined by shading from the leaf mass
+above the voxel and horizontal reflectance from nearby leaf compartments.
+This influences fecundity, growth, and epiphytes die when light conditions fall
+outside of their light niche.
+
+# Required inputs
+
+The matrix will typically be assembled from the output of MoF3D, a tropical 
+forest functional-structural tree model (FSTM), but see the next section for
+alternative options.
+
+MoF3D simulates realistic 3D tree shapes and leaf biomass of a tropical forest 
+stand, given a set of functional and structural traits.
+
+Among its output, MoF3D produces three text tables that are of interest for 
+deriving the microhabitat matrix:
+- `trunk_dt` (MoF3D option `ReportTrees`): contains the (x and y) coordinates
+and geometric attributes (height and diameter) for the trunk of each tree.
+- `shoot_dt` (MoF3D option `ReportShoots`): contains the coordinates 
+(x, y, z for the start and end of the segment) and geometric attributes 
+(length, diameter, branch order) for each branch segment.
+- `vox_dt` (MoF3D option `ReportVoxel`): contains the total amount of leaf 
+biomass in each voxel.
+
+```{r load_mof3d_inputs, eval=FALSE}
+trunk_dt <- read.table("trees_replicate_0_timestep_1.txt", sep = "\t", header = TRUE, skip = 8)
+shoot_dt <- read.table("shoots_replicate_0_timestep_1.txt", sep = "\t", header = TRUE, skip = 1)
+```
+
+In order to derive the amount of surface area loss, if applicable, `MoDVE` also
+requires declaring which trees and branch segments are lost between the present
+time step and the next one. 
+This can be supplied manually as a vector of IDs, but the package also provides
+utilities to identify the dying trees and branch segments automatically:
+
+```{r find_dead_segments, eval=FALSE}
+trunk_dt_next <- read.table("trees_replicate_0_timestep_2.txt", sep = "\t", header = TRUE, skip = 8)
+shoot_dt_next <- read.table("shoots_replicate_0_timestep_2.txt", sep = "\t", header = TRUE, skip = 1)
+dead_branches_id <- find_dead_segments(shoot_dt, shoot_dt_next)
+dead_trees_id <- find_dead_trees(trunk_dt, trunk_dt_next)
+```
+
+# Input parameters
+
+#' @param config a list of parameters with at least the following elements:
+#' * `corridor` size (in number of voxels) of the corridor, that is a band
+#' of voxels on the edge of forest plots without trees.
+#' * `MaxX` maximum coordinate of the forest plot along the x direction
+#' * `MaxY` maximum coordinate of the forest plot along the y direction
+#' * `MaxZ` maximum coordinate of the forest plot along the z direction
+#' * `hasDynamicMicrohabitat` does the forest (and thus microhabitat) change
+#' at every time step?
+#' * `kL` light extinction coefficient
+#' * `DistVoxToConsider` how far (in voxels and in every x and y direction)
+#' does light diffuse horizontally?
+#' * `calcSurfaceArea` TRUE/FALSE, should available surface area be
+#' calculated?
+#' * `calcSurfaceAreaLoss` TRUE/FALSE, should loss of surface are
+#' (between timesteps) be calculated?
+#' * `calcLightConditions` TRUE/FALSE, should light intensity in each voxel
+#' be calculated?
+
+# Generating the microhabitat matrix from MoF3D output
+
+Once the required inputs have been assembled, assembling the matrix is 
+straightforward:
 
 ```{r, create_mhb, eval=FALSE}
 create_microhabitat_mat(
     config = config,
-    shoot_dt = ShootsBegin,
-    trunk_dt = TrunksBegin,
+    shoot_dt = shoot_dt,
+    trunk_dt = trunk_dt,
     vox_dt = vox_dt,
     path_to_output = path_to_output,
-    dead_branches_id = dead_branches_id,
-    dead_trees_id = dead_trees_id
+    dead_branches_id = dead_branches_id, # NULL if no loss
+    dead_trees_id = dead_trees_id # NULL if no loss
     )
 ```
 
 
 # Generating the microhabitat withouth MoF3D
+
+
 
 You can, you will just need to make sure that your data conforms to the expected
 format.
@@ -52,8 +132,7 @@ executing.
 
 # Example script
 
-The script below
-uses input parameters in config and simulation data from Mof3d in the accompanying folder
+The script below uses input parameters in config and simulation data from Mof3d in the accompanying folder
 
 ```{r generate_microhab, eval=FALSE}
 config <- parse_config("../tests/testthat/configs/config_a1.toml")
