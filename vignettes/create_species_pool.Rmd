@@ -12,15 +12,87 @@ knitr::opts_chunk$set(
   collapse = TRUE,
   comment = "#>"
 )
-```
-
-Work in progress, currently only used to hold the R code without shipping the 
-package with R scripts.
-
-```{r setup}
 library(MoDVE)
 ```
 
+One of the required inputs for running a `MoDVE` simulation is the `SpeciesPool`,
+a table containing the growth, dispersal, reproduction and niche traits that 
+define a species.
+
+# Growth traits
+
+Epiphytes can grow up to a maximum species-defined `MaximumMass`, and can 
+disperse seeds after reaching a threshold mass `MassAtMaturity`.
+Each generation, assuming optimal light conditions, individuals grow by an 
+amount \eqn{\Delta M = K \times (M_{max} - M)}, where \eqn{K} is the growth 
+rate.
+
+#'  * `MaximumMass` positive numeric, the maximum mass an individual can reach.
+#'  * `MassAtMaturity` numeric between 0 and and `MaximumMass`,
+#'  fraction of `MaximumMass` above which at individual can reproduce.
+#'  * `GrowthRate` numeric between 0 an 1, the fraction of remaining growth an
+#'  individual gains in a single generation
+#'  (i.e, \eqn{\Delta M = K \times (M_{max} - M)} under optimal light conditions.
+
+#'  * `MaxMassLogScaleRandom` logical. If `FALSE`, `MaxMass` is sampled in a
+#'  uniform distribution with parameters `MaxMassRandom`. If `TRUE`, the value
+#'  is instead sampled in a uniform of the log10's of `MaxMassRandom`, and the
+#'  sampled value is then transformed back. This produces the same range of
+#'  values, but skews the distribution towards the minimum.
+#'  * `MaxMassRandom` a length-2 numeric vector containing the minimum and
+#'  maximum MaxMass
+#'  * `MassAtMaturityRelativeRandom` a length-2 numeric vector containing the
+#'  minimum and maximum bounds (between 0 and 1) in which to sample what
+#'  fraction of `MaxMass` the mass at maturity corresponds to.
+#'
+#'  * `InterceptAgeMaturity` numeric, the intercept of the function generating
+#'  the age at maturity as a function of mass at maturity (see details)
+#'  * `ScalingAgeMaturity` numeric between 0 and 1, the exponent of the function
+#' generating the age at maturity as a function of mass at maturity
+#'  * `AgeAtMaturityDevCorr` numeric, the range of possible deviation
+#'  coefficients in the function generating age at maturity from mass at
+#'  maturity.
+#'
+
+# Dispersal traits
+ 
+# Reproduction traits
+
+# Light niche traits
+
+Also returns height niche, but not required (in fact not used) in the simulation.
+
+# Usage
+
+Once the list `species_params` has been assembled, one can call the trait 
+sampling function:
+
+```{r call_draw_sp_traits, eval=FALSE}
+species_params <- draw_species_traits(species_params)
+```
+
+This returns a list with sampled values for the traits for one species.
+This function should be called multiple times and the output formatted as a
+`data.frame` to form the final `SpeciesPool`:
+
+```{r, secret_draw, include=FALSE}
+species_params <- draw_rnd_species_params()
+```
+
+```{r assemble_sp_pool, eval=FALSE}
+nb_species <- 5
+
+library(purrr)
+
+# Example with purr utilities
+map(rep(list(species_params), nb_species), draw_species_traits) |> 
+  map(as.data.frame) |> 
+  list_rbind()
+```
+
+Note that all species do not need to share the same `species_params` list.
+
+# Example script
 
 ```{r create_sp_pool, eval=FALSE}
 

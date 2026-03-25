@@ -12,12 +12,6 @@ knitr::opts_chunk$set(
   collapse = TRUE,
   comment = "#>"
 )
-```
-
-Work in progress, currently only used to hold the R code without shipping the 
-package with R scripts.
-
-```{r setup}
 library(MoDVE)
 ```
 
@@ -77,23 +71,27 @@ dead_trees_id <- find_dead_trees(trunk_dt, trunk_dt_next)
 
 # Input parameters
 
-#' @param config a list of parameters with at least the following elements:
-#' * `corridor` size (in number of voxels) of the corridor, that is a band
-#' of voxels on the edge of forest plots without trees.
-#' * `MaxX` maximum coordinate of the forest plot along the x direction
-#' * `MaxY` maximum coordinate of the forest plot along the y direction
-#' * `MaxZ` maximum coordinate of the forest plot along the z direction
-#' * `hasDynamicMicrohabitat` does the forest (and thus microhabitat) change
-#' at every time step?
-#' * `kL` light extinction coefficient
-#' * `DistVoxToConsider` how far (in voxels and in every x and y direction)
-#' does light diffuse horizontally?
-#' * `calcSurfaceArea` TRUE/FALSE, should available surface area be
-#' calculated?
-#' * `calcSurfaceAreaLoss` TRUE/FALSE, should loss of surface are
-#' (between timesteps) be calculated?
-#' * `calcLightConditions` TRUE/FALSE, should light intensity in each voxel
-#' be calculated?
+In addition to the MoF3D output data, a list `config` of parameters is required.
+The list must contain at least the following elements:
+
+1. `MaxX`, `MaxY`, `MaxZ` specifying the dimensions of the forest landscape.
+`corridor`, if used in the MoF3D simulation, specifies the size (in voxels) of 
+a tree-free corridor around the edges of the forest area, in which branches can
+grow into, but not tree trunks.
+
+2. `calcSurfaceArea`, `calcSurfaceAreaLoss` and `calcLightConditions` are all
+boolean conditions enabling the generation of each microhabitat layer. While
+all three layers are required to run the simulation, it may be desirable to
+re-calculate only a subset of the layers.
+
+3. `kL` and `DistVoxToConsider` are parameters controlling light extinction and
+diffusion, respectively. `kL` parametrises the Beer-Lambert light extinction 
+function:
+\deqn{e^{-/frac{k_L * \sum^z LA_z}{10^4}}
+where \eqn{\sum^z LA_z} denotes the total leaf area in all voxels above a
+given voxel.
+`DistVoxToConsider` sets the range of neighbouring voxels which contribute to
+the light condition in the voxel of interest through reflectance.
 
 # Generating the microhabitat matrix from MoF3D output
 
@@ -115,20 +113,23 @@ create_microhabitat_mat(
 
 # Generating the microhabitat withouth MoF3D
 
+It is possible to import data from another FSTM to use as input for 
+`create_microhabitat_mat()`, as long as the data satisfies
+the required input structure, which can be verified with helper functions:
 
+```{r check_tbl, eval=FALSE}
+check_shoot_dt(shoot_dt)
+check_trunk_dt(trunk_dt)
+check_vox_dt(vox_dt)
+```
 
-You can, you will just need to make sure that your data conforms to the expected
-format.
-
-We have included functions that assert data is in the correct format
+Alternatively, the microhabitat matrix can be assembled through other means.
+In order to be used as input for the main simulation (`run_modve_sim()`) and other 
+input preparation functions, it will need to pass a format check:
 
 ```{r no_mof3d, eval=FALSE}
 check_microhabitat(Microhabitat)
 ``` 
-
-The main `MoDVE` functions (`run_modve_sim()`) also call this function before
-executing.
-
 
 # Example script
 

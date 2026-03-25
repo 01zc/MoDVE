@@ -9,8 +9,6 @@
 #' * `MaxX` maximum coordinate of the forest plot along the x direction
 #' * `MaxY` maximum coordinate of the forest plot along the y direction
 #' * `MaxZ` maximum coordinate of the forest plot along the z direction
-#' * `hasDynamicMicrohabitat` does the forest (and thus microhabitat) change
-#' at every time step?
 #' * `kL` light extinction coefficient
 #' * `DistVoxToConsider` how far (in voxels and in every x and y direction)
 #' does light diffuse horizontally?
