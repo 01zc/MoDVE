@@ -15,52 +15,119 @@ knitr::opts_chunk$set(
 library(MoDVE)
 ```
 
+# Species traits hyperparameters
+
 One of the required inputs for running a `MoDVE` simulation is the `SpeciesPool`,
 a table containing the growth, dispersal, reproduction and niche traits that 
 define a species.
+
+The values for these species traits can be imported from external sources,
+or generated with `draw_species_traits()` from a list of species trait 
+hyperparameters, `species_params`:
+
+```{r hyperparams, eval=FALSE}
+species_params <- list(
+  # Growth traits
+  MaxMassLogScaleRandom = FALSE,
+  MaxMassRandom = c(2, 3000),
+  MassAtMaturityRelativeRandom = c(0,5, 0,7),
+  InterceptAgeMaturity = 2,
+  ScalingAgeMaturity = 0.25,
+  AgeAtMaturityDevCorr = 0.25,
+  # Dispersal traits
+  DispersalKernelRandom = c(0.03, 0.5),
+  DispersalKernelAsymmetryRandom = c(0.5, 0.95),
+  # Reproduction traits
+  CorrelationMassRecruitment = TRUE,
+  RecruitmentInvestmentRelMeanCorr = 0.1,
+  RecruitmentInvestmentRelDevCorr = 0.25,
+  RecruitmentInvestmentRelMeanRandom = c(0.07, 0,12),
+  RecruitmentIncRandom = c(0, 0),
+  # Light niche traits
+  HeightBreadthRandom = c(0.15, 0.7),
+  Imax = 900,
+  kL = 0.6,
+  LAI = 6
+)
+```
+
+In this vignette, we walk through the different species traits, and how they
+are sampled using the different elements of `species_params`. 
 
 # Growth traits
 
 Epiphytes can grow up to a maximum species-defined `MaximumMass`, and can 
 disperse seeds after reaching a threshold mass `MassAtMaturity`.
-Each generation, assuming optimal light conditions, individuals grow by an 
-amount \eqn{\Delta M = K \times (M_{max} - M)}, where \eqn{K} is the growth 
-rate.
+Each year, assuming optimal light conditions (light == `OptimumLight`), 
+individuals grow by an amount \eqn{\Delta M = K \times (M_{max} - M)}, 
+where \eqn{K} is the growth rate.
 
-#'  * `MaximumMass` positive numeric, the maximum mass an individual can reach.
-#'  * `MassAtMaturity` numeric between 0 and and `MaximumMass`,
-#'  fraction of `MaximumMass` above which at individual can reproduce.
-#'  * `GrowthRate` numeric between 0 an 1, the fraction of remaining growth an
-#'  individual gains in a single generation
-#'  (i.e, \eqn{\Delta M = K \times (M_{max} - M)} under optimal light conditions.
+The `MaximumMass` is generated from a uniform distribution with minimum and 
+maximum`MaxMassRandom` (option `MaxMassLogScaleRandom = FALSE`), with an option to
+transform the parameters with a log10 before sampling in order to skew the
+distribution towards lower values (`MaxMassLogScaleRandom = TRUE`).
 
-#'  * `MaxMassLogScaleRandom` logical. If `FALSE`, `MaxMass` is sampled in a
-#'  uniform distribution with parameters `MaxMassRandom`. If `TRUE`, the value
-#'  is instead sampled in a uniform of the log10's of `MaxMassRandom`, and the
-#'  sampled value is then transformed back. This produces the same range of
-#'  values, but skews the distribution towards the minimum.
-#'  * `MaxMassRandom` a length-2 numeric vector containing the minimum and
-#'  maximum MaxMass
-#'  * `MassAtMaturityRelativeRandom` a length-2 numeric vector containing the
-#'  minimum and maximum bounds (between 0 and 1) in which to sample what
-#'  fraction of `MaxMass` the mass at maturity corresponds to.
-#'
-#'  * `InterceptAgeMaturity` numeric, the intercept of the function generating
-#'  the age at maturity as a function of mass at maturity (see details)
-#'  * `ScalingAgeMaturity` numeric between 0 and 1, the exponent of the function
-#' generating the age at maturity as a function of mass at maturity
-#'  * `AgeAtMaturityDevCorr` numeric, the range of possible deviation
-#'  coefficients in the function generating age at maturity from mass at
-#'  maturity.
-#'
+`MassAtMaturity` is set as a random fraction of `MaximumMass`, sampled in a
+uniform with parameters `MassAtMaturityRelativeRandom`.
+
+The growth rate is derived from first sampling the age at which epiphytes reach
+maturity:
+\deqn{Age_{mat} = InterceptAgeMaturity * M_{max}^{ScalingAgeMaturity} * U(1 \pm AgeAtMaturityDevCorr)}
+
+The growth rate \eqn{K} is then derived from \eqn{Age_{mat}} so that it 
+satisfies the growth rate above:
+\deqn{K = -\rac{log(1 - \frac{M_{mat}}{M_{max}})} {Age_{mat}}}
 
 # Dispersal traits
+
+In `MoDVE`, reproduction and dispersal are coupled - only seedlings disperse.
+Dispersal distance follows a negative exponential distribution with parameter
+`DispersalKernel`. The resulting probability distribution is multiplied by a
+gravity bias, with value `DispersalKernelAsymmetry` for all voxels below the
+parent epiphyte and `1 - DispersalKernelAsymmetry` for all voxels above it or on
+the same height.
+
+Both parameters are sampled in uniform distributions, with respective
+hyperparameters `DispersalKernelRandom` and `DispersalKernelAsymmetryRandom`.
+
  
 # Reproduction traits
 
+Fecundity \eqn{n_{R_{Pot}}}, the average number of seedlings produced by an epiphyte in one 
+year (per square-meter of substrate area) is determined by 
+\deqn{n_{R_{Pot}} = f(M) * Rec_{InvRel} * (1 + Rec_{Inc} * \frac{M - M_{mat}}{M_{max} - M_{mat}})}
+where \eqn{f(M)} is a linear function of the individual's mass (independent of 
+species), \eqn{Rec_{InvRel}} (`RecruitmentInvestmentRel`) is a species trait scaling represents the fraction 
+of the epiphyte's biomass invested in reproduction, and \eqn{Rec_{Inc}} (`RecruitmentInc`) is a
+species trait representing an increase in the reproduction allocation as the epiphyte
+grows closer to its maximum mass.
+
+The values for `RecruitmentInvestmentRel` and `RecruitmentInc` can be sampled in
+two ways, depending on the value of `CorrelationMassRecruitment`:
+- if `TRUE`, `RecruitmentInvestmentRel` is sampled in a uniform distribution
+with min and max values `RecruitmentInvestmentRelMeanCorr` * (1 \eqn{\pm} `RecruitmentInvestmentRelDevCorr`), and `RecruitmentInc` is set to 0.
+- if `FALSE`, `RecruitmentInvestmentRel` is sampled in a uniform distribution
+with min and max values `RecruitmentInvestmentRelMeanRandom`
+and `RecruitmentInc` is sampled in a uniform distribution with min and max
+values `RecruitmentIncRandom.`
+
 # Light niche traits
 
-Also returns height niche, but not required (in fact not used) in the simulation.
+The light niche of the species is determined by first sampling the height niche,
+the range of heights (relative to canopy height) in which the epiphyte species
+can dwell.
+Its center is sampled between 0 and 1, and its range is sampled in a uniform
+with minimum and maximum values `HeightBreadthRandom`.
+
+The minimum and maximum values of the height niche are then translated into 
+minimum and maximum bounds of the light niche (resp `MinLight` and `MaxLight`:):
+\deqn{I_{max} * e^{-k_L \times LAI (1 - h)}}
+where `Imax` (light intensity above the canopy), `LAI` 
+(leaf area index of the species) and `k_L` (light extinction coefficient) are 
+parameters, and \eqn{h} is either the minimum or maximum height.
+The `OptimumLight` trait is set as the average of `MinLight` and `MaxLight`, and
+the three light parameters are then transformed into parameters `LightResponseA`,
+`LightResponseB` and `LightResponseC` of the parabolic light response.
 
 # Usage
 

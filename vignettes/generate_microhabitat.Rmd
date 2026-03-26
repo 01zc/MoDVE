@@ -24,12 +24,12 @@ comprises the surface of trunks and the upper half of all branch segments of
 all trees in the plot. It determines the total mass (and therefore, number) of
 epiphytes that the voxel can support. This influences fecundity and mortality,
 through the carrying capacity.
-- the amount of surface area that is going to be lost in this generation due
+- the amount of surface area that is going to be lost in this year due
 to branch fall and tree mortality. 
 Surface area loss is one of the sources of epiphyte mortality.
 - the intensity of light in the voxel, determined by shading from the leaf mass
 above the voxel and horizontal reflectance from nearby leaf compartments.
-This influences fecundity, growth, and epiphytes die when light conditions fall
+This influences growth, the ability to reproduce and epiphytes die when light conditions fall
 outside of their light niche.
 
 # Required inputs
@@ -41,8 +41,18 @@ alternative options.
 MoF3D simulates realistic 3D tree shapes and leaf biomass of a tropical forest 
 stand, given a set of functional and structural traits.
 
-Among its output, MoF3D produces three text tables that are of interest for 
-deriving the microhabitat matrix:
+Trees in MoF3D are represented by three components:
+1. A conical **trunk**
+2. A set of primary branches connected to the trunk, and a set of secondary
+branches connected to the primary branches (there are no higher order branches).
+Branches are cylinders and broken down into successive **branch segments**.
+3. A set of **leaf compartments**, which are tied to the voxel in which the 
+leaves lie and the secondary branch they are attached to. 
+There may be multiple leaf compartments in a given voxel, if multiple branches 
+cross that voxel.
+
+MoF3D produces three output files that are relevant to set up the microhabitat
+for epiphytes:
 - `trunk_dt` (MoF3D option `ReportTrees`): contains the (x and y) coordinates
 and geometric attributes (height and diameter) for the trunk of each tree.
 - `shoot_dt` (MoF3D option `ReportShoots`): contains the coordinates 
