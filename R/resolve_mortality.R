@@ -1,6 +1,6 @@
 #' Resolve the mortality step of the epiphyte simulation
 #'
-#' Each generation, epiphytes may die from either of the following sources:
+#' Each year, epiphytes may die from either of the following sources:
 #' * Branch fall: each epiphytes dies (status 3) with a probability equal to the
 #'  proportion of surface area loss (branch fall) in its voxel this generation
 #' * Light conditions: if light in the voxels falls outside of the epiphyte's

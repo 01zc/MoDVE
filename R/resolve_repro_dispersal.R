@@ -1,6 +1,6 @@
 #' Resolve the dispersal step of the simulation
 #'
-#' Each generation, reproduction (recruitment) and seed dispersal are resolved
+#' Each year, reproduction (recruitment) and seed dispersal are resolved
 #' in a singe step.
 #'
 #' Fecundity corresponds to the potential average number of recruits per

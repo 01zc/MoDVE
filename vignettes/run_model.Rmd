@@ -28,7 +28,7 @@ library(MoDVE)
 sim_params <- list(
   # Simulation loop controls
   "InitialTimeStep" = 1, # When does the simulation start ?
-  "timeSteps" = 5, # For how many generations should the simulation run?
+  "timeSteps" = 5, # For how many years should the simulation run?
   "StopCriterionHa" = 3 * 10000, # will stop if global density per hectare goes above this
   # Environmental controls
   "hasDynamicMicrohabitat" = FALSE, # is the forest static or dynamic?
@@ -96,7 +96,7 @@ Once the inputs and parameters have been assembled, running the model is straigh
 
 # Outputs
 
-The output is written once per generation. For individual output, the simulation loop saves a separate file for each generation (by inserting the generation number at the end of `path_to_ind_output()`), while the species and community outputs are overwritten with the last generation.
+The output is written once per year. For individual output, the simulation loop saves a separate file for each generation (by inserting the generation number at the end of `path_to_ind_output()`), while the species and community outputs are overwritten with the last year.
 
 # Example simulation script
 

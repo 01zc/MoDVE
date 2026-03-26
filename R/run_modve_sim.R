@@ -4,14 +4,14 @@
 #'
 #' @param sim_params a list of parameters containing at least the following
 #' elements:
-#'  * `InitialTimeSteps`: index for the first generation
-#'  * `TimeSteps`: number of time steps (generations) to run the simulation for
+#'  * `InitialTimeSteps`: index for the first year
+#'  * `TimeSteps`: number of time steps (years) to run the simulation for
 #'  * `StopCriterionHa`: limit density of individuals per ha. If the number of
 #' individuals exceeds `StopCriterionHa / 10000 * dimX * dimY`, the simulation
 #' exits.
 #'  * `hasDynamicMicrohabitat`: `TRUE/FALSE`, does the microhabitat matrix change
 #' with each time steps? If `TRUE`, `Microhabitat` must be a vector of paths
-#' to each of the microhabitat matrices (one per generation).
+#' to each of the microhabitat matrices (one per year).
 #' * `Imax`: maximum light intensity above the canopy
 #' * `massDepCompetition`: `TRUE` = larger individuals get priority in
 #' voxel attribution, otherwise (`FALSE`) individuals are distributed randomly.
@@ -40,7 +40,7 @@
 #'  * `MassAtMaturity` numeric between 0 and and `MaximumMass`,
 #'  fraction of `MaximumMass` above which at individual can reproduce.
 #'  * `GrowthRate` numeric between 0 an 1, the fraction of remaining growth an
-#'  individual gains in a single generation (i.e, \eqn{\Delta m = K *
+#'  individual gains in a single year (i.e, \eqn{\Delta m = K *
 #'  (M_{max} - M)}), under optimal light conditions.
 #'  * `DispersalKernel` positive numeric, the dispersal kernel.
 #'  * `DispersalKernelAsymmetry` numeric between 0 and 1, the dispersal asymmetry.
@@ -70,7 +70,7 @@
 #' @param Microhabitat a 4D matrix where the first three dimensions
 #' corresponding to a 3D habitat space, and the last one containing values of:
 #' 1. the microhabitat for the available surface area,
-#' 2. % of surface area lost in the previous generation (if dynamic) and
+#' 2. % of surface area lost in the previous year (if dynamic) and
 #' 3. light intensity in each voxel;
 #' or a path to a csv file containing such a matrix.
 #' If `hasDynamicMicrohabitat` is `TRUE`, `Microhabitat` must be a vector of
@@ -89,7 +89,7 @@
 #' * `IndividualID` a unique identifier for this individual
 #' * `SurfaceAreaOccupied` the amount of surface area that this individual
 #' requires and uses
-#' * `Age` age of the individual in generations
+#' * `Age` age of the individual in years
 #' * `SpeciesID` which species this individual belongs
 #' to.
 #'
@@ -235,16 +235,16 @@ run_modve_sim <- function(sim_params,
     SpeciesPool
   )
 
-  # Generation loop
+  # Year loop
   for (t in seq_len(timeSteps)) {
 
-    gen_nb <- sim_params$InitialTimeStep + t - 1 # actual time step
+    year_nb <- sim_params$InitialTimeStep + t - 1 # actual time step
 
     # Check if the stop criterion is met
     nbIndsAlive <- length(which(E$Status == 1))
     if (nbIndsAlive > StopNbInds) {
       writeLines(paste0(
-        "Time ", gen_nb, ": population has exceeded max threshold of ", StopNbInds,
+        "Time ", year_nb, ": population has exceeded max threshold of ", StopNbInds,
         " individuals. Ending simulation."
         ))
       break
@@ -256,14 +256,14 @@ run_modve_sim <- function(sim_params,
       check_microhabitat(Microhabitat)
       if (!all.equal(dim(Microhabitat), dims)) {
         stop(
-          paste("Invalid microhabitat matrix at time", gen_nb,
+          paste("Invalid microhabitat matrix at time", year_nb,
                 ": number of dimensions must be the same as the first matrix")
           )
       }
       Microhabitat[,,,3] <- Microhabitat[,,,3] * sim_params$Imax
     }
 
-    # Update how many species are alive at beginning of generation
+    # Update how many species are alive at beginning of the year
     InitialNumberSpecies <- length(unique(E$SpeciesID[E$Status == 1]))
     nbIndsBeforeDispTotal <- length(which(E$Status == 1))
 
@@ -317,7 +317,7 @@ run_modve_sim <- function(sim_params,
       row_nb <- (sp - 1) * timeSteps + t
       is_sp <- E$SpeciesID == sp
 
-      sp_output[row_nb, col_sp_t] <- gen_nb
+      sp_output[row_nb, col_sp_t] <- year_nb
       sp_output[row_nb, col_sp_id] <- sp
       sp_output[row_nb, col_nb_inds_begin] <- nb_inds_begin
       sp_output[row_nb, col_nb_inds_end] <- nb_alive
@@ -359,7 +359,7 @@ run_modve_sim <- function(sim_params,
     MortalityBranchFall <- length(which(E$Status == 3))
     MortalityLight <- length(which(E$Status == 4))
     MortalityNatural <- length(which(E$Status == 5))
-    comm_output$timeStep[t] <- gen_nb
+    comm_output$timeStep[t] <- year_nb
     comm_output$NumberSpeciesBeginning[t] <- InitialNumberSpecies
     comm_output$NumberSpeciesEnd[t] <- length(unique(E$SpeciesID[E$Status == 1]))
     comm_output$NumberIndividualsBeginning[t] <- nbIndsBeforeDispTotal
@@ -376,7 +376,7 @@ run_modve_sim <- function(sim_params,
 
     # Command window information
     msg <- "--------------------------------------------"
-    msg <- paste_wrap(msg, "Time step: ", gen_nb)
+    msg <- paste_wrap(msg, "Time step: ", year_nb)
     msg <- paste_wrap(msg, "Number of individuals: ", comm_output$NumberIndividualsEnd[t])
     msg <- paste_wrap(msg, "Number of species: ", comm_output$NumberSpeciesEnd[t])
     msg <- paste_wrap(msg, "Number of recruits: ", NumberRecruits)
@@ -388,7 +388,7 @@ run_modve_sim <- function(sim_params,
     writeLines(msg)
 
     # Save Epiphyte matrix for every time step
-    ind_output_file <- sub("*.csv$", paste0("_", gen_nb, ".csv"), path_to_ind_output)
+    ind_output_file <- sub("*.csv$", paste0("_", year_nb, ".csv"), path_to_ind_output)
     utils::write.csv(
       E[, inds_output_names()],
       ind_output_file,

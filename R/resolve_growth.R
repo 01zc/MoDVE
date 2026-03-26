@@ -1,6 +1,6 @@
 #' Resolve the growth step of the simulation
 #'
-#' Each generation, all living epiphytes grow by an amount corresponding to
+#' Each year, all living epiphytes grow by an amount corresponding to
 #' \eqn{k * (M_{max} - M) * I}, where *k* is the growth rate, *M* the epiphyte's
 #' mass, \eqn{M_{max}} its species maximum mass, and I is the parabolic light
 #' response curve:

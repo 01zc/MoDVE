@@ -38,7 +38,7 @@
 #' * `IndividualID` a unique identifier for this individual
 #' * `SurfaceAreaOccupied` the amount of surface area that this individual
 #' requires and uses
-#' * `Age` age of the individual in generations
+#' * `Age` age of the individual in years
 #' * `SpeciesID` which species this individual belongs to.
 #'
 #' @export

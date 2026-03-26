@@ -1,6 +1,6 @@
 #' Resolve the competition step of the epiphyte simulation
 #'
-#' Each generation, the capacity (surface area) of each voxel is compared to its
+#' Each year, the capacity (surface area) of each voxel is compared to its
 #' occupancy (sum of surface area requirements of all epiphytes in the voxel).
 #' If occupancy exceeds capacity, either random (if `massDepCompetiton = FALSE`)
 #' or the smallest epiphytes (if `massDepCompetiton = TRUE`) are killed (i.e,
