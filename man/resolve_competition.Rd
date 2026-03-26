@@ -20,7 +20,7 @@ voxel attribution, otherwise (\code{FALSE}) individuals are distributed randomly
 the modified epiphyte data frame
 }
 \description{
-Each generation, the capacity (surface area) of each voxel is compared to its
+Each year, the capacity (surface area) of each voxel is compared to its
 occupancy (sum of surface area requirements of all epiphytes in the voxel).
 If occupancy exceeds capacity, either random (if \code{massDepCompetiton = FALSE})
 or the smallest epiphytes (if \code{massDepCompetiton = TRUE}) are killed (i.e,

@@ -18,14 +18,14 @@ run_modve_sim(
 \item{sim_params}{a list of parameters containing at least the following
 elements:
 \itemize{
-\item \code{InitialTimeSteps}: index for the first generation
-\item \code{TimeSteps}: number of time steps (generations) to run the simulation for
+\item \code{InitialTimeSteps}: index for the first year
+\item \code{TimeSteps}: number of time steps (years) to run the simulation for
 \item \code{StopCriterionHa}: limit density of individuals per ha. If the number of
 individuals exceeds \code{StopCriterionHa / 10000 * dimX * dimY}, the simulation
 exits.
 \item \code{hasDynamicMicrohabitat}: \code{TRUE/FALSE}, does the microhabitat matrix change
 with each time steps? If \code{TRUE}, \code{Microhabitat} must be a vector of paths
-to each of the microhabitat matrices (one per generation).
+to each of the microhabitat matrices (one per year).
 \item \code{Imax}: maximum light intensity above the canopy
 \item \code{massDepCompetition}: \code{TRUE} = larger individuals get priority in
 voxel attribution, otherwise (\code{FALSE}) individuals are distributed randomly.
@@ -56,7 +56,7 @@ following columns:
 \item \code{MassAtMaturity} numeric between 0 and and \code{MaximumMass},
 fraction of \code{MaximumMass} above which at individual can reproduce.
 \item \code{GrowthRate} numeric between 0 an 1, the fraction of remaining growth an
-individual gains in a single generation (i.e, \eqn{\Delta m = K *
+individual gains in a single year (i.e, \eqn{\Delta m = K *
  (M_{max} - M)}), under optimal light conditions.
 \item \code{DispersalKernel} positive numeric, the dispersal kernel.
 \item \code{DispersalKernelAsymmetry} numeric between 0 and 1, the dispersal asymmetry.
@@ -88,7 +88,7 @@ grow and reproduce at the maximum rate. It is calculated as the average of \code
 corresponding to a 3D habitat space, and the last one containing values of:
 \enumerate{
 \item the microhabitat for the available surface area,
-\item \% of surface area lost in the previous generation (if dynamic) and
+\item \% of surface area lost in the previous year (if dynamic) and
 \item light intensity in each voxel;
 or a path to a csv file containing such a matrix.
 If \code{hasDynamicMicrohabitat} is \code{TRUE}, \code{Microhabitat} must be a vector of
@@ -109,7 +109,7 @@ a lack of available surface area to allocate this individual)
 \item \code{IndividualID} a unique identifier for this individual
 \item \code{SurfaceAreaOccupied} the amount of surface area that this individual
 requires and uses
-\item \code{Age} age of the individual in generations
+\item \code{Age} age of the individual in years
 \item \code{SpeciesID} which species this individual belongs
 to.
 }}

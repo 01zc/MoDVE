@@ -23,7 +23,7 @@ occupied by an epiphyte as a function of its mass:
 the modified epiphyte data frame
 }
 \description{
-Each generation, all living epiphytes grow by an amount corresponding to
+Each year, all living epiphytes grow by an amount corresponding to
 \eqn{k * (M_{max} - M) * I}, where \emph{k} is the growth rate, \emph{M} the epiphyte's
 mass, \eqn{M_{max}} its species maximum mass, and I is the parabolic light
 response curve:

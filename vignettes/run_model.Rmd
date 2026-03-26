@@ -102,7 +102,7 @@ The output is written once per year. For individual output, the simulation loop 
 
 The script below runs the simulation across multiple sets of species traits, with multiple replicates for each trait set, and includes RNG management and parallelisation of the simulation.
 
-```{r run_model, eval=FALSE}
+```{r example, eval=FALSE}
 
 # Parse input configuration file
 config <- parse_config("tests/config_a4.toml")

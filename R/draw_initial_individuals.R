@@ -6,7 +6,7 @@
 #' @param distr_params a list containing at least the following parameters:
 #' * `IndividualsPerSpecies` (scalar) integer, the number of individuals of per
 #' species.
-#' * `ScalingPerHa` logical, defines whether the NumberSpecies are total numbers
+#' * `ScalingPerHa` logical, defines whether IndividualsPerSpecies are total numbers
 #' irrespective of the model area (`TRUE`), or if the NumberSpecies or given per
 #' hectar and are scaled to the model area (`FALSE`)
 #' * `PercentageMaturePerSpecies` a number between 0 and 100 indicating the

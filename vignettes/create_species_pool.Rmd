@@ -146,7 +146,7 @@ This function should be called multiple times and the output formatted as a
 species_params <- draw_rnd_species_params()
 ```
 
-```{r assemble_sp_pool, eval=FALSE}
+```{r assemble_sp_pool}
 nb_species <- 5
 
 library(purrr)

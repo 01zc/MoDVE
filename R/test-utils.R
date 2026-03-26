@@ -43,6 +43,7 @@ create_rnd_species_df <- function(nb_species, species_params = draw_rnd_species_
 #' @param max_val sets the maximum value to sample hyperparameters that otherwise
 #' don't have a theoretical maximum value (the minimum is zero).
 #'
+#' @export
 draw_rnd_species_params <- function(max_val = 100) {
 
   sp_params <- list(

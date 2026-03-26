@@ -41,7 +41,7 @@ probability of death. Must be negative or zero.}
 the modified epiphyte data frame
 }
 \description{
-Each generation, epiphytes may die from either of the following sources:
+Each year, epiphytes may die from either of the following sources:
 \itemize{
 \item Branch fall: each epiphytes dies (status 3) with a probability equal to the
 proportion of surface area loss (branch fall) in its voxel this generation

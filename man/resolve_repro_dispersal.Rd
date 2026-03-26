@@ -56,7 +56,7 @@ realised number of recruits for each species) for the output.
 }
 }
 \description{
-Each generation, reproduction (recruitment) and seed dispersal are resolved
+Each year, reproduction (recruitment) and seed dispersal are resolved
 in a singe step.
 }
 \details{
