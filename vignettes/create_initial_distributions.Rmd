@@ -12,15 +12,112 @@ knitr::opts_chunk$set(
   collapse = TRUE,
   comment = "#>"
 )
-```
-
-Work in progress, currently only used to hold the R code without shipping the 
-package with R scripts.
-
-```{r setup}
 library(MoDVE)
 ```
 
+# Initial individuals and distribution
+
+Among its inputs, `run_modve_sim()` requires a `data.frame` containing the 
+attributes and distribution in the 3D matrix of the epiphytes that form the 
+initial community.
+
+Initial individuals can be sampled with `draw_initial_individuals()`, based on
+species traits and the microhabitat. 
+These vignette covers the usage and behaviour of `draw_initial_individuals()`.
+
+# Input data
+
+The sampling of initial individuals depends on species-level traits,
+generated with `draw_species_traits()`, and the microhabitat matrix containing
+the surface area of substrate available for epiphytes and light conditions, 
+generated with `create_microhab_mat()`.
+
+The assembly of these inputs is covered in their respective vignettes, so 
+here we simply load them from saved data:
+
+```{r load_inputs, eval=FALSE}
+SpeciesPool <- read.csv("path_to_inputs/species_pool.csv")
+Microhabitat <- readRDS("path_to_inputs/microhabitat_matrix.rds")
+```
+
+# Distribution parameters
+
+`draw_initial_individuals` requires a list of parameters controlling how many 
+individuals are sampled to initialise the community, containing at least four
+elements:
+
+```{r distr_param, eval=FALSE}
+distr_params <- list(
+  "IndividualsPerSpecies" = 23, # nb of individuals of each species
+  "PercentageMaturePerSpecies" = 50, # how many % are initialised with mass below/above MassAtMaturity
+  "ScalingPerHa" = FALSE, # is IndividualsPerSpecies a density per hectar, or a global number?
+  "SurfaceBiomassScaling" = # global parameter g_S of the simulation,
+    # controls how the surface area occupied by an epiphyte scales with its mass
+)
+```
+
+In addition to `distr_params`, the function provides two more options 
+controlling how individuals are allocated 
+
+# Initial individual sampling
+
+First, a number of individual equal to `IndividualsPerSpecies` 
+(or `IndividualsPerSpecies * dimX * dimT / 10000` if `ScalingPerHa = TRUE`) 
+is generated for each species.
+
+The mass of the initial individuals is sampled uniformly between species traits 
+`MassAtMaturity` and `MaxMass`, for `PercentageMaturePerSpecies`% of them, 
+and between 0 and `MassAtMaturity` for the rest of them.
+
+The age of individuals is set according to their mass and the species growth 
+rate, and the surface area of substrate they require is obtained from
+\deqn{S = M^{2/3} / g_S}.
+
+Once the pool of initial individuals has been assembled, epiphytes of each 
+species are distributed in the matrix among suitable voxels (that is, with light
+conditions falling and sufficient surface area) and enough substrate surface
+area.
+
+Should the total surface area in the matrix be insufficient to fit all the 
+initial individuals, the remaining individuals are added to the table as dead
+individuals as the start of the simulation, with `Status = 2` and assigned to
+voxel `{1, 1, 1}`.
+
+`draw_initial_individuals()` offers two optional features for the allocation of 
+individuals to voxels. First, if `largest_inds_first = TRUE`, individuals within
+a species are allocated by order of mass, to represent a competitive advantage.
+Second, `largest_voxels_first = TRUE` allocates individuals to voxels with the
+most surface area first.
+
+Note that species are processed sequentially, so the first species effectively
+get priority.
+
+# Usage
+
+```{r call_draw_init_dist, eval=FALSE}
+init_inds_tbl <- draw_initial_individuals(
+  distr_params = distr_params, 
+  species_df = SpeciesPool, 
+  microhab_mat = Microhabitat, 
+  path_to_output = NULL, # return the output table
+  largest_inds_first = TRUE,
+  largest_voxels_first = FALSE
+)
+```
+
+The conformity of the resulting initial individuals and their distribution can 
+be asserted with `check_init_dist()`, which is also useful if one considers 
+importing the initial table from external sources:
+
+```{r check_init_dist, eval=FALSE}
+check_init_dist(
+  InitDist = init_inds_tbl, 
+  SpeciesPool = SpeciesPool,
+  dimensions = dim(Microhabitat)
+  )
+```
+
+# Example script
 
 ```{r create_init_dist, eval=FALSE}
 
