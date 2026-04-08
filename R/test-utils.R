@@ -13,6 +13,19 @@ index_3d <- function(x, y, z, dimX, dimY) {
   return(x + dimX * (y - 1) + dimX * dimY * (z - 1))
 }
 
+#' Convert a sequential index in a 3D matrix into X, Y and Z coordinates
+#' @param i index ranging from 1 to the size of the matrix
+#' @param dimX X-dimension of the matrix
+#' @param dimY Y-dimension of the matrix
+#'
+index_to_3d_coords <- function(i, dimX, dimY) {
+  return(c(
+    "x" = (i - 1) %% dimX + 1, # x
+    "y" = (i - 1) %/% dimX %% dimY + 1, # y
+    "z" = (i - 1) %/% (dimX * dimY) + 1 # z
+  ))
+}
+
 #' Generate a data frame containing species traits
 #'
 #' Convenience wrapper that calls [draw_species_traits()] for multiple species
