@@ -30,7 +30,7 @@ species_params <- list(
   # Growth traits
   MaxMassLogScaleRandom = FALSE,
   MaxMassRandom = c(2, 3000),
-  MassAtMaturityRelativeRandom = c(0,5, 0,7),
+  MassAtMaturityRelativeRandom = c(0.5, 0.7),
   InterceptAgeMaturity = 2,
   ScalingAgeMaturity = 0.25,
   AgeAtMaturityDevCorr = 0.25,
@@ -152,9 +152,11 @@ nb_species <- 5
 library(purrr)
 
 # Example with purr utilities
-map(rep(list(species_params), nb_species), draw_species_traits) |> 
+SpeciesPool <- map(rep(list(species_params), nb_species), draw_species_traits) |> 
   map(as.data.frame) |> 
   list_rbind()
+SpeciesPool$SpeciesID <- 1:nb_species
+SpeciesPool
 ```
 
 Note that all species do not need to share the same `species_params` list.
