@@ -2,10 +2,8 @@ species_trait_names <- function() {
   return(c("MaximumMass", "MassAtMaturity", "GrowthRate",
            "DispersalKernel", "DispersalKernelAsymmetry",
            "RecruitmentInvestmentRel", "RecruitmentInc",
-           "MinLight", "MaxLight", "OptimumLight", "LightBreadth",
-           "LightResponseA", "LightResponseB", "LightResponseC",
-           "MinHeightRel",  "MaxHeightRel", "MeanHeightRel",
-           "HeightBreadth"))
+           "MinLight", "MaxLight", "OptimumLight",
+           "LightResponseA", "LightResponseB", "LightResponseC"))
 }
 
 inds_input_names <- function() {

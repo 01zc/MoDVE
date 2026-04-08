@@ -69,21 +69,4 @@ check_species_df <- function(species_df) {
   if (any(species_df$MaxLight < species_df$OptimumLight)) {
     stop("All values in species_df column MaxLight should be >= MinLight")
   }
-
-  if (any(species_df$LightBreadth != species_df$MaxLight - species_df$MinLight)) {
-    stop("LightBreadth is different from MaxLight - MinLight.")
-  }
-
-  if (any(species_df$MaxHeightRel < species_df$MinHeightRel)) {
-    stop("All values in species_df column MaxHeightRel should be >= MinHeightRel")
-  }
-
-  if (any(species_df$MaxHeightRel > 1)) {
-    stop("species_df element MaxHeightRel contains elements higher than 1.")
-  }
-
-  if (any(species_df$MeanHeightRel > 1)) {
-    stop("species_df element MeanHeightRel contains elements higher than 1.")
-  }
-
 }

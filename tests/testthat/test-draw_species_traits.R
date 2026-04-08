@@ -53,10 +53,6 @@ test_that("Species traits meet requirements", {
   expect_equal(LightResponseA, light_reponse_params[1])
   expect_equal(LightResponseB, light_reponse_params[2])
   expect_equal(LightResponseC, light_reponse_params[3])
-
-  # Other conditions not checked by check_species_df()
-  expect_equal(LightBreadth, MaxLight - MinLight)
-  expect_equal(HeightBreadth, MaxHeightRel - MinHeightRel)
 })
 
 test_that("Growth rate satisfies its equation", {

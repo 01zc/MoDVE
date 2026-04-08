@@ -58,14 +58,9 @@
 #'  * `MaxLight` positive numeric, maximum light conditions under which this species can survive
 #'  * `OptimumLight` positive numeric, optimum light conditions under which individuals of this species
 #'  grow and reproduce at the maximum rate. It is calculated as the average of `MinLight` and `MaxLight.`
-#'  * `LightBreadth` positive numeric, range between `MinLight` and `MaxLight`
 #'  * `LightResponseA` first term of the parabolic light-growth response function.
 #'  * `LightResponseB` second term of the parabolic light-growth response function.
 #'  * `LightResponseC` third term of the parabolic light-growth response function.
-#'  * `MinHeightRel` minimum relative height (between 0 and 1) at which the species can survive, used to compute `MinLight`
-#'  * `MaxHeightRel` maximum relative height (between 0 and 1) at which the species can survive, used to compute `MaxLight`
-#'  * `MeanHeightRel` average of `MinHeightRel` and `MaxHeightRel`
-#'  * `HeightBreadth` range between `MinHeightRel` and `MaxHeightRel`
 #'
 #' @param Microhabitat a 4D matrix where the first three dimensions
 #' corresponding to a 3D habitat space, and the last one containing values of:

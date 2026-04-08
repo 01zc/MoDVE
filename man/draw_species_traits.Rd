@@ -89,16 +89,9 @@ species can survive
 individuals of this species
 grow and reproduce at the maximum rate. It is calculated as the average of
 \code{MinLight} and \code{MaxLight.}
-\item \code{LightBreadth} positive numeric, range between \code{MinLight} and \code{MaxLight}
 \item \code{LightResponseA} first term of the parabolic light-growth response function.
 \item \code{LightResponseB} second term of the parabolic light-growth response function.
 \item \code{LightResponseC} third term of the parabolic light-growth response function.
-\item \code{MinHeightRel} minimum relative height (between 0 and 1) at which the
-species can survive, used to compute \code{MinLight}
-\item \code{MaxHeightRel} maximum relative height (between 0 and 1) at which the
-species can survive, used to compute \code{MaxLight}
-\item \code{MeanHeightRel} average of \code{MinHeightRel} and \code{MaxHeightRel}
-\item \code{HeightBreadth} range between \code{MinHeightRel} and \code{MaxHeightRel}
 }
 }
 \description{
