@@ -31,8 +31,6 @@ calculated?
 (between timesteps) be calculated?
 \item \code{calcLightConditions} TRUE/FALSE, should light intensity in each voxel
 be calculated?
-\item \code{calcWeightedAngles} TRUE/FALSE, should the branch angle be calculated?
-This option is not used in the simulation yet.
 }}
 
 \item{shoot_dt}{a \code{data.frame} with branch information, with one row per

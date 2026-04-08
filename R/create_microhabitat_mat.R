@@ -18,9 +18,6 @@
 #' (between timesteps) be calculated?
 #' * `calcLightConditions` TRUE/FALSE, should light intensity in each voxel
 #' be calculated?
-#' * `calcWeightedAngles` TRUE/FALSE, should the branch angle be calculated?
-#' This option is not used in the simulation yet.
-#'
 #' @param shoot_dt a `data.frame` with branch information, with one row per
 #' branch segment and the following columns:
 #' * `xbegin` x-coordinate of the start of the segment
@@ -100,15 +97,14 @@ create_microhabitat_mat <- function(config, shoot_dt, trunk_dt, vox_dt = NULL,
   voxel_area <- 100^2
 
   microhab_mat <- array(
-    rep(0, dimPlot[1] * dimPlot[2] * dimPlot[3] * 4),
-    dim = c(dimPlot[1], dimPlot[2], dimPlot[3], 4)
+    rep(0, dimPlot[1] * dimPlot[2] * dimPlot[3] * 3),
+    dim = c(dimPlot[1], dimPlot[2], dimPlot[3], 3)
   )
 
   # Element indices of the matrix
   sa_elt <- 1
   sa_loss_elt <- 2
   light_elt <- 3
-  angle_elt <- 4
 
   for (s in seq_len(nrow(shoot_dt))) {
 
@@ -147,23 +143,6 @@ create_microhabitat_mat <- function(config, shoot_dt, trunk_dt, vox_dt = NULL,
         microhab_mat[x, y, z, sa_loss_elt] <- voxel[sa_loss_elt] +
         seg_surface_area
       }
-
-      if (config$calcWeightedAngles) {
-        V <- seg_end - seg_start
-        alpha <- V[1] / sqrt(V[1]^2 + V[2]^2 + V[3]^2)
-        shoot_angle <- abs(90 - (acos(alpha) / pi * 180))
-
-        # Calculate weighted angle for the voxel
-        # ??? source for this?
-        curr_surface_area <- microhab_mat[x, y, z, sa_elt]
-        tmp1 <- (curr_surface_area - seg_surface_area) /
-          curr_surface_area * voxel[angle_elt]
-
-        tmp2 <- seg_surface_area / curr_surface_area * shoot_angle
-
-        microhab_mat[x, y, z, angle_elt] <- tmp1 + tmp2
-      }
-
     }
   }
 
@@ -199,19 +178,6 @@ create_microhabitat_mat <- function(config, shoot_dt, trunk_dt, vox_dt = NULL,
         microhab_mat[x, y, z, sa_loss_elt] <- microhab_mat[x, y, z, sa_loss_elt] +
           SurfaceAreaInVoxel
       }
-
-      # Update weighted angle for the voxel
-      if (config$calcWeightedAngles) {
-
-        tmp1 <- (microhab_mat[x, y, z, sa_elt] - SurfaceAreaInVoxel) /
-          microhab_mat[x, y, z, sa_elt] * microhab_mat[x, y, z, angle_elt]
-
-        tmp2 <- SurfaceAreaInVoxel / microhab_mat[x, y, z, sa_elt] * 90
-        # upright 90 degrees angle assumed
-
-        microhab_mat[x, y, z, angle_elt] <- tmp1 + tmp2
-      }
-
     } # z in z seq
   } # t in trunk set
 
