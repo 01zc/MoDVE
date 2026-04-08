@@ -155,7 +155,7 @@ library(purrr)
 SpeciesPool <- map(rep(list(species_params), nb_species), draw_species_traits) |> 
   map(as.data.frame) |> 
   list_rbind()
-SpeciesPool$SpeciesID <- 1:nb_species
+SpeciesPool <- cbind("SpeciesID" = 1:nb_species, SpeciesPool)
 SpeciesPool
 ```
 

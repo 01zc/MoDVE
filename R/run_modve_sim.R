@@ -366,8 +366,9 @@ run_modve_sim <- function(sim_params,
     comm_output$MortalityNatural[t] <- MortalityNatural
     comm_output$BranchSurfaceIndex[t] <- sum(Microhabitat[, , , 1]) /
       (dimX[1] * dimY[2])
-    comm_output$EpiphyteFilling[t] <- sum(E$Mass^(2/3)) /
-      sim_params$SurfaceBiomassScaling / sum(Microhabitat[, , , 1])
+    comm_output$EpiphyteFilling[t] <- sum(
+      mass_to_surf_area(E$Mass, sim_params$SurfaceBiomassScaling)
+      ) / sum(Microhabitat[, , , 1])
 
     # Command window information
     msg <- "--------------------------------------------"
