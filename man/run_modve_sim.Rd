@@ -26,7 +26,6 @@ exits.
 \item \code{hasDynamicMicrohabitat}: \code{TRUE/FALSE}, does the microhabitat matrix change
 with each time steps? If \code{TRUE}, \code{Microhabitat} must be a vector of paths
 to each of the microhabitat matrices (one per year).
-\item \code{Imax}: maximum light intensity above the canopy
 \item \code{massDepCompetition}: \code{TRUE} = larger individuals get priority in
 voxel attribution, otherwise (\code{FALSE}) individuals are distributed randomly.
 \item \code{use_mass_dep_mortality}: if \code{FALSE} individuals die randomly

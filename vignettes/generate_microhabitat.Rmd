@@ -94,8 +94,9 @@ boolean conditions enabling the generation of each microhabitat layer. While
 all three layers are required to run the simulation, it may be desirable to
 re-calculate only a subset of the layers.
 
-3. `kL` and `DistVoxToConsider` are parameters controlling light extinction and
-diffusion, respectively. `kL` parametrises the Beer-Lambert light extinction 
+3. `Imax`, `kL` and `DistVoxToConsider` are parameters controlling light extinction and
+diffusion. `Imax` is the maximum intensity above the canopy, i.e. before any light extinction from the leaf biomass.
+`kL` parametrises the Beer-Lambert light extinction 
 function:
 \deqn{e^{-/frac{k_L * \sum^z LA_z}{10^4}}
 where \eqn{\sum^z LA_z} denotes the total leaf area in all voxels above a

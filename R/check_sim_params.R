@@ -2,7 +2,7 @@ check_sim_params <- function(sim_params) {
 
   exptd_params <- c(
     "InitialTimeStep", "timeSteps", "StopCriterionHa","hasDynamicMicrohabitat",
-    "Imax", "massDepCompetition", "use_mass_dep_mortality",
+    "massDepCompetition", "use_mass_dep_mortality",
     "SurfaceBiomassScaling", "SlopeRecruitment", "InterceptRecruitment"
   )
 
@@ -44,11 +44,6 @@ check_sim_params <- function(sim_params) {
   if (!is.logical(sim_params$hasDynamicMicrohabitat)) {
     stop("hasDynamicMicrohabitat must be TRUE or FALSE.")
   }
-
-  if (sim_params$Imax < 0) {
-    stop("Imax cannot be negative.")
-  }
-
 
   if (!is.logical(sim_params$use_mass_dep_mortality)) {
     stop("use_mass_dep_mortality must be TRUE or FALSE.")

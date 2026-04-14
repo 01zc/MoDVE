@@ -12,7 +12,6 @@
 #'  * `hasDynamicMicrohabitat`: `TRUE/FALSE`, does the microhabitat matrix change
 #' with each time steps? If `TRUE`, `Microhabitat` must be a vector of paths
 #' to each of the microhabitat matrices (one per year).
-#' * `Imax`: maximum light intensity above the canopy
 #' * `massDepCompetition`: `TRUE` = larger individuals get priority in
 #' voxel attribution, otherwise (`FALSE`) individuals are distributed randomly.
 #' * `use_mass_dep_mortality`: if `FALSE` individuals die randomly
@@ -145,8 +144,6 @@ run_modve_sim <- function(sim_params,
     check_microhabitat(Microhabitat)
   }
 
-  #  Convert relative light values to absolute ?mol*m-2*s-1
-  Microhabitat[,,,3] <- Microhabitat[,,,3] * sim_params$Imax
   dims <- dim(Microhabitat)
   dimX <- dims[1]
   dimY <- dims[2]
@@ -255,7 +252,6 @@ run_modve_sim <- function(sim_params,
                 ": number of dimensions must be the same as the first matrix")
           )
       }
-      Microhabitat[,,,3] <- Microhabitat[,,,3] * sim_params$Imax
     }
 
     # Update how many species are alive at beginning of the year

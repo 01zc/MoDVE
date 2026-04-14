@@ -22,6 +22,7 @@ of voxels on the edge of forest plots without trees.
 \item \code{MaxX} maximum coordinate of the forest plot along the x direction
 \item \code{MaxY} maximum coordinate of the forest plot along the y direction
 \item \code{MaxZ} maximum coordinate of the forest plot along the z direction
+\item \code{Imax} maximum light intensity above the canopy
 \item \code{kL} light extinction coefficient
 \item \code{DistVoxToConsider} how far (in voxels and in every x and y direction)
 does light diffuse horizontally?

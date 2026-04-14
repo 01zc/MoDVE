@@ -9,6 +9,7 @@
 #' * `MaxX` maximum coordinate of the forest plot along the x direction
 #' * `MaxY` maximum coordinate of the forest plot along the y direction
 #' * `MaxZ` maximum coordinate of the forest plot along the z direction
+#' *  `Imax` maximum light intensity above the canopy
 #' * `kL` light extinction coefficient
 #' * `DistVoxToConsider` how far (in voxels and in every x and y direction)
 #' does light diffuse horizontally?
@@ -61,6 +62,8 @@ create_microhabitat_mat <- function(config, shoot_dt, trunk_dt, vox_dt = NULL,
   # Inputs are correct
   # check_config(config)
   # DistVoxToConsider <= corridor
+  if (is.null(config$Imax))
+    stop("Element Imax is missing from config list.")
 
   if (is.character(shoot_dt))
     utils::read.table(shoot_dt, sep = "\t",  header = TRUE, skip = 1)
@@ -234,6 +237,8 @@ create_microhabitat_mat <- function(config, shoot_dt, trunk_dt, vox_dt = NULL,
         } # z
       } # y
     } # x
+
+    microhab_mat[,,,3] <- microhab_mat[,,,3] * config$Imax
 
   } # lightConditions
 
