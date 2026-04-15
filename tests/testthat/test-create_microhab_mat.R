@@ -59,7 +59,8 @@ test_that("Branch surface area is calculated correctly", {
     MaxX = dim,
     MaxY = dim,
     MaxZ = 1, # 2D
-    corridor = corridor
+    corridor = corridor,
+    Imax = 900
   )
 
   # Create a test shoots table
@@ -148,7 +149,8 @@ test_that("Trunk surface area is calculated correctly", {
     MaxX = dim_xy,
     MaxY = dim_xy,
     MaxZ = dim_z, # 2D
-    corridor = 0
+    corridor = 0,
+    Imax = 900
   )
 
   trunk_dt <- create_empty_trunk_tbl() |>
@@ -219,7 +221,8 @@ test_that("Available light is calculated correctly", {
     MaxX = dim_xy,
     MaxY = dim_xy,
     MaxZ = dim_z, # 2D
-    corridor = corridor
+    corridor = corridor,
+    Imax = 900
   )
 
   vox_dt <- tidyr::expand_grid(
@@ -283,6 +286,8 @@ test_that("Available light is calculated correctly", {
       z == 1
       ) |>
     dplyr::pull(contrib) |> sum()
+
+  exptd_light <- exptd_light * config$Imax # relative value!
 
   expect_equal(microhab_mat[2, 2, 1], exptd_light)
 })
