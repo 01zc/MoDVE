@@ -290,7 +290,7 @@ run_modve_sim <- function(sim_params,
                            sim_params$MortRateMassScaling)
 
     # Mortality due to competition for space
-    E <- resolve_competition(E, Microhabitat, sim_params$CompetitionMethod)
+    E <- resolve_competition(E, Microhabitat, sim_params$massDepCompetition)
 
     # Age increment
     E$Age <- E$Age + 1
@@ -298,15 +298,15 @@ run_modve_sim <- function(sim_params,
     # Species-level output
     for (sp in seq_len(NumberOfSpecies)) {
 
+      row_nb <- (sp - 1) * timeSteps + t
+      is_sp <- E$SpeciesID == sp
+
       nb_alive <- sum(E$Status == 1 & is_sp, na.rm = TRUE)
       nb_dead_comp <- sum(E$Status == 2 & is_sp, na.rm = TRUE)
       nb_dead_branch <- sum(E$Status == 3 & is_sp, na.rm = TRUE)
       nb_dead_light <- sum(E$Status == 4 & is_sp, na.rm = TRUE)
       nb_dead_base <- sum(E$Status == 5 & is_sp, na.rm = TRUE)
       nb_inds_begin <- nbIndsBeforeDisp[sp]
-
-      row_nb <- (sp - 1) * timeSteps + t
-      is_sp <- E$SpeciesID == sp
 
       sp_output[row_nb, col_sp_t] <- year_nb
       sp_output[row_nb, col_sp_id] <- sp
