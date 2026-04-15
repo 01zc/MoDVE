@@ -20,7 +20,8 @@ check_sim_params <- function(sim_params) {
     stop(err_msg_missing_params("sim_params", missing_params))
   }
 
-  param_names <- names(sim_params)
+  sim_params <- sim_params[exptd_params]
+  param_names <- exptd_params
 
   # Check for missing values
   is_missing_val <- sapply(sim_params, function(x)  {

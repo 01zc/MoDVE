@@ -1,9 +1,9 @@
 # Create microhabitat matrices
-source("utils.R")
+source("R/test-utils.R")
 
 library(data.table)
 
-config <- parse_config("tests/config_a1.toml")
+config <- parse_config("tests/testthat/configs/config_a1.toml")
 
 # ------------------- Parameters ----------------------- #
 # Parameters that need to be specified/checked before running this script
@@ -11,7 +11,7 @@ config <- parse_config("tests/config_a1.toml")
 # This parameter determines which type of microhatiat matrices are generated:
 # 1: real GroIMP forest with dynamics
 # 2: static GroIMP forest (only forest at timeStepStart is used)
-MicrohabitatType <- config$MicrohabitatType
+MicrohabitatType <- 1
 
 # Parameters of light model
 kL <- config$kL  # light extinction coefficient
@@ -21,17 +21,17 @@ DistVoxToConsider <- config$DistVoxToConsider  # How many ring around focal voxe
 # (this list can be extended for possible new applications of the epiphyte model.
 # 1: use this variable
 # 0: do not use it
-TotalSurfaceAreaOpt <- config$TotalSurfaceAreaOpt
-SurfaceAreaLossOpt <- config$SurfaceAreaLossOpt
-LightConditionsOpt <- config$LightConditionsOpt
-AverageWeightedAngles <- config$AverageWeightedAngles
+TotalSurfaceAreaOpt <- TRUE
+SurfaceAreaLossOpt <- TRUE
+LightConditionsOpt <- TRUE
+AverageWeightedAngles <- FALSE
 
 # Parameters that need to be specified if MicrohabitatType=1 or MicrohabitatType=2
 # Directory of GroIMP files (this directory is stored in the Microhabitat folder so that the
 # connection to the input GroIMP files is always clear)
-DirectoryGroIMP <- config$DirectoryGroIMP
+DirectoryGroIMP <- "tests/testthat/data/groimp/"
 # Directory to save results
-DirectorySaveMain <- config$DirectorySaveMain
+DirectorySaveMain <- "tests/testthat/data/output_a1/"
 
 ReplicateForest <- config$ReplicateForest
 
