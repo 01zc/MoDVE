@@ -17,13 +17,20 @@ test_that("dispersal consistent with the previous version", {
 
   # Initialise individuals table
   init_params <- draw_rnd_initial_inds_params()
-  init_params$PercentageMaturePerSpecies <- rep(100, NumberOfSpecies)
+  init_params$SurfaceBiomassScaling <- SurfaceBiomassScaling # use same as above
+  init_params$PercentageMaturePerSpecies <- rep(100, NumberOfSpecies) # only adults
   E <- draw_initial_individuals(
     init_params,
     SpeciesPool,
     Microhabitat
-  )
+  ) |>
+    dplyr::filter(Status == 1) # exclude unplaced dead individuals
+  E$IndividualID <- 1:nrow(E)
   MaxIndividualID <- max(E$IndividualID)
+
+  species_df <- SpeciesPool
+  microhab_mat <- Microhabitat
+  distr_params <- init_params
 
   # Compute the dispersal matrix
   expanded_dims <- dimPlot * 2 + 1
