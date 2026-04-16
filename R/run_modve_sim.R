@@ -132,7 +132,7 @@ run_modve_sim <- function(sim_params,
     }
 
     if (sim_params$hasDynamicMicrohabitat) {
-      if (!length(Microhabitat) == timeSteps) {
+      if (length(Microhabitat) != timeSteps) {
         stop("For dynamic habitats, Microhabitat should have one element for each time step.\n")
       } else {
         # Stash paths for later time steps
@@ -381,28 +381,15 @@ run_modve_sim <- function(sim_params,
 
     # Save Epiphyte matrix for every time step
     ind_output_file <- sub("*.csv$", paste0("_", year_nb, ".csv"), path_to_ind_output)
-    utils::write.csv(
-      E[, inds_output_names()],
-      ind_output_file,
-      row.names = FALSE
-      )
+    utils::write.csv(E[, inds_output_names()], ind_output_file, row.names = FALSE)
 
     # Save sp_output for every time step
     sp_output_df <- as.data.frame(sp_output)
     names(sp_output_df) <- sp_output_headers
-    utils::write.csv(
-      sp_output_df,
-      path_to_sp_output,
-      row.names = FALSE
-      )
+    utils::write.csv(sp_output_df, path_to_sp_output)
 
     # Save comm_output for every time step (overwrite old one)
-    utils::write.csv(
-      comm_output,
-      path_to_comm_output,
-      append = FALSE,
-      row.names = FALSE
-      )
+    utils::write.csv(comm_output, path_to_comm_output, row.names = FALSE)
 
     # Remove dead individuals from Epimatrix
     E <- E[E$Status <= 1, ]

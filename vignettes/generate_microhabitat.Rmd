@@ -222,7 +222,7 @@ for (i in time_start:time_end) {
       )[vox_colnames]
     
     # Convert indexing from Java (first = 0) to R indexing convention (first = 1)
-    Voxels[, 1:3] <- Voxels[, 1:3] + 1
+    vox_dt[, 1:3] <- vox_dt[, 1:3] + 1
     
   } else vox_dt <- NULL
 
