@@ -1,9 +1,14 @@
 Package: MoDVE
-Title: What the Package Does (One Line, Title Case)
-Version: 0.1
-Authors@R: 
-    person("First", "Last", , "first.last@example.com", role = c("aut", "cre"))
-Description: What the package does (one paragraph).
+Title: Modeling the Dynamics of Vascular Epiphytes
+Version: 1.0
+Authors@R: c(person("Theo", "Pannetier", email = "tpanneti@uni-bonn.de", role = c("aut", "cre"), comment = c(ORCID = "0000-0002-8424-3573")),      
+    person("Thomas", "Kappas", role = "aut"),
+    person("Gunnar", "Petter", role = "aut", comment = c(ORCID = "0000-0002-3691-5267")),
+    person("Johanna", "Trost", role = "aut"),
+    person("Zachary", "Chu", role = "ctb", comment = c(ORCID = "0000-0002-4185-5721")),
+    person("Juliano", "Sarmento Cabral", role = "aut", email = c("cabral@uni-bonn.de"), comment = c(ORCID = "0000-0002-0116-220X"))
+    )
+Description: A mechanistic simulation model for the ecological dynamics of vascular epiphytes communities in a tri-dimensional forest substrate. 
 License: GPL (>= 3)
 Encoding: UTF-8
 Roxygen: list(markdown = TRUE)

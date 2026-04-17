@@ -1,246 +1,88 @@
-# MoDVE
+# Modeling the Dynamics of Vascular Epiphytes
 
 <!-- badges: start -->
 [![R-CMD-check](https://github.com/01zc/MoDVE/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/01zc/MoDVE/actions/workflows/R-CMD-check.yaml)
 <!-- badges: end -->
 
-MoF3D generates the 3D forest for epiphytes to inhabit, growing across multiple timesteps.
+MoDVE runs an individual-based simulation of vascular (i.e., ferns and 
+angiosperms) epiphytes growing on exposed tree surfaces in a 3D forest 
+environment.
 
-MoDVE scripts:
+The simulation is an `R` (with `Rcpp` components) implementation of the epiphyte
+model introduced in [*Petter et al., 2020*](https://onlinelibrary.wiley.com/doi/10.1002/ece3.7255)
+and originally developed in `Java`.
 
-A1- converts the MoF3D output into readable microhabitat matrices for each timestep for the epiphytes to inhabit. The epiphytes depend on the amount of substrate (i.e. branch) and the amount of light in each voxel of the microhabitat matrix.
+3D tree surfaces are typically generated with a functional-structural forest stand model
+[MoF3D](https://github.com/julianoscabral/MoF3D) ([Petter et al. 2021](https://onlinelibrary.wiley.com/doi/10.1002/ece3.7255)), although users may
+import surfaces generated from other sources.
 
-A2- generates several pools of epiphyte species with random traits
+Each year, the epiphytes produce and disperse seedlings in the habitat matrix,
+undergo growth, mortality and competition, based on user-defined species traits
+and local environmental conditions.
 
-A3- distributes these randomly generated epiphytes in forest in the initial timestep.
+# Installation
 
-A4- simulates these communities of random species growing in the forest microhabitats in the subsequent timesteps
+The package can be installed from this repository:
 
-B1- selects for viable/realistic species to include in the final simulation- i.e. species that won't heavily dominate the community, or rapidly go extinct. It then generates new pools of these realistic species to use.
-
-B2- distributes these selected species in the forest in the initial timestep.
-
-B3- simulates these communities growing the forest microhabitats of the subsequent timesteps.
-
-# R Scripts
-
-Install the following packages:
-
-```bash
-Rscript -e 'install.packages("optparse", repos="http://cran.uk.r-project.org")'
-Rscript -e 'install.packages("configr", repos="http://cran.uk.r-project.org")'
-Rscript -e 'install.packages("foreach", repos="http://cran.uk.r-project.org")'
-Rscript -e 'install.packages("doParallel", repos="http://cran.uk.r-project.org")'
-Rscript -e 'install.packages("doRNG", repos="http://cran.uk.r-project.org")'
+```r
+remotes::install_github("https://github.com/01zc/MoDVE", build_vignettes = TRUE)
 ```
 
-## A1
+# Usage
 
-Create a file named `config.toml`. Use the following content as a template, replacing the placeholder values with your data:
+Running the simulation requires three types of input data:
+- A microhabitat matrix containing the available surface area for epiphytes to
+grow on and local light conditions.
+- A table containing species-level traits that defines the community.
+- A table containing the position and trait values of initial individuals.
 
-```toml
-# This parameter determines which type of microhabitat matrices are generated:
-# 1: real GroIMP forest with dynamics
-# 2: static GroIMP forest (only forest at timeStepStart is used)
-MicrohabitatType = 1
+The preparation of each input type is handled by a dedicated function, which 
+usage is covered in its corresponding vignette:
 
-# Parameters of light model
-# Light extinction coefficient
-kL = 0.6
-# How many rings around focal voxel to consider in light model
-# (5 voxels in x and y direction)
-DistVoxToConsider = 8
 
-# Choose the forest parameters that shall be calculated and stored in the microhabitat matrix
-# (this list can be extended for possible new applications of the epiphyte model)
-# 1: use this variable
-# 0: do not use it
-TotalSurfaceAreaOpt = 1
-SurfaceAreaLossOpt = 1
-LightConditionsOpt = 1
-AverageWeightedAngles = 0
+| Input | Description | Vignette |
+|------------------|------------------|------------------|
+| `Microhabitat` | Generation of the microhabitat matrix from `MoF3D` output | `vignette("generate_microhabitat")` | 
+| `SpeciesPool` | Generation of the species traits | `vignette("create_species_pool")` |
+| `InitDist` | Generation of the initial individuals and their distribution | `vignette("create_initial_distributions")` |
 
-# Parameters that need to be specified if MicrohabitatType=1 or MicrohabitatType=2
-# Directory of GroIMP files (this directory is stored in the Microhabitat folder so that the
-# connection to the input GroIMP files is always clear)
-DirectoryGroIMP = "path/to/GroIMP/output/dir"
-# Directory to save results
-DirectorySaveMain = "path/to/output/dir"
+Once the different inputs have been assmbled, running the simulation is straightforward:
 
-ReplicateForest = 0
-
-# start and end timestep
-timeStepStart = 1
-timeStepEnd = 40
+```r
+run_modve_sim(
+    sim_params = config, # simulation controls
+    SpeciesPool = SpeciesPool, # Species trait table or path to table
+    Microhabitat = Microhabitat, # Habitat matrix, or path to matrix
+    InitDist = InitDist, # Initial individuals table, or path to table
+    path_to_ind_output = path_to_ind_output, 
+    path_to_sp_output = path_to_sp_output,
+    path_to_comm_output = path_to_comm_output
+  )
 ```
 
-Run the following command, replacing `path/to/toml` with the actual path to your `config.toml` file:
+See the corresponding vignette fora full walkthrough:
 
-```bash
-Rscript A1.R -i "path/to/toml"
+```r
+vignette("run_model", package = "MoDVE")
 ```
 
-## A2
+# Help and bug report
 
-Create a file named `config.toml`. Use the following content as a template, replacing the placeholder values with your data:
+To report a bug, or suggest a feature, please open an issue.
 
-```toml
-# Seed for random number generator (integer, optional)
-# Comment it out to use a random seed instead
-#seed = 42
+# License
 
-MainOutputDirectory = "path/to/output/dir"
+`MoDVE` is made publicly available under the terms of the GNU General Public License v3.
 
-# Define number of species in species pool and total number of species pools to be created
-numSpeciesPools = 100
-NumberOfSpecies = 100
+# References
 
-# The following option defines if correlations between traits are consider or not
-CorrelationMassRecruitment = 1  # Correlation between the mass and the recruitment
+Petter, G., Kreft, H., Ong, Y., Zotz, G., Sarmento, J. (2020). Modeling the 
+long-term dynamics of tropical forests: from leaf traits to whole-tree growth 
+patterns.
+[https://www.sciencedirect.com/science/article/pii/S0304380021002866?via%3Dihub](https://www.sciencedirect.com/science/article/pii/S0304380021002866?via%3Dihub).
 
-InterceptAgeMaturity = 2
-ScalingAgeMaturity = 0.25  # Scaling factor according to metabolic theory
+Petter, G.; Zotz, G.; Kreft, H.; Sarmento Cabral, J. (2021). Agent-based 
+modelling of the effects of forest dynamics, selective logging, and fragment 
+size on epiphyte communities. Ecology and Evolution, 11, 2937–2951. 
+[https://doi.org/10.1002/ece3.7255](https://doi.org/10.1002/ece3.7255)
 
-# If correlations are choosen, the following parameters define the shape of the correlations
-# 1. Correlations if CorrelationMassAgeOfMaturity=1
-MaxMassRangeCorr = [2, 3000]  # maximum mass of species/functional types (g)
-AgeAtMaturityDevCorr = 0.25  # relative deviation from mean age of maturity
-
-# 2. Correlations if CorrelationMassRecruitment=1
-RecruitmentNormalizeAtSize1Corr = 70  # Factor converting the reproductive biomass to potential recruits
-RecruitmentInvestmentRelMeanCorr = 0.1  # Anual investment in reproduction in relation to vegetative biomass (decrease due to correlation with mass)
-RecruitmentInvestmentRelDevCorr = 0.25  # The relative deviation from the mean recruitment
-RecruitmentIncMaxCorr = 0
-
-# Parameters of light model (needed to convert the height nicht and the light niche, these values do not have to
-# be the same as used in the microhabitat matrices)
-kL = 0.6  # light extinction coefficient
-Imax = 900  # maximum light intensity
-LAI = 6  # leaf area index
-
-# Define trait (ranges) if random species pool(SpeciesPoolType=0) is choose
-# If no correlations between traits are choosen (CorrelationMassAgeOfMaturity=0 || CorrelationMassRecruitment=0), traits are randomly choosen from the following ranges
-MaxMassRandom = [2, 3000]  # maximum mass of species/functional types (g)
-MaxMassLogScaleRandom = 1  # define if the mass is choosen based on the log scale (MaxMassLogScale=1) or on the normal scale (MaxMassLogScale=0)
-AgeAtMaturityRandom = [1, 1]  # age at which maturity is reaches (years)
-RecruitmentNormalizeAtSize1Random = [1, 20]  # This parameter regulates the range of recruitment in thise cases
-RecruitmentInvestmentRelMeanRandom = [0.07, 0.12]  # Not that the effective recruitment is RecruitmentNormalizeAtSize1Random*RecruitmentInvestmentRelMeanRandom
-RecruitmentIncRandom = [0, 0]
-MassAtMaturityRelativeRandom = [0.5, 0.7]  # Relative mass in relation to maximum Size
-HeightBreadthRandom = [0.15, 0.7]  # Relative height
-DispersalKernelRandom = [0.03, 0.5]  # The higher this values, the more local is the dispersal
-DispersalKernelAsymmetryRandom = [0.5, 0.95]  # The trait describes the relative proportion of seed dispersed below the mother (i.e. 0.5=> symmetric dispersal kernel)
-```
-
-Run the following command, replacing `path/to/toml` with the actual path to your `config.toml` file:
-
-```bash
-Rscript A2.R -i "path/to/toml"
-```
-
-## A3
-
-Create a file named `config.toml`. Use the following content as a template, replacing the placeholder values with your data:
-
-```toml
-# Seed for random number generator (integer, optional)
-# Comment it out to use a random seed instead
-#seed = 42
-
-SingleSpeciesModel = 0  # 1: Single species model, 0: Community model
-
-# Directory where model is save and directory where microhabitat matrices
-# are stored
-DirectoryModelMain = "path/to/output"
-DirectoryMicrohabitatMain = "path/to/microhabitat"
-DirectorySpeciesPoolsMain = "path/to/species"
-
-# Choose species pools to use and number of replicates per species pool
-numSpeciesPools = [99, 100]  # Start and end number of  species pools
-replicatePerSpeciesPool = 1  # Number of replicates per species pool
-TimeStep = 1  # Time step for which the Initial distribution is generated
-
-# The suitable voxel can either be the voxel
-# with the highest available surface area (MethodVoxel=1)
-# or a random voxel (MethodVoxel=0)
-MethodVoxel = 0
-
-# Define how many individuals per species are used, and how many of them are initially mature
-# This variable defines if the NumberSpecies are total numbers irrespective
-# of the model area (ScalingPerHa=0), or if the NumberSpecies or given per
-# hectar and are scaled to the model area (ScalingPerHa=1)
-ScalingPerHa = 0
-IndividualsPerSpecies = 100
-PercentageMaturePerSpecies = 50
-
-# This parameter set the scaling between the
-SurfaceBiomassScaling = 100  # cm^2 per m^2
-Imax = 900
-```
-
-Run the following command, replacing `path/to/toml` with the actual path to your `config.toml` file:
-
-```bash
-Rscript A3.R -i "path/to/toml"
-```
-
-## A4
-
-Create a file named `config.toml`. Use the following content as a template, replacing the placeholder values with your data:
-
-```toml
-# Seed for random number generator (integer, optional)
-# Comment it out to use a random seed instead
-# seed = 42
-
-# If a file path is provided, the random state will be loaded from that file,
-# ensuring exact replication of previous results.
-# In this case, any specified seed will be disregarded.
-# RandomState = "path/to/random_state_seed.RData"
-
-# Input directories
-DirectoryMicrohabitat = "path/to/A1/output"
-DirectorySpeciesPools = "path/to/A2/output"
-DirectoryModelMain = "path/to/A3/output"
-
-# Output directory
-DirectoryModelResults = "path/to/output"
-
-MicrohabitatType = 1  # Define which type of forest the microhabitat belongs to. 1: dynamic forest, 2: static forest, 3: uniform forest
-
-# Model parameters
-timeSteps = 39  # Model for timeSteps beginning at the time step given by the initial distribution
-
-# Density of individuals per ha at which to stop the simulationof the community and
-# move to the next replicate (to prevent exploding communities)
-StopCriterionHa = 3000000  # Individuals per ha
-
-# Choose species pools to use and number of replicates per species pool
-numSpeciesPools = [99, 100]  # Start and end number of  species pools (if the species pools do not exist, they are automatically skipped)
-replicatePerSpeciesPool = 1  # Number of replicates per species pool  (if the replicates do not exist, they are automatically skipped)
-
-SurfaceBiomassScaling = 100  # cm^2 per m^2
-Imax = 900  # maximum light above canopy
-
-# Competition Methods; defines which individuals are removed in voxels which
-# are entirely filled. 1:size (small individuals are outcompetet by larger ones); 2:random competition
-CompetitionMethod = 1
-
-# Mortality method (complete random or scaling with mass according to metabolic theory);
-MortalityMethod = 1  # 0: random mortality; 1: scaling with mass to the exponent -1/4
-MortRateRandom = 0.1
-MortRateMass = 0.1
-MortRateMassScaling = -0.25  # widely used scaling fator
-
-InitialTimeStep = 1  # Time step for which the Initial distribution is generated in A3
-```
-
-Run the following command, replacing `path/to/toml` with the actual path to your `config.toml` file:
-
-```bash
-Rscript A4.R -i "path/to/toml"
-```
-
-This script leverages parallel processing to efficiently process all possible pairs of species pools and replicates for each species. It automatically detects the number of available cores in the system and distributes the workload across them. Importantly, the loops are independent, meaning that the results of one loop do not affect the others. This ensures that the parallel execution produces the same results as a sequential one.
-
-To ensure reproducibility, set the random `seed` or provide a previously saved `RandomState`. This guarantees that the same random numbers are generated each time the script is run, leading to identical results. If both a seed and a saved state are provided, the seed is ignored and only the saved state is used. If neither a seed nor a saved state is provided, a random seed will be used, leading to different results each time the script is executed. In any case, the random state is stored to allow for the reproduction of the same results later.

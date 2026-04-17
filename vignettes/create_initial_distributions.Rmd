@@ -2,7 +2,7 @@
 title: "Create initial distribution"
 output: rmarkdown::html_vignette
 vignette: >
-  %\VignetteIndexEntry{init_dist}
+  %\VignetteIndexEntry{create_initial_distributions}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 ---

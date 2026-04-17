@@ -2,7 +2,7 @@
 title: "Run the simulation"
 output: rmarkdown::html_vignette
 vignette: >
-  %\VignetteIndexEntry{simulation}
+  %\VignetteIndexEntry{run_model}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 ---
@@ -59,9 +59,9 @@ In addition to the simulation parameters, the MoDVE simulation requires three in
 
 | Input | Description | Vignette | Check |
 |------------------|------------------|------------------|------------------|
-| `Microhabitat` | Generation of the microhabitat matrix from MoF3D output | `vignette("")` | `check_microhabitat()` |
-| `SpeciesPool` | Generation of the species traits | `vignette("")` | `check_species_df()` |
-| `InitDist` | Generation of the initial individuals and their distribution | `vignette("")` | `check_init_dist()` |
+| `Microhabitat` | Generation of the microhabitat matrix from MoF3D output | `vignette("generate_microhabitat")` | `check_microhabitat()` |
+| `SpeciesPool` | Generation of the species traits | `vignette("create_species_pool")` | `check_species_df()` |
+| `InitDist` | Generation of the initial individuals and their distribution | `vignette("create_initial_distributions")` | `check_init_dist()` |
 
 Alternatively, one can also provide inputs generated from other sources, provided they conform to the data format expected by the simulation (this can be verified with the `check_*()` functions).
 

@@ -2,7 +2,7 @@
 title: "Generate microhabitat"
 output: rmarkdown::html_vignette
 vignette: >
-  %\VignetteIndexEntry{microhabitat}
+  %\VignetteIndexEntry{generate_microhabitat}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 ---
