@@ -4,8 +4,13 @@
 #'
 #'@export
 combine_branch_segments <- function(shoots_tbl) {
-  shoots_tbl |> dplyr::group_by(treeID, branchID, order) |>
-    dplyr::summarise(
+  # Silence CRAN check
+  treeID <- branchID <- diameter <- xbegin <- xend <-
+    ybegin <- yend <- zbegin <- zend <- NULL
+
+  shoots_tbl <- dplyr::group_by(shoots_tbl, treeID, branchID, order)
+  dplyr::summarise(
+    shoots_tbl,
       "length" = sum(length),
       "diameter" = max(diameter),
       "xbegin" = ifelse(xbegin[1] < xend[1], min(xbegin), max(xbegin)),

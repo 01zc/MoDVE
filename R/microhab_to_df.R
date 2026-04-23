@@ -14,7 +14,7 @@ microhabitat_to_df <- function(Microhabitat, keep_empty_voxels = FALSE) {
     which_voxels <- which(Microhabitat[,,,1] > 0)
   }
 
-  microhab_tbl <- map_dfr(
+  microhab_tbl <- purrr::map_dfr(
     which_voxels,
     index_to_3d_coords,
     dimX = dim(Microhabitat)[1],
