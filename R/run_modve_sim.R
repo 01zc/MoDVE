@@ -107,6 +107,7 @@ run_modve_sim <- function(sim_params,
   check_sim_params(sim_params)
   timeSteps <- sim_params$timeSteps
 
+  # Check species pool input
   if (!is.data.frame(SpeciesPool)) {
     # Then it must be a path to the input
     if (!grepl("*.csv$", SpeciesPool)) {
@@ -120,6 +121,16 @@ run_modve_sim <- function(sim_params,
   check_species_df(SpeciesPool)
   NumberOfSpecies <- nrow(SpeciesPool)  # number of species per 25x25m plot
 
+  # Check Microhabitat input
+  if (sim_params$hasDynamicMicrohabitat) {
+    if (length(Microhabitat) != timeSteps) {
+      stop("For dynamic habitats, Microhabitat should have one element for each time step.\n")
+    } else {
+      # Stash paths for later time steps
+      microhab_files <- Microhabitat
+    }
+  }
+
   if (!is.array(Microhabitat)) {
     # Then it must be a path or vector of paths
     for (i in seq_along(Microhabitat)) {
@@ -130,25 +141,17 @@ run_modve_sim <- function(sim_params,
         stop(paste0(Microhabitat[i], " doesn't exist.\n"))
       }
     }
-
-    if (sim_params$hasDynamicMicrohabitat) {
-      if (length(Microhabitat) != timeSteps) {
-        stop("For dynamic habitats, Microhabitat should have one element for each time step.\n")
-      } else {
-        # Stash paths for later time steps
-        microhab_files <- Microhabitat
-      }
-    }
     # If all checks ok, read the first one
     Microhabitat <- readRDS(Microhabitat[1])
-    check_microhabitat(Microhabitat)
   }
+  check_microhabitat(Microhabitat)
 
   dims <- dim(Microhabitat)
   dimX <- dims[1]
   dimY <- dims[2]
   dimZ <- dims[3]
 
+  # Check initial distribution input
   if (!is.data.frame(InitDist)) {
     # Then it must be a path to the input
     if (!grepl("*.csv$", InitDist)) {
