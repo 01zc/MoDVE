@@ -99,15 +99,17 @@ create_microhabitat_mat <- function(config, shoot_dt, trunk_dt, vox_dt = NULL,
   forest_max_y <- MaxY + 2 * corridor
   voxel_area <- 100^2
 
-  microhab_mat <- array(
-    rep(0, dimPlot[1] * dimPlot[2] * dimPlot[3] * 3),
-    dim = c(dimPlot[1], dimPlot[2], dimPlot[3], 3)
-  )
 
   # Element indices of the matrix
   sa_elt <- 1
   sa_loss_elt <- 2
   light_elt <- 3
+  pai_elt <- 4
+
+  microhab_mat <- array(
+    rep(0, dimPlot[1] * dimPlot[2] * dimPlot[3] * 4),
+    dim = c(dimPlot[1], dimPlot[2], dimPlot[3], 4)
+  )
 
   for (s in seq_len(nrow(shoot_dt))) {
 
@@ -184,17 +186,15 @@ create_microhabitat_mat <- function(config, shoot_dt, trunk_dt, vox_dt = NULL,
     } # z in z seq
   } # t in trunk set
 
-  # Calculate light conditions in voxels (relative light conditions)
-  if (config$calcLightConditions) {
-
-    light_range <- config$DistVoxToConsider
+  #
+  if (config$calcSurfaceArea || config$calcLightConditions) {
 
     # Total leaf area in each column
     # Must process voxels in the corridor too as they affect neighbouring voxels
     leaf_area_mat <- light_mat <- array(
       rep(0, forest_max_x * forest_max_y * MaxZ),
       dim = c(forest_max_x, forest_max_y, MaxZ)
-      )
+    )
 
     # Store information on leaf area in matrix
     for (vx in seq_len(nrow(vox_dt))) {
@@ -203,6 +203,17 @@ create_microhabitat_mat <- function(config, shoot_dt, trunk_dt, vox_dt = NULL,
       z <- vox_dt$z[vx]
       leaf_area_mat[x, y, z] <- vox_dt$leafarea[vx]
     }
+    # leaf_area_mat[cbind(vox_dt$x, vox_dt$y, vox_dt$z)] <- vox_dt$leafarea
+  }
+
+  # Calculate light conditions in voxels (relative light conditions)
+  if (config$calcLightConditions) {
+
+    light_range <- config$DistVoxToConsider
+
+    # Total leaf area in each column
+    # Must process voxels in the corridor too as they affect neighbouring voxels
+    light_mat <- leaf_area_mat
 
     # Calculate single column light conditions based on leaf area distribution
     for (x in seq_len(forest_max_x)) {
@@ -238,9 +249,15 @@ create_microhabitat_mat <- function(config, shoot_dt, trunk_dt, vox_dt = NULL,
       } # y
     } # x
 
-    microhab_mat[,,,3] <- microhab_mat[,,,3] * config$Imax
+    microhab_mat[,,,light_elt] <- microhab_mat[,,,light_elt] * config$Imax
 
   } # lightConditions
+
+  if (config$calcSurfaceArea) {
+    # Compute PAI
+    microhabitat[ , , , pai_elt] <- microhab_mat[,,, sa_elt] +
+      leaf_area_mat / 10000 # TODO: do both matrices use the same indexing range?
+  }
 
   if (!is.null(path_to_output)) {
     saveRDS(microhab_mat, path_to_output)
