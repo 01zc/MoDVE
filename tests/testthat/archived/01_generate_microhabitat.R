@@ -1,9 +1,15 @@
+
 # Create microhabitat matrices
 source("R/test-utils.R")
 
 library(data.table)
 
+<<<<<<<< HEAD:tests/testthat/archived/A1.R
 config <- parse_config("tests/testthat/configs/config_a1.toml")
+========
+config <- parse_config()
+#config <- read.config(file="tests/config_a1_1.toml")
+>>>>>>>> origin/mc-johanna:R/01_generate_microhabitat.R
 
 # ------------------- Parameters ----------------------- #
 # Parameters that need to be specified/checked before running this script
@@ -11,7 +17,11 @@ config <- parse_config("tests/testthat/configs/config_a1.toml")
 # This parameter determines which type of microhatiat matrices are generated:
 # 1: real GroIMP forest with dynamics
 # 2: static GroIMP forest (only forest at timeStepStart is used)
+<<<<<<<< HEAD:tests/testthat/archived/A1.R
 MicrohabitatType <- 1
+========
+microhabitatType <- config$microhabitatType
+>>>>>>>> origin/mc-johanna:R/01_generate_microhabitat.R
 
 # Parameters of light model
 kL <- config$kL  # light extinction coefficient
@@ -21,13 +31,20 @@ DistVoxToConsider <- config$DistVoxToConsider  # How many ring around focal voxe
 # (this list can be extended for possible new applications of the epiphyte model.
 # 1: use this variable
 # 0: do not use it
+<<<<<<<< HEAD:tests/testthat/archived/A1.R
 TotalSurfaceAreaOpt <- TRUE
 SurfaceAreaLossOpt <- TRUE
 LightConditionsOpt <- TRUE
 AverageWeightedAngles <- FALSE
+========
+TotalSurfaceAreaOpt <- config$TotalSurfaceAreaOpt
+SurfaceAreaLossOpt <- config$SurfaceAreaLossOpt
+LightNicheOpt <- config$LightNicheOpt
+AverageWeightedAngles <- config$AverageWeightedAngles
+>>>>>>>> origin/mc-johanna:R/01_generate_microhabitat.R
 
-# Parameters that need to be specified if MicrohabitatType=1 or MicrohabitatType=2
-# Directory of GroIMP files (this directory is stored in the Microhabitat folder so that the
+# Parameters that need to be specified if microhabitat_type=1 or microhabitat_type=2
+# Directory of GroIMP files (this directory is stored in the microhabitat folder so that the
 # connection to the input GroIMP files is always clear)
 DirectoryGroIMP <- "tests/testthat/data/groimp/"
 # Directory to save results
@@ -39,8 +56,8 @@ ReplicateForest <- config$ReplicateForest
 timeStepStart <- config$timeStepStart
 timeStepEnd <- config$timeStepEnd
 
-# Parameters that need to be specified if MicrohabitatType=3
-# The following parameters are only needed if MicrohabitatType=3
+# Parameters that need to be specified if microhabitat_type=3
+# The following parameters are only needed if microhabitat_type=3
 # Dimensions of the theoretical forest
 # ForestHeight <- 40
 # dimXTheoretical <- 50
@@ -52,25 +69,25 @@ timeStepEnd <- config$timeStepEnd
 
 # Additional parameters
 # Names of essential GroIMP files
-shootFile <- paste("shoots_replicate_", ReplicateForest, "_time_step_", sep="")
-trunkFile <- paste("trees_replicate_", ReplicateForest, "_time_step_", sep="")
-voxelFile <- paste("voxel_replicate_", ReplicateForest, "_time_step_", sep="")
+shootFile <- paste0("shoots_replicate_", ReplicateForest, "_time_step_")
+trunkFile <- paste0("trees_replicate_", ReplicateForest, "_time_step_")
+voxelFile <- paste0("voxel_replicate_", ReplicateForest, "_time_step_")
 
 C <- c(0, 0, 1)  # Vector orthogonal to plane of X and Y
 TotalVoxels <- (DistVoxToConsider * 2 + 1) ^ 2  # Total number of adjacent voxels considered
-MatrixDimension <- sum(c(TotalSurfaceAreaOpt, SurfaceAreaLossOpt, LightConditionsOpt, AverageWeightedAngles))
+MatrixDimension <- sum(c(TotalSurfaceAreaOpt, SurfaceAreaLossOpt, LightNicheOpt, AverageWeightedAngles))
 
 # Other parameters created during porting to R
 # Those are needed because of GroIMPs output dir structure
 model_dir_name <- "Model"
 results_dir_name <- "Results"
 forest_global_param_name <- "Forest_param_global.txt"
-forest_pass_param_name <- paste("Forest_param_pass", ReplicateForest, ".txt", sep="")
+forest_pass_param_name <- paste0("Forest_param_pass", ReplicateForest, ".txt")
 
 
 # The following parameters are generated automatically
 # Load dimensions of forest patch from global forest file
-if (MicrohabitatType == 1 || MicrohabitatType == 2) {
+if (microhabitatType == 1 || microhabitatType == 2) {
     path_to_forest_global <- file.path(DirectoryGroIMP, model_dir_name, forest_global_param_name)
     GlobalForest <- read.table(path_to_forest_global, sep="\t", row.names=1)
 
@@ -90,23 +107,24 @@ DirectoryMatrices <- file.path(DirectorySaveMain)
 dir.create(DirectoryMatrices, recursive=TRUE)
 
 # Copy global and pass forest file to microhabitat folder
-if (MicrohabitatType == 1 || MicrohabitatType == 2) {
+if (microhabitatType == 1 || microhabitatType == 2) {
     file.copy(file.path(DirectoryGroIMP, model_dir_name, forest_global_param_name), DirectoryMatrices, overwrite=FALSE)
     file.copy(file.path(DirectoryGroIMP, model_dir_name, forest_pass_param_name), DirectoryMatrices, overwrite=FALSE)
 }
 
 
-# Generation of microhabitat matrix of static or dynamic forest (MicrohabitatType=1 or MicrohabitatType=2)
+# Generation of microhabitat matrix of static or dynamic forest (microhabitat_type=1 or microhabitat_type=2)
 # Here, the choosen parameter (total surface, surface loss, light conditions,average angle) are calculated for each voxel in each timestep
 
-if (MicrohabitatType == 1 || MicrohabitatType == 2) {
+if (microhabitatType == 1 || microhabitatType == 2) {
 
     # In a static forest, only the initial forest at time step timeStepStart is of interest
-    if (MicrohabitatType == 2) {
+    if (microhabitatType == 2) {
         timeStepEnd <- timeStepStart
     }
 
     for (i in int_seq(from=timeStepStart, to=timeStepEnd, by=1)) {
+
         print(paste("Time step", i))
         start_time <- Sys.time()
 
@@ -251,8 +269,9 @@ if (MicrohabitatType == 1 || MicrohabitatType == 2) {
                 }
 
                 # If trunk is lost during this time step, add it to lost surface
-                if (SurfaceAreaLossOpt == 1) {
-                    if (j == locDeadSegments[CounterDead] & TotalDead > 0) {
+                print(paste0("Total dead: ", TotalDead))
+                if (SurfaceAreaLossOpt == 1 & TotalDead > 0) {
+                    if (j == locDeadSegments[CounterDead]) {
                         CounterDead <- min(TotalDead, CounterDead + 1)
                         Mat_surfaceloss_per_cell[X, Y, Z] <- Mat_surfaceloss_per_cell[X, Y, Z] + SurfaceAreaInVoxel
                     }
@@ -269,7 +288,7 @@ if (MicrohabitatType == 1 || MicrohabitatType == 2) {
 
 
         # Calculate light conditions in voxels (relative light conditions)
-        if (LightConditionsOpt == 1) {
+        if (LightNicheOpt == 1) {
 
             # Load file containing information about leaf area per voxel
             voxelsFileName <- paste(voxelFile, i, ".txt", sep="")
@@ -284,9 +303,7 @@ if (MicrohabitatType == 1 || MicrohabitatType == 2) {
             Voxels$z <- Voxels$z + 1
 
             # Store information on leaf area in matrix
-            for (j in seq_len(nrow(Voxels))) {
-                Mat_leafArea_per_cell[Voxels$x[j], Voxels$y[j], Voxels$z[j]] <- Voxels$leafarea[j]
-            }
+            Mat_leafArea_per_cell[cbind(Voxels$x, Voxels$y, Voxels$z)] <- Voxels$leafarea
 
             # Calculate single column light conditions based on leaf area distribution
             for (x in seq_len(dimX)) {
@@ -324,40 +341,43 @@ if (MicrohabitatType == 1 || MicrohabitatType == 2) {
 
         }
 
-
-        # Store information in Microhabitat matrix and save matrix for this
+        # Store information in microhabitat matrix and save matrix for this
         # timestep
         # possibly only 5 dimensions to save space
-        Microhabitat <- array(rep(0, dimPlot[1] * dimPlot[2] * dimPlot[3] * MatrixDimension), dim=c(dimPlot[1], dimPlot[2], dimPlot[3], MatrixDimension))
+        microhabitat <- array(rep(0, dimPlot[1] * dimPlot[2] * dimPlot[3] * (MatrixDimension+1)),
+                              dim=c(dimPlot[1], dimPlot[2], dimPlot[3], (MatrixDimension+1)))
 
         idx1 <- int_seq(from=corridor+1, to=dimX-corridor, by=1)
         idx2 <- int_seq(from=corridor+1, to=dimY-corridor, by=1)
         idx3 <- seq_len(dimZ)
 
         if (TotalSurfaceAreaOpt == 1) {
-            Microhabitat[ , , , 1] <- Mat_surface_per_cell[idx1, idx2, idx3]
+            # Compute PAI
+            Mat_plantArea_per_cell <- Mat_surface_per_cell + (Mat_leafArea_per_cell / 10000)
+            microhabitat[ , , , MatrixDimension+1] <- Mat_plantArea_per_cell[idx1, idx2, idx3]
+            microhabitat[ , , , 1] <- Mat_surface_per_cell[idx1, idx2, idx3]
         }
 
         if (SurfaceAreaLossOpt == 1) {
-            if (MicrohabitatType == 1) {
-                Microhabitat[ , , , 2] <- Mat_surfaceloss_per_cell[idx1, idx2, idx3] / Mat_surface_per_cell[idx1, idx2, idx3]
+            if (microhabitatType == 1) {
+                microhabitat[ , , , 2] <- Mat_surfaceloss_per_cell[idx1, idx2, idx3] / Mat_surface_per_cell[idx1, idx2, idx3]
             }
 
-            if (MicrohabitatType == 2) {
-                Microhabitat[ , , , 2] <- 0
+            if (microhabitatType == 2) {
+                microhabitat[ , , , 2] <- 0
             }
         }
 
-        if (LightConditionsOpt == 1) {
-            Microhabitat[ , , , 3] <- Mat_light_per_cell[idx1, idx2, idx3]
+        if (LightNicheOpt == 1) {
+            microhabitat[ , , , 3] <- Mat_light_per_cell[idx1, idx2, idx3]
         }
 
         if (AverageWeightedAngles == 1) {
-            Microhabitat[ , , , 4] <- Mat_weighted_angle_per_cell[idx1, idx2, idx3]
+            microhabitat[ , , , 4] <- Mat_weighted_angle_per_cell[idx1, idx2, idx3]
         }
 
-        MicrohabitatMatSave <- paste("MicrohabitatMatrix", i, ".rds", sep="")
-        saveRDS(Microhabitat, file.path(DirectoryMatrices, MicrohabitatMatSave))
+        microhabitatMatSave <- paste("microhabitatMatrix", i, ".rds", sep="")
+        saveRDS(microhabitat, file.path(DirectoryMatrices, microhabitatMatSave))
 
         end_time <- Sys.time()
         print(end_time - start_time)

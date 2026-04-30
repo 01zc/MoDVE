@@ -19,3 +19,15 @@ InitialTimeStep = 2
 SlopeRecruitment = 0
 InterceptRecruitment = 70
 
+Imax = 900
+LightResponseFct = "Yan and Hunt"  # optionas ("Yan and Hunt", "Parabolic")
+
+LightNicheOpt = 1
+HumNicheOpt = 0
+TempNicheOpt = 0
+WindNicheOpt = 0
+
+# microhabitat variable settings
+# - Variables: TotalSurfaceAreaOpt, SurfaceAreaLossOpt, LightNicheOpt, AverageWeightedAngles, HumNicheOpt, TempNicheOpt, WindNicheOpt
+microhabitatVariableFlags = [1, 1, 1, 0, 1, 1, 1]
+

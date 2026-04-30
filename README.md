@@ -85,4 +85,3 @@ Petter, G.; Zotz, G.; Kreft, H.; Sarmento Cabral, J. (2021). Agent-based
 modelling of the effects of forest dynamics, selective logging, and fragment 
 size on epiphyte communities. Ecology and Evolution, 11, 2937–2951. 
 [https://doi.org/10.1002/ece3.7255](https://doi.org/10.1002/ece3.7255)
-

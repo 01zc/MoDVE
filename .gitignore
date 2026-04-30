@@ -31,3 +31,5 @@ vignettes/*.pdf
 # R package: bookdown caching files
 /*_files/
 inst/doc
+*.DS_Store
+

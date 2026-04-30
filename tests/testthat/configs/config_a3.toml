@@ -12,3 +12,7 @@ IndividualsPerSpecies = 23
 PercentageMaturePerSpecies = 50
 SurfaceBiomassScaling = 100
 Imax = 900
+
+# microhabitat variable settings
+# - Variables: TotalSurfaceAreaOpt, SurfaceAreaLossOpt, LightNicheOpt, AverageWeightedAngles, HumNicheOpt, TempNicheOpt, WindNicheOpt
+microhabitatVariableFlags = [1, 1, 1, 0, 1, 1, 1]
