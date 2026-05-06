@@ -65,8 +65,8 @@ resolve_competition <- function(E, Microhabitat, massDepCompetition) {
     if (capacity < nrow(indsInVoxel)) {
       # largest n individuals live, the rest die
       seq_beyond_capacity <- int_seq(capacity + 1, nrow(indsInVoxel))
-      dead_ids <- indsInVoxel[seq_beyond_capacity, "IndividualID"]
-      these_die <- E$IndividualID %in% dead_ids$IndividualID
+      dead_ids <- indsInVoxel$IndividualID[seq_beyond_capacity]
+      these_die <- E$IndividualID %in% dead_ids
       E[these_die, "Status"] <- 2
     }
   }

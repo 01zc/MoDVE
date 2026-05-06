@@ -104,16 +104,9 @@
 #'  individuals of this species
 #'  grow and reproduce at the maximum rate. It is calculated as the average of
 #'  `MinLight` and `MaxLight.`
-#'  * `LightBreadth` positive numeric, range between `MinLight` and `MaxLight`
 #'  * `LightResponseA` first term of the parabolic light-growth response function.
 #'  * `LightResponseB` second term of the parabolic light-growth response function.
 #'  * `LightResponseC` third term of the parabolic light-growth response function.
-#'  * `MinHeightRel` minimum relative height (between 0 and 1) at which the
-#'  species can survive, used to compute `MinLight`
-#'  * `MaxHeightRel` maximum relative height (between 0 and 1) at which the
-#'  species can survive, used to compute `MaxLight`
-#'  * `MeanHeightRel` average of `MinHeightRel` and `MaxHeightRel`
-#'  * `HeightBreadth` range between `MinHeightRel` and `MaxHeightRel`
 #'
 #' @export
 #'
@@ -175,21 +168,18 @@ draw_species_traits <- function(species_params) {
   HeightBreadthTheoretical <- stats::runif(1, sp$HeightBreadthRandom[1], sp$HeightBreadthRandom[2])
   MinHeight <- max(c(0, MeanHeight - (HeightBreadthTheoretical / 2)))
   MaxHeight <- min(c(1, MeanHeight + (HeightBreadthTheoretical / 2)))
-  HeightBreadth <- MaxHeight - MinHeight
 
   # Light niche
   MinLight <- sp$Imax * exp(-sp$kL * sp$LAI * (1 - MinHeight))
   MaxLight <- sp$Imax * exp(-sp$kL * sp$LAI * (1 - MaxHeight))
   OptimumLight <- (MaxLight + MinLight) / 2
-  LightBreadth <- MaxLight - MinLight
   light_resp_params <- get_light_resp_params(MinLight, MaxLight, OptimumLight)
 
   # Output
   sp_traits <- list(
     MaxMass, MassAtMaturity, K, DispersalKernel, DispersalKernelAsymmetry,
     RecruitmentInvestmentRel, RecruitmentInc, MinLight, MaxLight, OptimumLight,
-    LightBreadth, light_resp_params[1], light_resp_params[2], light_resp_params[3],
-    MinHeight, MaxHeight, MeanHeight, HeightBreadth
+    light_resp_params[1], light_resp_params[2], light_resp_params[3]
   )
   names(sp_traits) <- species_trait_names()
   return(sp_traits)

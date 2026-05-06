@@ -2,7 +2,7 @@
 title: "Create initial distribution"
 output: rmarkdown::html_vignette
 vignette: >
-  %\VignetteIndexEntry{init_dist}
+  %\VignetteIndexEntry{create_initial_distributions}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 ---
@@ -51,7 +51,7 @@ distr_params <- list(
   "IndividualsPerSpecies" = 23, # nb of individuals of each species
   "PercentageMaturePerSpecies" = 50, # how many % are initialised with mass below/above MassAtMaturity
   "ScalingPerHa" = FALSE, # is IndividualsPerSpecies a density per hectar, or a global number?
-  "SurfaceBiomassScaling" = # global parameter g_S of the simulation,
+  "SurfaceBiomassScaling" = 100# global parameter g_S of the simulation,
     # controls how the surface area occupied by an epiphyte scales with its mass
 )
 ```
@@ -101,7 +101,7 @@ init_inds_tbl <- draw_initial_individuals(
   microhab_mat = Microhabitat, 
   path_to_output = NULL, # return the output table
   largest_inds_first = TRUE,
-  largest_voxels_first = FALSE
+  most_surf_area_first = FALSE
 )
 ```
 
@@ -155,13 +155,13 @@ for (numPool in distr_params$numSpeciesPools[1]:distr_params$numSpeciesPools[2])
     ))
 
     largest_inds_first <- TRUE
-    largest_voxels_first <- TRUE
+    most_surf_area_first <- TRUE
 
     # Generate the distribution and individual traits
     draw_initial_individuals(
       distr_params, species_df, microhab_mat, path_to_output,
       largest_inds_first = distr_params$SingleSpeciesModel,
-      largest_voxels_first = distr_params$MethodVoxel
+      most_surf_area_first = distr_params$MethodVoxel
     )
   }
 }

@@ -38,7 +38,6 @@ test_that("Initial individuals are distributed correctly", {
   # light not limiting for now
   species_df$MinLight <- 0
   species_df$MaxLight <- 100
-  species_df$LightBreadth <- 100
   microhab_mat[,,,3] <- 50 # optimal light conditions
 
   # Edge case - no mature individuals
@@ -161,7 +160,6 @@ test_that("Initial individuals are distributed correctly", {
   species_df$MinLight <- min_light
   species_df$MaxLight <- max_light
   species_df$OptimumLight <- opt_light
-  species_df$LightBreadth <- max_light - min_light
   voxels_not_enough_light <- sample(1:prod(dimensions), nb_bad_voxels)
   voxels_too_much_light <- sample((1:prod(dimensions))[-voxels_not_enough_light], nb_bad_voxels)
   expect_true(!any(voxels_too_much_light %in% voxels_not_enough_light))

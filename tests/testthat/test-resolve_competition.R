@@ -20,7 +20,7 @@ test_that("Competition works as expected", {
     )
   }
 
-  # Initialise individuals
+  # Initialise individuals in the two voxels
   nb_inds_per_vox <- sample(10:100, 1)
   E <- E_init <- tibble::tibble(
     "is_oversaturated" = c(rep(TRUE, nb_inds_per_vox), rep(FALSE, nb_inds_per_vox)), # shortcut for counting below
@@ -34,7 +34,6 @@ test_that("Competition works as expected", {
     dplyr::slice_sample(prop = 1) # shuffle rows
 
   # Set surface area so there is too little, or enough surface area respectively
-  E |> dplyr::filter(is_oversaturated) |> dplyr::pull(SurfaceAreaOccupied) |> sum()
   total_sa_oversatd <- 0.9 * sum(E$SurfaceAreaOccupied[which(E$is_oversaturated)])
   total_sa_undersatd <- 1.1 * sum(E$SurfaceAreaOccupied[which(!E$is_oversaturated)])
   surf_area_layer <- rep(0, prod(dimensions))

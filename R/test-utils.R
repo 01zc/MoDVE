@@ -13,6 +13,19 @@ index_3d <- function(x, y, z, dimX, dimY) {
   return(x + dimX * (y - 1) + dimX * dimY * (z - 1))
 }
 
+#' Convert a sequential index in a 3D matrix into X, Y and Z coordinates
+#' @param i index ranging from 1 to the size of the matrix
+#' @param dimX X-dimension of the matrix
+#' @param dimY Y-dimension of the matrix
+#'
+index_to_3d_coords <- function(i, dimX, dimY) {
+  return(c(
+    "x" = (i - 1) %% dimX + 1, # x
+    "y" = (i - 1) %/% dimX %% dimY + 1, # y
+    "z" = (i - 1) %/% (dimX * dimY) + 1 # z
+  ))
+}
+
 #' Generate a data frame containing species traits
 #'
 #' Convenience wrapper that calls [draw_species_traits()] for multiple species
@@ -152,7 +165,7 @@ create_rnd_microhabitat <- function(SpeciesPool, dimensions, SurfaceBiomassScali
   Microhabitat <- array(0, c(dimensions, 3))
   nb_suitable_voxels <- round(prod(dimensions) * stats::runif(1, 0, 1))
   suitable_voxels <- sample(1:prod(dimensions), nb_suitable_voxels)
-  reqd_sa_per_ind <- SpeciesPool$MaximumMass[1]^(2/3) / SurfaceBiomassScaling
+  reqd_sa_per_ind <- mass_to_surf_area(SpeciesPool$MaximumMass[1], SurfaceBiomassScaling)
   surface_area_mat <- array(0, dim = dimensions)
   surface_area_mat[suitable_voxels] <- reqd_sa_per_ind *
     sample(1:10, length(suitable_voxels), replace = TRUE)

@@ -2,7 +2,7 @@
 title: "Generate microhabitat"
 output: rmarkdown::html_vignette
 vignette: >
-  %\VignetteIndexEntry{microhabitat}
+  %\VignetteIndexEntry{generate_microhabitat}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 ---
@@ -94,8 +94,9 @@ boolean conditions enabling the generation of each microhabitat layer. While
 all three layers are required to run the simulation, it may be desirable to
 re-calculate only a subset of the layers.
 
-3. `kL` and `DistVoxToConsider` are parameters controlling light extinction and
-diffusion, respectively. `kL` parametrises the Beer-Lambert light extinction 
+3. `Imax`, `kL` and `DistVoxToConsider` are parameters controlling light extinction and
+diffusion. `Imax` is the maximum intensity above the canopy, i.e. before any light extinction from the leaf biomass.
+`kL` parametrises the Beer-Lambert light extinction 
 function:
 \deqn{e^{-/frac{k_L * \sum^z LA_z}{10^4}}
 where \eqn{\sum^z LA_z} denotes the total leaf area in all voxels above a
@@ -221,7 +222,7 @@ for (i in time_start:time_end) {
       )[vox_colnames]
     
     # Convert indexing from Java (first = 0) to R indexing convention (first = 1)
-    Voxels[, 1:3] <- Voxels[, 1:3] + 1
+    vox_dt[, 1:3] <- vox_dt[, 1:3] + 1
     
   } else vox_dt <- NULL
 

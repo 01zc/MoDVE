@@ -24,9 +24,9 @@ check_init_dist <- function(InitDist, SpeciesPool, dimensions) {
       wrong_params), rep(" ", length(wrong_params) + 1)))
   }
 
-  if (any(InitDist$X < 1 || InitDist$X < dimensions[1] ||
-          InitDist$Y < 1 || InitDist$Y < dimensions[2] ||
-          InitDist$Z < 1 || InitDist$Z < dimensions[3])) {
+  if (any(InitDist$X < 1) || any(InitDist$X > dimensions[1]) ||
+          any(InitDist$Y < 1) || any(InitDist$Y > dimensions[2]) ||
+          any(InitDist$Z < 1) || any(InitDist$Z > dimensions[3])) {
     stop("InitDist contains coordinates that fall outside of the microhabitat matrix")
   }
 
@@ -41,14 +41,12 @@ check_init_dist <- function(InitDist, SpeciesPool, dimensions) {
   for (i in 1:nrow(InitDist)) {
     mass <- InitDist$Mass[i]
     sp <- InitDist$SpeciesID[i]
-    max_mass <- SpeciesPool$MaxMass[which(SpeciesPool$SpeciesID == sp)]
+    max_mass <- SpeciesPool$MaximumMass[which(SpeciesPool$SpeciesID == sp)]
     if (mass > max_mass) {
       stop(paste(
         "InitDist contains an individual larger than is allowed by its species (row", i, ")"))
     }
   }
-
-  stop("Some individuals in InitDist have a larger mass than their species")
 
   if (any(duplicated(InitDist$IndividualID))) {
     stop("Multiple individuals in InitDist share the same ID.")

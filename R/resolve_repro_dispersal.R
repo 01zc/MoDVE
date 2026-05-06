@@ -102,7 +102,8 @@ resolve_repro_dispersal <- function(E,
 
     # Matrix containing all mature individuals of one species
     mass_maturity <- SpeciesPool$MassAtMaturity[this_species]
-    mature_inds <- E[E$SpeciesID == sp & E$Mass >= mass_maturity, ]
+    mature_inds <- E[E$SpeciesID == sp &
+                       E$Mass >= mass_maturity & E$Status == 1, ]
 
     minLight <- SpeciesPool$MinLight[i]
     maxLight <- SpeciesPool$MaxLight[i]

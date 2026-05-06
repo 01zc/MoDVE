@@ -12,7 +12,6 @@
 #'  * `hasDynamicMicrohabitat`: `TRUE/FALSE`, does the microhabitat matrix change
 #' with each time steps? If `TRUE`, `Microhabitat` must be a vector of paths
 #' to each of the microhabitat matrices (one per year).
-#' * `Imax`: maximum light intensity above the canopy
 #' * `massDepCompetition`: `TRUE` = larger individuals get priority in
 #' voxel attribution, otherwise (`FALSE`) individuals are distributed randomly.
 #' * `use_mass_dep_mortality`: if `FALSE` individuals die randomly
@@ -58,14 +57,9 @@
 #'  * `MaxLight` positive numeric, maximum light conditions under which this species can survive
 #'  * `OptimumLight` positive numeric, optimum light conditions under which individuals of this species
 #'  grow and reproduce at the maximum rate. It is calculated as the average of `MinLight` and `MaxLight.`
-#'  * `LightBreadth` positive numeric, range between `MinLight` and `MaxLight`
 #'  * `LightResponseA` first term of the parabolic light-growth response function.
 #'  * `LightResponseB` second term of the parabolic light-growth response function.
 #'  * `LightResponseC` third term of the parabolic light-growth response function.
-#'  * `MinHeightRel` minimum relative height (between 0 and 1) at which the species can survive, used to compute `MinLight`
-#'  * `MaxHeightRel` maximum relative height (between 0 and 1) at which the species can survive, used to compute `MaxLight`
-#'  * `MeanHeightRel` average of `MinHeightRel` and `MaxHeightRel`
-#'  * `HeightBreadth` range between `MinHeightRel` and `MaxHeightRel`
 #'
 #' @param Microhabitat a 4D matrix where the first three dimensions
 #' corresponding to a 3D habitat space, and the last one containing values of:
@@ -113,6 +107,7 @@ run_modve_sim <- function(sim_params,
   check_sim_params(sim_params)
   timeSteps <- sim_params$timeSteps
 
+  # Check species pool input
   if (!is.data.frame(SpeciesPool)) {
     # Then it must be a path to the input
     if (!grepl("*.csv$", SpeciesPool)) {
@@ -126,6 +121,16 @@ run_modve_sim <- function(sim_params,
   check_species_df(SpeciesPool)
   NumberOfSpecies <- nrow(SpeciesPool)  # number of species per 25x25m plot
 
+  # Check Microhabitat input
+  if (sim_params$hasDynamicMicrohabitat) {
+    if (length(Microhabitat) != timeSteps) {
+      stop("For dynamic habitats, Microhabitat should have one element for each time step.\n")
+    } else {
+      # Stash paths for later time steps
+      microhab_files <- Microhabitat
+    }
+  }
+
   if (!is.array(Microhabitat)) {
     # Then it must be a path or vector of paths
     for (i in seq_along(Microhabitat)) {
@@ -136,27 +141,17 @@ run_modve_sim <- function(sim_params,
         stop(paste0(Microhabitat[i], " doesn't exist.\n"))
       }
     }
-
-    if (sim_params$hasDynamicMicrohabitat) {
-      if (!length(Microhabitat) == timeSteps) {
-        stop("For dynamic habitats, Microhabitat should have one element for each time step.\n")
-      } else {
-        # Stash paths for later time steps
-        microhab_files <- Microhabitat
-      }
-    }
     # If all checks ok, read the first one
     Microhabitat <- readRDS(Microhabitat[1])
-    check_microhabitat(Microhabitat)
   }
+  check_microhabitat(Microhabitat)
 
-  #  Convert relative light values to absolute ?mol*m-2*s-1
-  Microhabitat[,,,3] <- Microhabitat[,,,3] * sim_params$Imax
   dims <- dim(Microhabitat)
   dimX <- dims[1]
   dimY <- dims[2]
   dimZ <- dims[3]
 
+  # Check initial distribution input
   if (!is.data.frame(InitDist)) {
     # Then it must be a path to the input
     if (!grepl("*.csv$", InitDist)) {
@@ -260,7 +255,6 @@ run_modve_sim <- function(sim_params,
                 ": number of dimensions must be the same as the first matrix")
           )
       }
-      Microhabitat[,,,3] <- Microhabitat[,,,3] * sim_params$Imax
     }
 
     # Update how many species are alive at beginning of the year
@@ -299,7 +293,7 @@ run_modve_sim <- function(sim_params,
                            sim_params$MortRateMassScaling)
 
     # Mortality due to competition for space
-    E <- resolve_competition(E, Microhabitat, sim_params$CompetitionMethod)
+    E <- resolve_competition(E, Microhabitat, sim_params$massDepCompetition)
 
     # Age increment
     E$Age <- E$Age + 1
@@ -307,15 +301,15 @@ run_modve_sim <- function(sim_params,
     # Species-level output
     for (sp in seq_len(NumberOfSpecies)) {
 
+      row_nb <- (sp - 1) * timeSteps + t
+      is_sp <- E$SpeciesID == sp
+
       nb_alive <- sum(E$Status == 1 & is_sp, na.rm = TRUE)
       nb_dead_comp <- sum(E$Status == 2 & is_sp, na.rm = TRUE)
       nb_dead_branch <- sum(E$Status == 3 & is_sp, na.rm = TRUE)
       nb_dead_light <- sum(E$Status == 4 & is_sp, na.rm = TRUE)
       nb_dead_base <- sum(E$Status == 5 & is_sp, na.rm = TRUE)
       nb_inds_begin <- nbIndsBeforeDisp[sp]
-
-      row_nb <- (sp - 1) * timeSteps + t
-      is_sp <- E$SpeciesID == sp
 
       sp_output[row_nb, col_sp_t] <- year_nb
       sp_output[row_nb, col_sp_id] <- sp
@@ -371,8 +365,9 @@ run_modve_sim <- function(sim_params,
     comm_output$MortalityNatural[t] <- MortalityNatural
     comm_output$BranchSurfaceIndex[t] <- sum(Microhabitat[, , , 1]) /
       (dimX[1] * dimY[2])
-    comm_output$EpiphyteFilling[t] <- sum(E$Mass^(2/3)) /
-      sim_params$SurfaceBiomassScaling / sum(Microhabitat[, , , 1])
+    comm_output$EpiphyteFilling[t] <- sum(
+      mass_to_surf_area(E$Mass, sim_params$SurfaceBiomassScaling)
+      ) / sum(Microhabitat[, , , 1])
 
     # Command window information
     msg <- "--------------------------------------------"
@@ -389,28 +384,15 @@ run_modve_sim <- function(sim_params,
 
     # Save Epiphyte matrix for every time step
     ind_output_file <- sub("*.csv$", paste0("_", year_nb, ".csv"), path_to_ind_output)
-    utils::write.csv(
-      E[, inds_output_names()],
-      ind_output_file,
-      row.names = FALSE
-      )
+    utils::write.csv(E[, inds_output_names()], ind_output_file, row.names = FALSE)
 
     # Save sp_output for every time step
     sp_output_df <- as.data.frame(sp_output)
     names(sp_output_df) <- sp_output_headers
-    utils::write.csv(
-      sp_output_df,
-      path_to_sp_output,
-      row.names = FALSE
-      )
+    utils::write.csv(sp_output_df, path_to_sp_output)
 
     # Save comm_output for every time step (overwrite old one)
-    utils::write.csv(
-      comm_output,
-      path_to_comm_output,
-      append = FALSE,
-      row.names = FALSE
-      )
+    utils::write.csv(comm_output, path_to_comm_output, row.names = FALSE)
 
     # Remove dead individuals from Epimatrix
     E <- E[E$Status <= 1, ]

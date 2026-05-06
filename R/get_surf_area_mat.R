@@ -13,10 +13,21 @@ get_surf_area_mat <- function(E, surface_area_mat, surface_biomass_scaling) {
   avail_sa_matrix <- surface_area_mat
   for (i in seq_len(nrow(E))) {
     # Deduce the surface area occupied by each individual
-    sa_needed <- E$Mass[i]^(2/3) / surface_biomass_scaling
+    sa_needed <- mass_to_surf_area(E$Mass[i], surface_biomass_scaling)
     avail_sa_matrix[E$X[i], E$Y[i], E$Z[i]] <- max(
       0, avail_sa_matrix[E$X[i], E$Y[i], E$Z[i]] - sa_needed
     )
   }
   return(avail_sa_matrix)
+}
+
+#' Get the surface area requirements of an epiphyte from its body mass
+#'
+#' \deqn{SA = \frac{M^{2/3}}{g_S}}
+#'
+#' @param mass mass of the individual (\eqn{M})
+#' @param SurfaceBiomassScaling a scaling factor \eqn{g_S}
+#' @export
+mass_to_surf_area <- function(mass, SurfaceBiomassScaling) {
+  return(mass^(2/3) / SurfaceBiomassScaling)
 }

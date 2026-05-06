@@ -119,8 +119,10 @@ draw_initial_individuals <- function(distr_params, species_df,
   } # species loop
 
   # Surface area occupied
-  init_ind_mat[, col_sa] <- (init_ind_mat[, col_mass]^(2 / 3)) /
+  init_ind_mat[, col_sa] <- mass_to_surf_area(
+    init_ind_mat[, col_mass],
     distr_params$SurfaceBiomassScaling
+    )
 
   # Allocate voxels (x, y, z, status)
 
