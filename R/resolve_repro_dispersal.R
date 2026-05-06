@@ -60,7 +60,10 @@ resolve_repro_dispersal <- function(E,
                              SlopeRecruitment,
                              prob_disp_matrix,
                              SpeciesPool,
-                             max_id) {
+                             max_id,
+                             Inds, # ??? list of indices corresponding to which environmental layers are to be used
+                             EnvVarFlags # vector which variables are TRUE or FALSE
+                             ) {
 
   dimPlot <- dim(Microhabitat)[1:3]
 
@@ -105,9 +108,6 @@ resolve_repro_dispersal <- function(E,
     mature_inds <- E[E$SpeciesID == sp &
                        E$Mass >= mass_maturity & E$Status == 1, ]
 
-    minLight <- SpeciesPool$MinLight[i]
-    maxLight <- SpeciesPool$MaxLight[i]
-
     # Probability matrix for each species:
     # Depending on the position of each mature individual,
     # the total probability for the species is calculated.
@@ -147,11 +147,24 @@ resolve_repro_dispersal <- function(E,
     # We will use this to populate sp_output_mat later
     recruitment_df$exptd_nb_recruits[i] <- sum(exptd_nb_recruits_matrix)
 
-    # Matrix containing all voxel for which the light requirements are fulfilled
-    pot_hab_matrix <- ifelse(
-      light_mat >= minLight & light_mat <= maxLight,
-      1, 0
-    )
+    # Calculate which voxels have suitable conditions for this species
+    IdxLight <- Inds["LightNicheOpt"]
+    IdxHum <- Inds["HumNicheOpt"]
+    IdxTemp <- Inds["TempNicheOpt"]
+    IdxWind <- Inds["WindNicheOpt"]
+
+    LightSuitable <- ((Microhabitat[, , , IdxLight] >= SpeciesPool$MinLight[this_species]) &
+                        (Microhabitat[, , , IdxLight] <= SpeciesPool$MaxLight[this_species]))
+    HumSuitable <- ((Microhabitat[, , , IdxHum] >= SpeciesPool$MinHum[this_species]) &
+                      (Microhabitat[, , , IdxHum] <= SpeciesPool$MaxHum[this_species]))
+    TempSuitable <- ((Microhabitat[, , , IdxTemp] >= SpeciesPool$MinTemp[this_species]) &
+                       (Microhabitat[, , , IdxTemp] <= SpeciesPool$MaxTemp[this_species]))
+    WindSuitable <- ((Microhabitat[, , , IdxWind] >= SpeciesPool$MinWind[this_species]) &
+                       (Microhabitat[, , , IdxWind] <= SpeciesPool$MaxWind[this_species]))
+
+    # Compute potential habitat based on selected flags
+    vars <- c("LightSuitable", "HumSuitable", "TempSuitable", "WindSuitable")[as.logical(EnvVarFlags)]
+    pot_hab_matrix <- Reduce("&", mget(vars))
 
     # Disable unsuitable cells and scale with surface area
     exptd_nb_recruits_matrix <- exptd_nb_recruits_matrix *

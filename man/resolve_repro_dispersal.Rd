@@ -13,7 +13,9 @@ resolve_repro_dispersal(
   SlopeRecruitment,
   prob_disp_matrix,
   SpeciesPool,
-  max_id
+  max_id,
+  Inds,
+  EnvVarFlags
 )
 }
 \arguments{
