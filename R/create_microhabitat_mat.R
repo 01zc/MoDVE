@@ -109,6 +109,12 @@ create_microhabitat_mat <- function(config, shoot_dt, trunk_dt, vox_dt = NULL,
   sa_loss_elt <- 2
   light_elt <- 3
 
+  pb <- progress::progress_bar$new(
+    format = "  Surface area for branches [:bar] :percent in :elapsed",
+    total = nrow(shoot_dt)
+    )
+  pb$tick(0)
+
   for (s in seq_len(nrow(shoot_dt))) {
 
     seg_len <- shoot_dt$length[s]
@@ -147,7 +153,14 @@ create_microhabitat_mat <- function(config, shoot_dt, trunk_dt, vox_dt = NULL,
         seg_surface_area
       }
     }
+    pb$tick()
   }
+
+  pb <- progress::progress_bar$new(
+    format = "  Surface area for trunks [:bar] :percent in :elapsed",
+    total = nrow(trunk_dt)
+  )
+  pb$tick(0)
 
   for (t in seq_len(nrow(trunk_dt))) {
 
@@ -182,10 +195,14 @@ create_microhabitat_mat <- function(config, shoot_dt, trunk_dt, vox_dt = NULL,
           SurfaceAreaInVoxel
       }
     } # z in z seq
+
+    pb$tick()
   } # t in trunk set
 
   # Calculate light conditions in voxels (relative light conditions)
   if (config$calcLightConditions) {
+
+    # TODO: parallelise and optimise this section
 
     light_range <- config$DistVoxToConsider
 
@@ -217,8 +234,15 @@ create_microhabitat_mat <- function(config, shoot_dt, trunk_dt, vox_dt = NULL,
     # Calculate final light conditions by accounting for the light
     # conditions in adjacent voxels
     # x and y are indices in the full matrix including corridors
-    for (x in seq(from = corridor + 1, to = forest_max_x - corridor)) {
-      for (y in seq(from = corridor + 1, to = forest_max_y - corridor)) {
+    x_seq <- seq(from = corridor + 1, to = forest_max_x - corridor)
+    y_seq <- seq(from = corridor + 1, to = forest_max_y - corridor)
+    pb <- progress::progress_bar$new(
+      format = "  Calculating light conditions [:bar] :percent in :elapsed",
+      total = length(x_seq) * length(y_seq)
+    )
+    pb$tick(0)
+    for (x in x_seq) {
+      for (y in y_seq) {
         for (z in seq_len(MaxZ)) {
           total_contribtn <- 0
 
@@ -227,14 +251,15 @@ create_microhabitat_mat <- function(config, shoot_dt, trunk_dt, vox_dt = NULL,
           yy_seq <- seq(from = y - light_range, to = y + light_range)
           for (xx in xx_seq) {
             for (yy in yy_seq) {
-              ring_index <- max(abs(xx - x), abs(yy - y))
+              ring_index <- max(abs(xx - x), abs(yy - y)) # TODO: optimise this
               rel_contribtn <- 1 / (light_range + 1) / max(1, (ring_index * 8)) *
-                light_mat[xx, yy, z]
+                light_mat[xx, yy, z] # TODO: optimise this
               total_contribtn <- total_contribtn + rel_contribtn
             }
           }
           microhab_mat[x - corridor, y - corridor, z, light_elt] <- total_contribtn
         } # z
+        pb$tick()
       } # y
     } # x
 
