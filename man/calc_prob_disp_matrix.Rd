@@ -4,7 +4,12 @@
 \alias{calc_prob_disp_matrix}
 \title{Calculate the probabilistic distribution of dispersal in a 3D matrix}
 \usage{
-calc_prob_disp_matrix(expanded_mat_central_point, expanded_dims, SpeciesPool)
+calc_prob_disp_matrix(
+  expanded_mat_central_point,
+  expanded_dims,
+  SpeciesPool,
+  WindSpeed = NULL
+)
 }
 \arguments{
 \item{expanded_mat_central_point}{a numeric vector of length 3 containing the
@@ -14,6 +19,9 @@ X, Y and Z coordinates of the center of the expanded matrix}
 twice as large as the microhabitat matrix}
 
 \item{SpeciesPool}{a data frame containing the species traits of all species}
+
+\item{WindSpeed}{the wind layer of the Microhabitat matrix, either a 3-D
+matrix with dimensions X, Y, Z or a vector of equivalent length.}
 }
 \value{
 a matrix with the base probability of dispersing from the central
