@@ -144,16 +144,13 @@ draw_initial_individuals <- function(distr_params, species_df,
 
     # Find all suitable voxels for this individual
     AreaNeededInd <- init_ind_mat[ind, col_sa]
-    hasEnoughSurface <- AvailableSurfaceArea > AreaNeededInd
-    hasEnoughLight <- array(
-      microhab_mat[, , , 3] >= species_df$MinLight[sp],
-      dim = dim(microhab_mat)[1:3] # keep same dimensions
+
+    SuitableVoxels <- get_suitable_voxels(
+      microhab_mat,
+      microclimate_opts,
+      SpeciesPool,
+      numSpecies
     )
-    hasEnoughShade <- array(
-      microhab_mat[, , , 3] <= species_df$MaxLight[sp],
-      dim = dim(microhab_mat)[1:3] # keep same dimensions
-    )
-    SuitableVoxels <- which(hasEnoughLight & hasEnoughShade & hasEnoughSurface)
 
     if (length(SuitableVoxels) > 0) {
 
