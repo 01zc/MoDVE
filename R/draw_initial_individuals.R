@@ -53,6 +53,14 @@ draw_initial_individuals <- function(distr_params, species_df,
   check_species_df(species_df)
   check_microhabitat(microhab_mat)
 
+  layer_map <- attr(microhab_mat, "layer_mapping")
+  microclimate_opts <- list(
+    "use_light" = "light" %in% layer_map,
+    "use_temperature" = "temperature" %in% layer_map,
+    "use_humidity" = "humidity" %in% layer_map,
+    "use_wind" = "wind" %in% layer_map,
+    )
+
   nb_inds_per_sp <- distr_params$IndividualsPerSpecies
 
   dimPlot <- dim(microhab_mat)[1:3]
@@ -141,19 +149,10 @@ draw_initial_individuals <- function(distr_params, species_df,
   for (ind in ind_queue) {
 
     sp <- init_ind_mat[ind, col_sp]
+    this_sp_row <- species_df[species_df$SpeciesID == sp, ]
 
     # Find all suitable voxels for this individual
-    AreaNeededInd <- init_ind_mat[ind, col_sa]
-    hasEnoughSurface <- AvailableSurfaceArea > AreaNeededInd
-    hasEnoughLight <- array(
-      microhab_mat[, , , 3] >= species_df$MinLight[sp],
-      dim = dim(microhab_mat)[1:3] # keep same dimensions
-    )
-    hasEnoughShade <- array(
-      microhab_mat[, , , 3] <= species_df$MaxLight[sp],
-      dim = dim(microhab_mat)[1:3] # keep same dimensions
-    )
-    SuitableVoxels <- which(hasEnoughLight & hasEnoughShade & hasEnoughSurface)
+    SuitableVoxels <- get_suitable_voxels(Microhabitat, microclimate_opts, this_sp_row)
 
     if (length(SuitableVoxels) > 0) {
 
