@@ -17,7 +17,7 @@ get_suitable_voxels <- function(Microhabitat,
                                   microclimate_opts,
                                   species_row) {
 
-  layer_map <- attr(microhabitat, "layer_mapping")
+  layer_map <- attr(Microhabitat, "layer_mapping")
 
   # Base condition: Total surface area option must be present and > 0
   SuitableMask <- Microhabitat[,,,layer_map["surface_area"]] > 0

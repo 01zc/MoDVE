@@ -22,6 +22,8 @@
 #'
 resolve_growth <- function(E, SpeciesPool, Microhabitat, SurfaceBiomassScaling) {
 
+  layer_map <- attr(Microhabitat, "layer_mapping")
+
   for (i in seq_len(nrow(E))) {
 
     vox <- Microhabitat[E$X[i], E$Y[i], E$Z[i], ]
@@ -35,13 +37,17 @@ resolve_growth <- function(E, SpeciesPool, Microhabitat, SurfaceBiomassScaling) 
       growth_term <- SpeciesPool$GrowthRate[sp_row] *
         (SpeciesPool$MaximumMass[sp_row] - E$Mass[i])
 
-      # Parabolic light response
-      light_vox <- vox[3]
-      light_term <- max(0, SpeciesPool$LightResponseA[sp_row] * light_vox^2 +
-        SpeciesPool$LightResponseB[sp_row] * light_vox +
-        SpeciesPool$LightResponseC[sp_row])
+      env_term <- EnvSuitScors[E$X[i], E$Y[i], E$Z[i], E$SpeciesID[i]]
+      if (is.na(env_term) | is.nan(env_term)) {env_term <- 0}
+      all_suits_prec <- c(all_suits_prec, env_term)
+      E$Mass[i] <- E$Mass[i] + max(0, growth_term * env_term)
 
-      E$Mass[i] <- E$Mass[i] + growth_term * light_term
+      # Parabolic light response
+      #light_vox <- vox[3]
+      #light_term <- max(0, SpeciesPool$LightResponseA[sp_row] * light_vox^2 +
+      #  SpeciesPool$LightResponseB[sp_row] * light_vox +
+      #  SpeciesPool$LightResponseC[sp_row])
+      # E$Mass[i] <- E$Mass[i] + growth_term * light_term
     }
 
     # Add info about the voxel to the epiphyte matrix
@@ -50,9 +56,12 @@ resolve_growth <- function(E, SpeciesPool, Microhabitat, SurfaceBiomassScaling) 
       )
     # TODO: do we really need individual-level copies of these habitat values?
     # This is only for output, not used during simulation
-    E$TotalSurfaceInVoxel[i] <- vox[1]  # Total surface in voxel
-    E$SurfaceLossInVoxel[i] <- vox[2]  # Percentage surface loss in this year
-    E$LightInVoxel[i] <- vox[3]  # Light conditions in voxel
+    E$TotalSurfaceInVoxel[i] <- vox[which(layer_map == "surface_area")]  # Total surface in voxel
+    E$SurfaceLossInVoxel[i] <- vox[which(layer_map == "surface_area_loss")]  # Percentage surface loss in this year
+    E$LightInVoxel[i] <- vox[which(layer_map == "light")]  # Light conditions in voxel
+    E$HumInVoxel[i] <- vox[which(layer_map == "humidity")]
+    E$TempInVoxel[i] <- vox[which(layer_map == "temperature")]
+    E$WindInVoxel[i] <- vox[which(layer_map == "wind")]
   }
 
   return(E)

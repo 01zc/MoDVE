@@ -26,8 +26,11 @@ species_output_names <- function() {
     "NumberMortalityLight", "NumberMortalityCompetition",
     "NumberMortalityNatural", "PopulationGrowthRate",
     "PopulationGrowthRateLog", "BirthRate", "DeathRate", "AverageMass",
-    "AverageAge", "MinLight", "MaxLight",
-    "MeanLight", "MinHeight", "MaxHeight", "MeanHeight"
+    "AverageAge", "MinLight", "MaxLight", "MeanLight",
+    "NumberMortalityHum", "NumberMortalityTemp", "NumberMortalityWinds",
+    "MinHum", "MaxHum", "MeanHum",
+    "MinTemp", "MaxTemp", "MeanTemp",
+    "MinWind", "MaxWind", "MeanWind"
   ))
 }
 
@@ -36,6 +39,7 @@ comm_output_names <- function() {
     "timeStep", "NumberSpeciesBeginning", "NumberSpeciesEnd",
     "NumberIndividualsBeginning", "NumberIndividualsEnd", "nb_recruits_matrix",
     "MortalityBranchFall", "MortalityLight", "MortalityCompetition",
-    "MortalityNatural", "BranchSurfaceIndex", "EpiphyteFilling"
+    "MortalityNatural", "MortalityHum", "MortalityTemp",
+    "MortalityWind", "BranchSurfaceIndex", "EpiphyteFilling"
   ))
 }

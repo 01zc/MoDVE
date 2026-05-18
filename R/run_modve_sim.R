@@ -255,6 +255,15 @@ run_modve_sim <- function(sim_params,
                 ": number of dimensions must be the same as the first matrix")
           )
       }
+      if (use_wind_dispersal) { # need to recalculate dispersal matrix
+        prob_disp_matrix <- calc_prob_disp_matrix(
+          expanded_mat_central_point,
+          expanded_dims,
+          SpeciesPool,
+          Microhabitat[,,, wind_idx]
+        )
+      }
+
     }
 
     # Update how many species are alive at beginning of the year
