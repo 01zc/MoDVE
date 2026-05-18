@@ -49,6 +49,9 @@
 #' * `recruitment_df` a `data.frame` summarising recruitment (expected and
 #' realised number of recruits for each species) for the output.
 #' * `max_id` the updated maximum individual ID
+#' #' @param microclimate_opts a named list with four logical elements, indicating
+#' which climatic variables to use to determine suitability:
+#' `use_light`, `use_temperature`, `use_wind`, `use_humidity`.
 #'
 #' @export
 #'
@@ -60,7 +63,9 @@ resolve_repro_dispersal <- function(E,
                              SlopeRecruitment,
                              prob_disp_matrix,
                              SpeciesPool,
-                             max_id) {
+                             max_id,
+                             microclimate_opts
+                             ) {
 
   dimPlot <- dim(Microhabitat)[1:3]
 
@@ -147,11 +152,12 @@ resolve_repro_dispersal <- function(E,
     # We will use this to populate sp_output_mat later
     recruitment_df$exptd_nb_recruits[i] <- sum(exptd_nb_recruits_matrix)
 
-    # Matrix containing all voxel for which the light requirements are fulfilled
-    pot_hab_matrix <- ifelse(
-      light_mat >= minLight & light_mat <= maxLight,
-      1, 0
-    )
+    # Matrix containing all voxel for which the environmental niche requirements are fulfilled
+    pot_hab_matrix <- get_suitable_voxels(
+      Microhabitat,
+      microclimate_opts,
+      SpeciesPool[SpeciesPool$SpeciesID == this_species,]
+      )
 
     # Disable unsuitable cells and scale with surface area
     exptd_nb_recruits_matrix <- exptd_nb_recruits_matrix *

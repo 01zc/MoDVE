@@ -13,7 +13,8 @@ resolve_repro_dispersal(
   SlopeRecruitment,
   prob_disp_matrix,
   SpeciesPool,
-  max_id
+  max_id,
+  microclimate_opts
 )
 }
 \arguments{
@@ -53,6 +54,9 @@ for each species \emph{before} dispersal and recruitment.
 \item \code{recruitment_df} a \code{data.frame} summarising recruitment (expected and
 realised number of recruits for each species) for the output.
 \item \code{max_id} the updated maximum individual ID
+#' @param microclimate_opts a named list with four logical elements, indicating
+which climatic variables to use to determine suitability:
+\code{use_light}, \code{use_temperature}, \code{use_wind}, \code{use_humidity}.
 }
 }
 \description{
