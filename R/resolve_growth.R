@@ -20,7 +20,7 @@
 #' @returns the modified epiphyte data frame
 #' @export
 #'
-resolve_growth <- function(E, SpeciesPool, Microhabitat, SurfaceBiomassScaling) {
+resolve_growth <- function(E, SpeciesPool, Microhabitat, SuitabilityMat, SurfaceBiomassScaling) {
 
   layer_map <- attr(Microhabitat, "layer_mapping")
 
@@ -37,7 +37,7 @@ resolve_growth <- function(E, SpeciesPool, Microhabitat, SurfaceBiomassScaling) 
       growth_term <- SpeciesPool$GrowthRate[sp_row] *
         (SpeciesPool$MaximumMass[sp_row] - E$Mass[i])
 
-      env_term <- EnvSuitScors[E$X[i], E$Y[i], E$Z[i], E$SpeciesID[i]]
+      env_term <- SuitabilityMat[E$X[i], E$Y[i], E$Z[i], E$SpeciesID[i]]
       if (is.na(env_term) | is.nan(env_term)) {env_term <- 0}
       all_suits_prec <- c(all_suits_prec, env_term)
       E$Mass[i] <- E$Mass[i] + max(0, growth_term * env_term)
@@ -51,9 +51,7 @@ resolve_growth <- function(E, SpeciesPool, Microhabitat, SurfaceBiomassScaling) 
     }
 
     # Add info about the voxel to the epiphyte matrix
-    E$SurfaceAreaOccupied[i] <- mass_to_surf_area(
-      E$Mass[i], SurfaceBiomassScaling
-      )
+    E$SurfaceAreaOccupied[i] <- mass_to_surf_area(E$Mass[i], SurfaceBiomassScaling)
     # TODO: do we really need individual-level copies of these habitat values?
     # This is only for output, not used during simulation
     E$TotalSurfaceInVoxel[i] <- vox[which(layer_map == "surface_area")]  # Total surface in voxel

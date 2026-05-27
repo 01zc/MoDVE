@@ -5,7 +5,7 @@ source("utils.R")
 library("doRNG")
 library("foreach")
 library("doParallel")
-# BiocManager::install("rhdf5")
+BiocManager::install("rhdf5")
 library("rhdf5")
 
 
@@ -319,8 +319,7 @@ main <- function() {
 
         # Scale by species max
         denom <- globalMaxSuitability
-        denom[is.na(denom) |
-                denom == 0] <- NA_real_
+        denom[is.na(denom) | denom == 0] <- NA_real_
         scaledSuitability <- sweep(EnvSuitability, 4, denom, "/")
 
         # MEMORY FIX 5: Remove original data as soon as possible
@@ -328,8 +327,7 @@ main <- function() {
         gc()
 
         # Calculate averages for logging
-        avgScaledSuitability <- mean(scaledSuitability, na.rm =
-                                       TRUE)
+        avgScaledSuitability <- mean(scaledSuitability, na.rm = TRUE)
         writeLines(paste0(
           "Step",
           t,
