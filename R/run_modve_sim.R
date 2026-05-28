@@ -61,7 +61,7 @@
 #'  * `LightResponseB` second term of the parabolic light-growth response function.
 #'  * `LightResponseC` third term of the parabolic light-growth response function.
 #'
-#' @param Microhabitat a 4D matrix where the first three dimensions
+#' @param Microhabitat either a 4D matrix where the first three dimensions
 #' corresponding to a 3D habitat space, and the last one containing values of:
 #' 1. the microhabitat for the available surface area,
 #' 2. % of surface area lost in the previous year (if dynamic) and
@@ -69,6 +69,15 @@
 #' or a path to a csv file containing such a matrix.
 #' If `hasDynamicMicrohabitat` is `TRUE`, `Microhabitat` must be a vector of
 #' paths to such matrices`,` with length `Timesteps`.
+#'
+#' @param SuitabilityMat array containing combined environmental suitability
+#' scores (ranging from 0 to 1) for each species and each voxel in the
+#' `Microhabitat`. As for `Microhabitat`, this can be the array itself, or a
+#' path to a HDF5 (with file extension `.h5`) containing it.
+#' If `hasDynamicMicrohabitat == TRUE`, `Suitability` must be a vector of paths
+#' to `.h5` files of length equal to the number of years.
+#' In any case, the first three dimensions of the array must match `Microhabitat`,
+#' and the last one must match the number of species.
 #'
 #' @param InitDist a `data.frame` containing the distribution and initial
 #' attributes of individuals at the beginning of the simulation, as generated
@@ -98,6 +107,7 @@
 run_modve_sim <- function(sim_params,
                           SpeciesPool,
                           Microhabitat,
+                          SuitabilityMat,
                           InitDist,
                           path_to_ind_output,
                           path_to_sp_output,
@@ -129,6 +139,13 @@ run_modve_sim <- function(sim_params,
       # Stash paths for later time steps
       microhab_files <- Microhabitat
     }
+    # Same thing for suitability scores
+    if (length(SuitabilityMat) != timeSteps) {
+      stop("For dynamic habitats, SuitabilityMat should have one element for each time step.\n")
+    } else {
+      # Stash paths for later time steps
+      suitability_files <- SuitabilityMat
+    }
   }
 
   if (!is.array(Microhabitat)) {
@@ -150,6 +167,21 @@ run_modve_sim <- function(sim_params,
   dimX <- dims[1]
   dimY <- dims[2]
   dimZ <- dims[3]
+
+  if (!is.array(SuitabilityMat)) {
+    # Then it must be a path or vector of paths
+    for (i in seq_along(SuitabilityMat)) {
+      if (!grepl("*.h5$", SuitabilityMat[i])) {
+        stop("SuitabilityMat should be an array or a valid path to a .h5 file.")
+      }
+      if (!file.exists(SuitabilityMat[i])) {
+        stop(paste0(SuitabilityMat[i], " doesn't exist.\n"))
+      }
+    }
+    # If all checks ok, read the first one
+    SuitabilityMat <- readRDS(SuitabilityMat[1])
+  }
+  check_suitability(SuitabilityMat, dims, NumberOfSpecies)
 
   # Check initial distribution input
   if (!is.data.frame(InitDist)) {
@@ -241,8 +273,8 @@ run_modve_sim <- function(sim_params,
     nbIndsAlive <- length(which(E$Status == 1))
     if (nbIndsAlive > StopNbInds) {
       writeLines(paste0(
-        "Time ", year_nb, ": population has exceeded max threshold of ", StopNbInds,
-        " individuals. Ending simulation."
+        "Time ", year_nb, ": population has exceeded max threshold of ",
+        StopNbInds, " individuals. Ending simulation."
         ))
       break
     }
@@ -266,6 +298,14 @@ run_modve_sim <- function(sim_params,
         )
       }
 
+      # Load environmental suitability scores for this timestep
+      contents <- rhdf5::h5ls(suitability_files[t])
+      if ("ScaledSuitabilityScores" %in% contents$name) {
+        SuitabilityMat <- h5read(suitability_files[t], "ScaledSuitabilityScores")
+      } else {
+        stop("Dataset 'ScaledSuitabilityScores' not found in: ", suitability_files[t])
+      }
+      check_suitability(SuitabilityMat, dims, NumberOfSpecies)
     }
 
     # Update how many species are alive at beginning of the year
@@ -296,7 +336,7 @@ run_modve_sim <- function(sim_params,
     nbRecruitsPerSpecies <- disp_items$recruitment_df$nb_recruits
 
     # Growth
-    E <- resolve_growth(E, SpeciesPool, Microhabitat, sim_params$SurfaceBiomassScaling)
+    E <- resolve_growth(E, SpeciesPool, Microhabitat, SuitabilityMat, sim_params$SurfaceBiomassScaling)
 
     # Mortality (except from competition)
     E <- resolve_mortality(E, SpeciesPool, Microhabitat, sim_params$use_mass_dep_mortality,

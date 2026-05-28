@@ -1,0 +1,12 @@
+check_suitability <- function(SuitabilityMat, dims, nb_species) {
+  dims_suit <- dim(SuitabilityMat)
+  if (dims_suit != 4) {
+    stop("SuitabilityMat must have strictly 4 dimensions.")
+  }
+  if (any(dims_suit[1:3] != dims)) {
+    stop("The x, y, and/or z dimensions of the Microhabitat and Suitability matrices differ.")
+  }
+  if (dims_suit[4] != nb_species) {
+    stop("The fourth dimension of Suitability does not match the number of species.")
+  }
+}
