@@ -47,13 +47,19 @@
 #'  values of the dispersal kernel.
 #'  * `DispersalKernelAsymmetryRandom` a length-2 numeric vector, min and max possible
 #'  values of the asymmetry coefficient, between 0 and 1.
-#'  * `HeightBreadthRandom` a length-2 numeric vector, min and max possible
-#'  values for the breadth of the height niche. The minimum and maximum relative
-#'  heights for the species are `MeanHeight` \eqn{\pm} (`HeightBreadth` /2),
-#'  where `MeanHeight` is sampled randomly between 0 and 1.
-#'  The resulting min and max relative heights are then used to sample the
-#'  minimum and maximum of the light niche:
-#'   \deqn{I_{max} * e^{-k_L \times LAI (1 - MinHeight)}}
+#'   * Either `LightBreadthRandom`, a length-2 numeric vector, giving the min and
+#'   max possible  values of the humidity niche, or equivalentlz,
+#'   `HeightBreadthRandom`, min and max possible values for the height niche.
+#'   In the latter case, the height niche is converted into light niche by the
+#'   following relation:
+#'   \deqn{I_{max} * e^{-k_L \times LAI (1 - Height)}}
+#'  * `LightBreadthRandom`
+#'  * `HumBreadthRandom` a length-2 numeric vector, min and max possible
+#'  values of the humidity niche.
+#'  * `TempBreadthRandom` a length-2 numeric vector, min and max possible
+#'  values of the temperature niche
+#'  * `WindBreadthRandom` a length-2 numeric vector, min and max possible
+#'  values of the wind niche.
 #'  * `Imax` numeric, maximum light intensity used to generate the light niche
 #'  * `LAI` numeric, the leaf area index of this species
 #'  * `kL`, the light extinction coefficient used to generate the light niche
@@ -150,7 +156,8 @@ draw_species_traits <- function(species_params) {
       sp$RecruitmentInvestmentRelMeanRandom[1],
       sp$RecruitmentInvestmentRelMeanRandom[2]
     )
-    RecruitmentInc <- stats::runif(1, sp$RecruitmentIncRandom[1], sp$RecruitmentIncRandom[2])
+    RecruitmentInc <- stats::runif(1, sp$RecruitmentIncRandom[1],
+                                   sp$RecruitmentIncRandom[2])
       # Not meaningful if no correlation
   }
   # Both parameters must be between 0 and 1
@@ -158,28 +165,50 @@ draw_species_traits <- function(species_params) {
   RecruitmentInc <- min(1, max(0, RecruitmentInc))
 
   # Dispersal
-  DispersalKernel <- stats::runif(1, sp$DispersalKernelRandom[1], sp$DispersalKernelRandom[2])
+  DispersalKernel <- stats::runif(1, sp$DispersalKernelRandom[1],
+                                  sp$DispersalKernelRandom[2])
   DispersalKernelAsymmetry <- stats::runif(1,
                                     sp$DispersalKernelAsymmetryRandom[1],
                                     sp$DispersalKernelAsymmetryRandom[2])
+  DispersalKernelWindEffect <- runif(1, min = 0, max = 1)
 
-  # Height niche
-  MeanHeight <- stats::runif(1, min = 0, max = 1)  # relative height in relation to canopy height
-  HeightBreadthTheoretical <- stats::runif(1, sp$HeightBreadthRandom[1], sp$HeightBreadthRandom[2])
-  MinHeight <- max(c(0, MeanHeight - (HeightBreadthTheoretical / 2)))
-  MaxHeight <- min(c(1, MeanHeight + (HeightBreadthTheoretical / 2)))
-
-  # Light niche
-  MinLight <- sp$Imax * exp(-sp$kL * sp$LAI * (1 - MinHeight))
-  MaxLight <- sp$Imax * exp(-sp$kL * sp$LAI * (1 - MaxHeight))
-  OptimumLight <- (MaxLight + MinLight) / 2
-  light_resp_params <- get_light_resp_params(MinLight, MaxLight, OptimumLight)
+  # Niche values
+  if (is.null(sp$LightBreadthRandom)) {
+    MinLightRandom <- sp$Imax * exp(-sp$kL * sp$LAI * (1 - sp$HeightBreadthRandom[1]))
+    MaxLightRandom <- sp$Imax * exp(-sp$kL * sp$LAI * (1 - sp$HeightBreadthRandom[2]))
+    sp$LightBreadthRandom <- c(MinLightRandom, MaxLightRandom)
+  }
+  WindMargin <- runif(1, 0.001, 1)
+  OptimumLight <- runif(1, min = sp$LightBreadthRandom[1] + 1,
+                        max = LightBreadthRandom$Light[2] - 1)
+  OptimumHum <- runif(1, min = sp$HumBreadthRandom[1] + 1,
+                      max = sp$HumBreadthRandom[2] - 1)
+  OptimumTemp <- runif(1, min = sp$TempBreadthRandom[1] + 1,
+                       max = sp$TempBreadthRandom[2] - 1)
+  OptimumWind <- runif(1, min = sp$WindBreadthRandom[1] + WindMargin,
+                       max = sp$WindBreadthRandom[2] - WindMargin)
+  MinHum <- runif(1, min = sp$HumBreadthRandom[1], max = OptimumHum)
+  MinTemp <- runif(1, min = sp$TempBreadthRandom[1], max = OptimumTemp)
+  MinWind <- runif(1, min = sp$WindBreadthRandom[1], max = OptimumWind)
+  MaxHum <- runif(1, min = OptimumHum, max = sp$HumBreadthRandom[2])
+  MaxTemp <- runif(1, min = OptimumTemp, max = sp$TempBreadthRandom[2])
+  MaxWind <- runif(1, min = OptimumWind, max = sp$WindreadthRandom[2])
+  maxLightBreadths <- min(OptimumLight - Breadths$Light[1],
+                          Breadths$Light[2] + 10 - OptimumLight)
+  LightBreadths <- runif(numNiches, min = 1, max = maxLightBreadths)
+  MinLight <- OptLight - LightBreadths
+  MaxLight <- OptimumLight + LightBreadths
 
   # Output
   sp_traits <- list(
     MaxMass, MassAtMaturity, K, DispersalKernel, DispersalKernelAsymmetry,
-    RecruitmentInvestmentRel, RecruitmentInc, MinLight, MaxLight, OptimumLight,
-    light_resp_params[1], light_resp_params[2], light_resp_params[3]
+    RecruitmentInvestmentRel, RecruitmentInc,
+    MinLight, MaxLight, OptimumLight,
+    light_resp_params[1], light_resp_params[2], light_resp_params[3],
+    MinHum, MaxHum, OptimumHum,
+    MinTemp, MaxTemp, OptimumTemp,
+    MinWind, MaxWind, OptimumWind,
+    DispersalKernelWindEffect
   )
   names(sp_traits) <- species_trait_names()
   return(sp_traits)
@@ -198,7 +227,9 @@ check_species_params <- function(species_params) {
     "CorrelationMassRecruitment",
     "DispersalKernelAsymmetryRandom",
     "DispersalKernelRandom",
-    "HeightBreadthRandom",
+    "HumBreadthRandom",
+    "TempBreadthRandom",
+    "WindBreadthRandom",
     "Imax",
     "InterceptAgeMaturity",
     "LAI",
@@ -224,6 +255,12 @@ check_species_params <- function(species_params) {
   if (length(missing_params > 0)) {
     stop(err_msg_missing_params("species_params", missing_params))
   }
+
+  if (is.null(species_params$LightBreadthRandom) &&
+      is.null(species_params$HeightBreadthRandom)) {
+    stop("species_params must contain either LightBreadthRandom or HeightBreadthRandom.")
+  }
+
 
   if (!is.logical(species_params$MaxMassLogScaleRandom)) {
     stop("MaxMassLogScaleRandom must be TRUE or FALSE.")
@@ -257,7 +294,9 @@ check_species_params <- function(species_params) {
   # Do all uniform distribution parameters have two elements?
   uniform_params <- c("MaxMassRandom", "MassAtMaturityRelativeRandom",
                       "DispersalKernelRandom", "DispersalKernelAsymmetryRandom",
-                      "HeightBreadthRandom")
+                      "HeightBreadthRandom", "HumBreadthRandom",
+                      "TempBreadthRandom",
+                      "WindBreadthRandom")
   if (!species_params$CorrelationMassRecruitment) {
     uniform_params <- c(uniform_params,
                         "RecruitmentInvestmentRelMeanRandom",
@@ -283,7 +322,9 @@ check_species_params <- function(species_params) {
 
   # Check that the following parameters are positive:
   positive_params <- c("InterceptAgeMaturity", "DispersalKernelRandom", "HeightBreadthRandom",
-                       "Imax", "LAI", "kL")
+                       "Imax", "LAI", "kL", "HumBreadthRandom",
+                       "TempBreadthRandom",
+                       "WindBreadthRandom")
   if (species_params$CorrelationMassRecruitment) {
     positive_params <- c(positive_params, "RecruitmentInvestmentRelMeanCorr")
   } else {

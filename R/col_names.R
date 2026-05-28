@@ -3,7 +3,11 @@ species_trait_names <- function() {
            "DispersalKernel", "DispersalKernelAsymmetry",
            "RecruitmentInvestmentRel", "RecruitmentInc",
            "MinLight", "MaxLight", "OptimumLight",
-           "LightResponseA", "LightResponseB", "LightResponseC"))
+           "LightResponseA", "LightResponseB", "LightResponseC",
+           "MinHum", "MaxHum", "OptimumHum",
+           "MinTemp", "MaxTemp", "OptimumTemp",
+           "MinWind", "MaxWind", "OptimumWind",
+           "DispersalKernelWindEffect"))
 }
 
 inds_input_names <- function() {
