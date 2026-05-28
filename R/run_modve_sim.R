@@ -194,8 +194,10 @@ run_modve_sim <- function(sim_params,
     col_nb_dead_base <- 11; col_growth_rate <- 12; col_growth_log <- 13
     col_birth <- 14; col_death <- 15; col_size <- 16; col_avg_age <- 17
     col_min_light <- 18; col_max_light <- 19; col_mean_light <- 20;
-    col_min_height <- 21; col_max_height <- 22; col_mean_height <- 23
-    nb_cols_sp_output <- col_mean_height
+    col_min_hum <- 21; col_max_hum <- 22; col_mean_hum <- 23
+    col_min_temp <- 24; col_max_temp <- 25; col_mean_temp <- 26
+    col_min_wind <- 27; col_max_wind <- 28; col_mean_wind <- 29
+    nb_cols_sp_output <- col_mean_wind
   }
   # Initialize Matrix where species parameters are saved
   sp_output <- array(
@@ -318,6 +320,9 @@ run_modve_sim <- function(sim_params,
       nb_dead_branch <- sum(E$Status == 3 & is_sp, na.rm = TRUE)
       nb_dead_light <- sum(E$Status == 4 & is_sp, na.rm = TRUE)
       nb_dead_base <- sum(E$Status == 5 & is_sp, na.rm = TRUE)
+      nb_dead_hum <- sum(E$Status == 6 & is_sp, na.rm = TRUE)
+      nb_dead_temp <- sum(E$Status == 7 & is_sp, na.rm = TRUE)
+      nb_dead_wind <- sum(E$Status == 8 & is_sp, na.rm = TRUE)
       nb_inds_begin <- nbIndsBeforeDisp[sp]
 
       sp_output[row_nb, col_sp_t] <- year_nb
@@ -333,6 +338,9 @@ run_modve_sim <- function(sim_params,
       sp_output[row_nb, col_nb_dead_light] <- nb_dead_light
       sp_output[row_nb, col_nb_dead_comp] <- nb_dead_comp
       sp_output[row_nb, col_nb_dead_base] <- nb_dead_base
+      sp_output[row_nb, col_nb_dead_hum] <- nb_dead_hum
+      sp_output[row_nb, col_nb_dead_temp] <- nb_dead_temp
+      sp_output[row_nb, col_nb_dead_wind] <- nb_dead_wind
 
       if (nb_alive > 0 &&  nb_inds_begin > 0) {
         sp_output[row_nb, col_growth_rate] <- sp_output[row_nb, col_nb_inds_end] /
@@ -348,11 +356,20 @@ run_modve_sim <- function(sim_params,
         sp_output[row_nb, col_min_light] <- min(E$LightInVoxel[is_sp])
         sp_output[row_nb, col_max_light] <- max(E$LightInVoxel[is_sp])
         sp_output[row_nb, col_mean_light] <- mean(E$LightInVoxel[is_sp])
-        sp_output[row_nb, col_min_height] <- min(E$Z[is_sp])
-        sp_output[row_nb, col_max_height] <- max(E$Z[is_sp])
-        sp_output[row_nb, col_mean_height] <- mean(E$Z[is_sp])
+
+        sp_output[row_nb, col_min_hum] <- min(E$HumInVoxel[is_sp])
+        sp_output[row_nb, col_max_hum] <- max(E$HumInVoxel[is_sp])
+        sp_output[row_nb, col_mean_hum] <- mean(E$HumInVoxel[is_sp])
+
+        sp_output[row_nb, col_min_temp] <- min(E$TempInVoxel[is_sp])
+        sp_output[row_nb, col_max_temp] <- max(E$TempInVoxel[is_sp])
+        sp_output[row_nb, col_mean_temp] <- mean(E$TempInVoxel[is_sp])
+
+        sp_output[row_nb, col_min_wind] <- min(E$WindInVoxel[is_sp])
+        sp_output[row_nb, col_max_wind] <- max(E$WindInVoxel[is_sp])
+        sp_output[row_nb, col_mean_wind] <- mean(E$WindInVoxel[is_sp])
       } else {
-        sp_output[row_nb, col_growth_rate:col_mean_height] <- NA
+        sp_output[row_nb, col_growth_rate:col_mean_wind] <- NA
       }
 
     } # species loop
@@ -362,6 +379,10 @@ run_modve_sim <- function(sim_params,
     MortalityBranchFall <- length(which(E$Status == 3))
     MortalityLight <- length(which(E$Status == 4))
     MortalityNatural <- length(which(E$Status == 5))
+    MortalityHum <- length(which(E$Status == 6))
+    MortalityTemp <- length(which(E$Status == 7))
+    MortalityWind <- length(which(E$Status == 8))
+
     comm_output$timeStep[t] <- year_nb
     comm_output$NumberSpeciesBeginning[t] <- InitialNumberSpecies
     comm_output$NumberSpeciesEnd[t] <- length(unique(E$SpeciesID[E$Status == 1]))
@@ -372,6 +393,9 @@ run_modve_sim <- function(sim_params,
     comm_output$MortalityLight[t] <- MortalityLight
     comm_output$MortalityCompetition[t] <- MortalityCompetition
     comm_output$MortalityNatural[t] <- MortalityNatural
+    comm_output$MortalityHumidity[t] <- MortalityHumidity
+    comm_output$MortalityTemperature[t] <- MortalityTemperature
+    comm_output$MortalityWind[t] <- MortalityWind
     comm_output$BranchSurfaceIndex[t] <- sum(Microhabitat[, , , 1]) /
       (dimX[1] * dimY[2])
     comm_output$EpiphyteFilling[t] <- sum(
@@ -388,6 +412,9 @@ run_modve_sim <- function(sim_params,
     msg <- paste_wrap(msg, "MortalityLight: ", MortalityLight)
     msg <- paste_wrap(msg, "MortalityCompetition: ", MortalityCompetition)
     msg <- paste_wrap(msg, "MortalityNatural: ", MortalityNatural)
+    msg <- paste_wrap(msg, "MortalityHumidity: ", MortalityHum)
+    msg <- paste_wrap(msg, "MortalityTemperature: ", MortalityTemp)
+    msg <- paste_wrap(msg, "MortalityWind: ", MortalityWind)
     msg <- paste_wrap(msg, "Time: ", format(Sys.time(), "%H:%M:%OS3"))
     writeLines(msg)
 

@@ -14,7 +14,8 @@ inds_input_names <- function() {
 inds_output_names <- function() {
   return(c(
     "SpeciesID", "IndividualID", "Status", "Mass", "Age", "X", "Y", "Z",
-    "TotalSurfaceInVoxel", "SurfaceLossInVoxel", "LightInVoxel"
+    "TotalSurfaceInVoxel", "SurfaceLossInVoxel", "LightInVoxel", "HumInVoxel",
+    "TempInVoxel", "WindInVoxel"
     ))
 }
 
@@ -27,7 +28,7 @@ species_output_names <- function() {
     "NumberMortalityNatural", "PopulationGrowthRate",
     "PopulationGrowthRateLog", "BirthRate", "DeathRate", "AverageMass",
     "AverageAge", "MinLight", "MaxLight", "MeanLight",
-    "NumberMortalityHum", "NumberMortalityTemp", "NumberMortalityWinds",
+    "NumberMortalityHum", "NumberMortalityTemp", "NumberMortalityWind",
     "MinHum", "MaxHum", "MeanHum",
     "MinTemp", "MaxTemp", "MeanTemp",
     "MinWind", "MaxWind", "MeanWind"
