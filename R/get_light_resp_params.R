@@ -39,3 +39,10 @@ get_light_resp_params <- function(MinLight, MaxLight, OptimumLight) {
 
   return(c(a, b, c))
 }
+
+#'
+#'@export
+get_parabolic_resp <- function(light, a, b, c) {
+  return((a * light^2) + (b * light) + c)
+}
+

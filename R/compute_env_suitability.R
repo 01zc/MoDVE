@@ -22,8 +22,7 @@ main <- function() {
     nTasks <- Sys.getenv("SLURM_CPUS_PER_TASK")
     if (nTasks != "") {
       numCores <- strtoi(nTasks)
-    }
-    else {
+    } else {
       numCores <- detectCores() - 1
     }
 
@@ -294,10 +293,9 @@ main <- function() {
       for (step in 0:timeSteps) {
         t <- InitialTimeStep + step
 
-        # MEMORY FIX 4: Fixed the typo here (double numPool)
         inFile <- file.path(
           DirectoryOutputSpeciesPool,
-          paste0("ID_SpeciesP_", numPool, "_TimeStep", t, ".h5")  # Fixed typo
+          paste0("ID_SpeciesP_", numPool, "_TimeStep", t, ".h5")
         )
         outFile <- file.path(
           DirectoryOutputSpeciesPool,

@@ -36,7 +36,7 @@ add_microclimate_layers <- function(Microhabitat, microclimate_mat, path_to_outp
     if (!grepl("*.rds$", Microhabitat)) {
       stop("Microhabitat should be an array or a valid path to a .rds file.")
     } else if (!file.exists(Microhabitat)) {
-      stop(paste0(Microhabitat[i], " doesn't exist.\n"))
+      stop(paste0(Microhabitat, " doesn't exist.\n"))
     } else {
       Microhabitat <- readRDS(Microhabitat)
     }
@@ -47,7 +47,7 @@ add_microclimate_layers <- function(Microhabitat, microclimate_mat, path_to_outp
     if (!grepl("*.rds$", microclimate_mat)) {
       stop("Microhabitat should be an array or a valid path to a .rds file.")
     } else if (!file.exists(microclimate_mat)) {
-      stop(paste0(microclimate_mat[i], " doesn't exist.\n"))
+      stop(paste0(microclimate_mat, " doesn't exist.\n"))
     } else {
       microclimate_mat <- readRDS(microclimate_mat)
     }
