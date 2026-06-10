@@ -4,20 +4,21 @@
 #' return the set of voxels which microclimatic conditions are suitable for this
 #' species.
 #'
-#' @param Microhabitat a 3-D matrix with one layer per environmental variable
-#' @param microclimate_opts a named list with four logical elements, indicating
-#' which climatic variables to use to determine suitability:
-#' `use_light`, `use_temperature`, `use_wind`, `use_humidity`.
+#' @param Microhabitat a 3-D matrix with one layer per environmental variable`.
 #' @param species_row a single row of a species data frame containing this
 #' species attributes, including climatic niche.
 #'
 #' @export
 #'
-get_suitable_voxels <- function(Microhabitat,
-                                  microclimate_opts,
-                                  species_row) {
+get_suitable_voxels <- function(Microhabitat, species_row) {
 
   layer_map <- attr(Microhabitat, "layer_mapping")
+  microclimate_opts <- list(
+    "use_light" = "light" %in% layer_map,
+    "use_temperature" = "temperature" %in% layer_map,
+    "use_humidity" = "humidity" %in% layer_map,
+    "use_wind" = "wind" %in% layer_map,
+  )
 
   # Base condition: Total surface area option must be present and > 0
   SuitableMask <- Microhabitat[,,,layer_map["surface_area"]] > 0
@@ -39,7 +40,7 @@ get_suitable_voxels <- function(Microhabitat,
   }
 
   # ---- Temperature ----
-  if (microclimate_opts$use_light$use_temperature) {
+  if (microclimate_opts$use_temperature) {
     TempIdx <- layer_map["temperature"]
     SuitableMask <- SuitableMask &
       Microhabitat[, , , TempIdx] >= species_row$MinTemp &

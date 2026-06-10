@@ -13,6 +13,7 @@
 #' * `kL` light extinction coefficient
 #' * `DistVoxToConsider` how far (in voxels and in every x and y direction)
 #' does light diffuse horizontally?
+#'
 #' @param shoot_dt a `data.frame` with branch information, with one row per
 #' branch segment and the following columns:
 #' * `xbegin` x-coordinate of the start of the segment
@@ -40,12 +41,19 @@
 #' * `z` z-coordinate of the voxel
 #' * `leafarea` leaf area in this voxel
 #'
+#' @param microclimate_mat (optional) a pre-assembled 4D array with the same X and Y
+#' dimensions as the microhabitat, containing three layers of data corresponding
+#' to the temperature, humidity and wind conditions in the voxels, respectively.
+#' The matrix must have an attribute named `layer_mapping`, a character vector
+#' containing elements `"temperature"`, `"wind"` and `"humidity"`. The order
+#' of the elements indicates the index of the corresponding layer in the matrix.
+#'
 #' @param path_to_output string, where to save output? Must be an `.rds` file
 #' or `NULL`, in which case the result matrix is returned.
-#' @param dead_branches_id integer vector containing the IDs of all branches
-#' that will die this timestep
-#' @param dead_trees_id integer vector containing the IDs of all trees that
-#' will die this timestep
+#' @param dead_branches_id (optional) integer vector containing the IDs of all branches
+#' that will die this timestep, used to calculate surface area loss.
+#' @param dead_trees_id (optional) integer vector containing the IDs of all trees that
+#' will die this timestep, used to calculate surface area loss.
 #'
 #' @export
 #'

@@ -9,10 +9,15 @@
 #' @param microclimate_mat a pre-assembled 4D array with the same X and Y
 #' dimensions as `Microhabitat`, containing three layers of data corresponding
 #' to the temperature, humidity and wind conditions in the voxels, respectively.
-#' If the Z-dimension differs from `Microhabitat`, it is either clipped
-#' (if larger), or the top layer is repeated to fill the gap (if smaller).
+#' The matrix must have an attribute named `layer_mapping`, a character vector
+#' containing elements `"temperature"`, `"wind"` and `"humidity"`. The order
+#' of the elements indicates the index of the corresponding layer in the matrix.
 #' @param path_to_output either a path ending in `.rds` indicating where to save
 #' the combined matrix, or `NULL`, in which case the output is returned.
+#'
+#' @details
+#' If the Z-dimension of `microclimate_mat` differs from `Microhabitat`, it is
+#' either clipped (if larger), or the top layer is repeated to fill the gap (if smaller).
 #'
 #' @export
 #'

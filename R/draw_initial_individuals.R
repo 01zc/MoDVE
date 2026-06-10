@@ -16,9 +16,9 @@
 #' the surface area requirement as a function of the mass of the individual:
 #' \deqn{S = M^{2/3} / g_S}
 #' @param species_df a data frame containing the species traits, as created by
-#' `draw_species_traits`
-#' @param microhab_mat a matrix containing the surface area and light conditions
-#' in each voxel, as created by [create_microhabitat_mat()]
+#' [draw_species_traits()]
+#' @param microhab_mat a matrix containing the surface area, light and optionally microclimatic
+#' conditions in each voxel, as created by [create_microhabitat_mat()]
 #' @param path_to_output a string, where (folder and name) should the output
 #' be saved? Must be `.csv`. If `NULL` (the default), no output is saved and the
 #' output is returned as a data frame instead.
@@ -52,14 +52,6 @@ draw_initial_individuals <- function(distr_params, species_df,
   check_distr_params(distr_params)
   check_species_df(species_df)
   check_microhabitat(microhab_mat)
-
-  layer_map <- attr(microhab_mat, "layer_mapping")
-  microclimate_opts <- list(
-    "use_light" = "light" %in% layer_map,
-    "use_temperature" = "temperature" %in% layer_map,
-    "use_humidity" = "humidity" %in% layer_map,
-    "use_wind" = "wind" %in% layer_map,
-    )
 
   nb_inds_per_sp <- distr_params$IndividualsPerSpecies
 
@@ -152,7 +144,7 @@ draw_initial_individuals <- function(distr_params, species_df,
     this_sp_row <- species_df[species_df$SpeciesID == sp, ]
 
     # Find all suitable voxels for this individual
-    SuitableVoxels <- get_suitable_voxels(Microhabitat, microclimate_opts, this_sp_row)
+    SuitableVoxels <- get_suitable_voxels(Microhabitat, this_sp_row)
 
     if (length(SuitableVoxels) > 0) {
 
