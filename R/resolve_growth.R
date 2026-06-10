@@ -41,13 +41,6 @@ resolve_growth <- function(E, SpeciesPool, Microhabitat, SuitabilityMat, Surface
       if (is.na(env_term) | is.nan(env_term)) {env_term <- 0}
       all_suits_prec <- c(all_suits_prec, env_term)
       E$Mass[i] <- E$Mass[i] + max(0, growth_term * env_term)
-
-      # Parabolic light response
-      #light_vox <- vox[3]
-      #light_term <- max(0, SpeciesPool$LightResponseA[sp_row] * light_vox^2 +
-      #  SpeciesPool$LightResponseB[sp_row] * light_vox +
-      #  SpeciesPool$LightResponseC[sp_row])
-      # E$Mass[i] <- E$Mass[i] + growth_term * light_term
     }
 
     # Add info about the voxel to the epiphyte matrix

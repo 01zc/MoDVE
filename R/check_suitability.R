@@ -9,4 +9,10 @@ check_suitability <- function(SuitabilityMat, dims, nb_species) {
   if (dims_suit[4] != nb_species) {
     stop("The fourth dimension of Suitability does not match the number of species.")
   }
+  if (any(SuitabilityMat < 0)) {
+    stop("Suitability scores must be strictly between 0 and 1.")
+  }
+  if (any(SuitabilityMat > 1)) {
+    stop("Suitability scores must be strictly between 0 and 1.")
+  }
 }

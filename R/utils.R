@@ -120,4 +120,21 @@ err_msg_missing_params <- function(param_name, missing_params) {
           missing_params), rep(" ", length(missing_params) + 1)))
 }
 
+load_suitability <- function(suitability_file) {
+
+  file_ext <- strsplit(suitability_file, "\\.", fixed = FALSE)[[1]][2]
+  if (file_ext == ".h5") {
+    contents <- rhdf5::h5ls(suitability_file)
+    if ("EnvironmentalSuitabilityScores" %in% contents$name) {
+      SuitabilityMat <- h5read(suitability_file, "EnvironmentalSuitabilityScores")
+    } else {
+      stop("Dataset 'EnvironmentalSuitabilityScores' not found in: ", suitability_file)
+    }
+  } else { # .rds
+    SuitabilityMat <- readRDS(suitability_file)
+  }
+
+  return(SuitabilityMat)
+}
+
 

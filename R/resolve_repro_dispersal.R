@@ -155,7 +155,6 @@ resolve_repro_dispersal <- function(E,
     # Matrix containing all voxel for which the environmental niche requirements are fulfilled
     pot_hab_matrix <- get_suitable_voxels(
       Microhabitat,
-      microclimate_opts,
       SpeciesPool[SpeciesPool$SpeciesID == this_species,]
       )
 

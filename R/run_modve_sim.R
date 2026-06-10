@@ -73,7 +73,7 @@
 #' @param SuitabilityMat array containing combined environmental suitability
 #' scores (ranging from 0 to 1) for each species and each voxel in the
 #' `Microhabitat`. As for `Microhabitat`, this can be the array itself, or a
-#' path to a HDF5 (with file extension `.h5`) containing it.
+#' path to a RDS or HDF5 (with file extension `.h5`) file containing it.
 #' If `hasDynamicMicrohabitat == TRUE`, `Suitability` must be a vector of paths
 #' to `.h5` files of length equal to the number of years.
 #' In any case, the first three dimensions of the array must match `Microhabitat`,
@@ -171,15 +171,16 @@ run_modve_sim <- function(sim_params,
   if (!is.array(SuitabilityMat)) {
     # Then it must be a path or vector of paths
     for (i in seq_along(SuitabilityMat)) {
-      if (!grepl("*.h5$", SuitabilityMat[i])) {
-        stop("SuitabilityMat should be an array or a valid path to a .h5 file.")
+      file_ext <- strsplit(SuitabilityMat[i], "\\.", fixed = FALSE)[[1]][2]
+      if (!file_ext %in% c(".rds", ".h5")) {
+        stop("SuitabilityMat must be an array, or a .rds or .h5 file")
       }
       if (!file.exists(SuitabilityMat[i])) {
         stop(paste0(SuitabilityMat[i], " doesn't exist.\n"))
       }
     }
     # If all checks ok, read the first one
-    SuitabilityMat <- readRDS(SuitabilityMat[1])
+    SuitabilityMat <- load_suitability(SuitabilityMat[1])
   }
   check_suitability(SuitabilityMat, dims, NumberOfSpecies)
 
@@ -299,12 +300,7 @@ run_modve_sim <- function(sim_params,
       }
 
       # Load environmental suitability scores for this timestep
-      contents <- rhdf5::h5ls(suitability_files[t])
-      if ("ScaledSuitabilityScores" %in% contents$name) {
-        SuitabilityMat <- h5read(suitability_files[t], "ScaledSuitabilityScores")
-      } else {
-        stop("Dataset 'ScaledSuitabilityScores' not found in: ", suitability_files[t])
-      }
+      SuitabilityMat <- load_suitability(suitability_files[t])
       check_suitability(SuitabilityMat, dims, NumberOfSpecies)
     }
 
