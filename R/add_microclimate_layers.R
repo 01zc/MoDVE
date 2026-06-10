@@ -1,8 +1,3 @@
-
-#Microhabitat <- readRDS("tests/testthat/data/microhabitat/MicrohabitatMatrix1.rds")
-#microclimate_mat <- readRDS("tests/testthat/data/microclimate/MicroclimateMatrix1.rds")[,,,c(1, 7, 11)]
-#path_to_output
-
 #' Expand microhabitat matrix with microclimate layers
 #'
 #' Add temperature, humidity and wind layers to the microhabitat matrix, from
@@ -23,12 +18,14 @@
 #'
 add_microclimate_layers <- function(Microhabitat, microclimate_mat, path_to_output = NULL) {
 
-  dir_output <- dirname(path_to_output)
-  if (!dir.exists(dir_output)) {
-    stop(paste0("Output directory ", dir_output, " does not exist."))
-  }
-  if (!grepl("*.rds$", path_to_output)) {
-    stop("path_to_output must be a rds file")
+  if (!is.null(path_to_output)) {
+    dir_output <- dirname(path_to_output)
+    if (!dir.exists(dir_output)) {
+      stop(paste0("Output directory ", dir_output, " does not exist."))
+    }
+    if (!grepl("*.rds$", path_to_output)) {
+      stop("path_to_output must be a rds file")
+    }
   }
 
   # Load Microhabitat if not needed
@@ -41,6 +38,7 @@ add_microclimate_layers <- function(Microhabitat, microclimate_mat, path_to_outp
       Microhabitat <- readRDS(Microhabitat)
     }
   }
+  check_microhabitat(Microhabitat)
 
   # Load Microclimate if needed
   if (!is.array(microclimate_mat)) {
@@ -53,6 +51,18 @@ add_microclimate_layers <- function(Microhabitat, microclimate_mat, path_to_outp
     }
   }
 
+  layer_map_mcc <- attr(microclimate_mat, "layer_mapping")
+  layer_map_mhb <- attr(Microhabitat, "layer_mapping")
+  exptd_layers <- c("temperature", "wind", "temperature")
+  nb_layers <- length(layer_map_mcc) # for future generalisation to other layers
+
+  if (is.null(layer_map_mcc)) {
+    stop("Microclimate matrix must have an attribute named layer_mapping indicating the names (and position) of environmental layers.")
+  }
+  if (any(!exptd_layers %in% layer_map_mhb)) {
+    stop("Microclimate matrix must contain the following layers: temperature, humidity and wind.")
+  }
+
   dims_mcc <- dim(microclimate_mat)
   dims_mhb <- dim(Microhabitat)
 
@@ -60,14 +70,18 @@ add_microclimate_layers <- function(Microhabitat, microclimate_mat, path_to_outp
     stop("microclimate_mat must contain 3 layers of data (temperature, humidity, and wind).")
   }
 
+  if (nb_layers != dims_mcc[4]) {
+    stop("Number of layers in the microclimate matrix does not match its layer mapping attribute.")
+  }
+
   if (!all(dim(microclimate_mat)[1:2] == dims_mhb[1:2])) {
-    stop("Microhabitat and Microclimate matrices must have the same dimensions.")
+    stop("Microhabitat and Microclimate matrices must have the same x and y dimensions.")
   }
   microclimate_mat <- microclimate_mat[1:dims_mhb[1], 1:dims_mhb[2],,]
 
   # Initialise updated matrix
   dims_new <- dims_mhb
-  dims_new[4] <- dims_new[4] + 3
+  dims_new[4] <- dims_new[4] + dims_mcc[4]
   new_microhab_mat <- array(rep(as.numeric(NA), prod(dims_new)), dim = dims_new)
   new_microhab_mat[,,,1:dims_mhb[4]] <- Microhabitat
   rm(Microhabitat)
@@ -91,6 +105,8 @@ Top layer is duplicated ", z_diff, " times to fill the gap."
     z_range <- (dims_mcc[3] + 1):(dims_mcc[3] + z_diff)
     new_microhab_mat[,,z_range, mcc_indices] <- top_layer
   }
+
+  attr(microhab_mat, "layer_mapping") <- c(layer_map_mhb, layer_map_mcc)
 
   if (!is.null(path_to_output)) {
     saveRDS(new_microhab_mat, path_to_output)

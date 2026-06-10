@@ -13,12 +13,6 @@
 #' * `kL` light extinction coefficient
 #' * `DistVoxToConsider` how far (in voxels and in every x and y direction)
 #' does light diffuse horizontally?
-#' * `calcSurfaceArea` TRUE/FALSE, should available surface area be
-#' calculated?
-#' * `calcSurfaceAreaLoss` TRUE/FALSE, should loss of surface are
-#' (between timesteps) be calculated?
-#' * `calcLightConditions` TRUE/FALSE, should light intensity in each voxel
-#' be calculated?
 #' @param shoot_dt a `data.frame` with branch information, with one row per
 #' branch segment and the following columns:
 #' * `xbegin` x-coordinate of the start of the segment
@@ -39,9 +33,8 @@
 #' * `diameter` diameter of the tree trunk
 #' * `treeID` unique identifier for this tree.
 #'
-#' @param vox_dt only required if `calcLightConditionsOpt = TRUE`,
-#' a `data.frame` specifying the total leaf area in each voxel, with the
-#' following columns:
+#' @param vox_dt a `data.frame` specifying the total leaf area in each voxel,
+#' with the following columns:
 #' * `x` x-coordinate of the voxel
 #' * `y` y-coordinate of the voxel
 #' * `z` z-coordinate of the voxel
@@ -56,11 +49,13 @@
 #'
 #' @export
 #'
-create_microhabitat_mat <- function(config, shoot_dt, trunk_dt, vox_dt = NULL,
+create_microhabitat_mat <- function(config, shoot_dt, trunk_dt, vox_dt,
+                                    microclimate_mat = NULL,
                                     path_to_output = NULL, dead_branches_id = NULL,
                                     dead_trees_id = NULL) {
   # Inputs are correct
   # check_config(config)
+
   # DistVoxToConsider <= corridor
   if (is.null(config$Imax))
     stop("Element Imax is missing from config list.")
@@ -73,9 +68,8 @@ create_microhabitat_mat <- function(config, shoot_dt, trunk_dt, vox_dt = NULL,
     utils::read.table(trunk_dt, sep = "\t",  header = TRUE, skip = 8)
   check_trunk_dt(trunk_dt)
 
-  if (config$calcLightConditions) {
-    if (is.character(vox_dt))
-      utils::read.table(vox_dt, sep = "\t",  header = TRUE, skip = 1)
+  if (is.character(vox_dt))
+    utils::read.table(vox_dt, sep = "\t",  header = TRUE, skip = 1)
    check_vox_dt(vox_dt)
   }
 
@@ -99,12 +93,10 @@ create_microhabitat_mat <- function(config, shoot_dt, trunk_dt, vox_dt = NULL,
   forest_max_y <- MaxY + 2 * corridor
   voxel_area <- 100^2
 
-
   # Element indices of the matrix
   sa_elt <- 1
   sa_loss_elt <- 2
   light_elt <- 3
-  pai_elt <- 4
 
   microhab_mat <- array(
     rep(0, dimPlot[1] * dimPlot[2] * dimPlot[3] * 4),
@@ -140,11 +132,9 @@ create_microhabitat_mat <- function(config, shoot_dt, trunk_dt, vox_dt = NULL,
       z <- v[3]
       voxel <- microhab_mat[x, y, z, ]
 
-      if (config$calcSurfaceArea) {
-        microhab_mat[x, y, z, sa_elt] <- voxel[sa_elt] + seg_surface_area
-      }
+      microhab_mat[x, y, z, sa_elt] <- voxel[sa_elt] + seg_surface_area
 
-      if (config$calcSurfaceAreaLoss && shoot_dt$shootID[s] %in% dead_branches_id) {
+      if (shoot_dt$shootID[s] %in% dead_branches_id) {
         microhab_mat[x, y, z, sa_loss_elt] <- voxel[sa_loss_elt] +
         seg_surface_area
       }
@@ -186,77 +176,71 @@ create_microhabitat_mat <- function(config, shoot_dt, trunk_dt, vox_dt = NULL,
     } # z in z seq
   } # t in trunk set
 
-  #
-  if (config$calcSurfaceArea || config$calcLightConditions) {
+  # Total leaf area in each column
+  # Must process voxels in the corridor too as they affect neighbouring voxels
+  leaf_area_mat <- light_mat <- array(
+    rep(0, forest_max_x * forest_max_y * MaxZ),
+    dim = c(forest_max_x, forest_max_y, MaxZ)
+  )
 
-    # Total leaf area in each column
-    # Must process voxels in the corridor too as they affect neighbouring voxels
-    leaf_area_mat <- light_mat <- array(
-      rep(0, forest_max_x * forest_max_y * MaxZ),
-      dim = c(forest_max_x, forest_max_y, MaxZ)
-    )
-
-    # Store information on leaf area in matrix
-    for (vx in seq_len(nrow(vox_dt))) {
-      x <- vox_dt$x[vx]
-      y <- vox_dt$y[vx]
-      z <- vox_dt$z[vx]
-      leaf_area_mat[x, y, z] <- vox_dt$leafarea[vx]
-    }
-    # leaf_area_mat[cbind(vox_dt$x, vox_dt$y, vox_dt$z)] <- vox_dt$leafarea
+  # Store information on leaf area in matrix
+  for (vx in seq_len(nrow(vox_dt))) {
+    x <- vox_dt$x[vx]
+    y <- vox_dt$y[vx]
+    z <- vox_dt$z[vx]
+    leaf_area_mat[x, y, z] <- vox_dt$leafarea[vx]
   }
+  # leaf_area_mat[cbind(vox_dt$x, vox_dt$y, vox_dt$z)] <- vox_dt$leafarea
+
 
   # Calculate light conditions in voxels (relative light conditions)
-  if (config$calcLightConditions) {
+  light_range <- config$DistVoxToConsider
 
-    light_range <- config$DistVoxToConsider
+  # Total leaf area in each column
+  # Must process voxels in the corridor too as they affect neighbouring voxels
+  light_mat <- leaf_area_mat
 
-    # Total leaf area in each column
-    # Must process voxels in the corridor too as they affect neighbouring voxels
-    light_mat <- leaf_area_mat
-
-    # Calculate single column light conditions based on leaf area distribution
-    for (x in seq_len(forest_max_x)) {
-      for (y in seq_len(forest_max_y)) {
-        for (z in seq_len(MaxZ)) {
-          total_leaf_area <- sum(leaf_area_mat[x, y, z:MaxZ])
-          light_mat[x, y, z] <- exp(-config$kL * total_leaf_area / voxel_area)
-        }
+  # Calculate single column light conditions based on leaf area distribution
+  for (x in seq_len(forest_max_x)) {
+    for (y in seq_len(forest_max_y)) {
+      for (z in seq_len(MaxZ)) {
+        total_leaf_area <- sum(leaf_area_mat[x, y, z:MaxZ])
+        light_mat[x, y, z] <- exp(-config$kL * total_leaf_area / voxel_area)
       }
     }
+  }
 
-    # Calculate final light conditions by accounting for the light
-    # conditions in adjacent voxels
-    # x and y are indices in the full matrix including corridors
-    for (x in seq(from = corridor + 1, to = forest_max_x - corridor)) {
-      for (y in seq(from = corridor + 1, to = forest_max_y - corridor)) {
-        for (z in seq_len(MaxZ)) {
-          total_contribtn <- 0
+  # Calculate final light conditions by accounting for the light
+  # conditions in adjacent voxels
+  # x and y are indices in the full matrix including corridors
+  for (x in seq(from = corridor + 1, to = forest_max_x - corridor)) {
+    for (y in seq(from = corridor + 1, to = forest_max_y - corridor)) {
+      for (z in seq_len(MaxZ)) {
+        total_contribtn <- 0
 
-          # loop over ring surrounding the focal voxel
-          xx_seq <- seq(from = x - light_range, to = x + light_range)
-          yy_seq <- seq(from = y - light_range, to = y + light_range)
-          for (xx in xx_seq) {
-            for (yy in yy_seq) {
-              ring_index <- max(abs(xx - x), abs(yy - y))
-              rel_contribtn <- 1 / (light_range + 1) / max(1, (ring_index * 8)) *
-                light_mat[xx, yy, z]
-              total_contribtn <- total_contribtn + rel_contribtn
-            }
+        # loop over ring surrounding the focal voxel
+        xx_seq <- seq(from = x - light_range, to = x + light_range)
+        yy_seq <- seq(from = y - light_range, to = y + light_range)
+        for (xx in xx_seq) {
+          for (yy in yy_seq) {
+            ring_index <- max(abs(xx - x), abs(yy - y))
+            rel_contribtn <- 1 / (light_range + 1) / max(1, (ring_index * 8)) *
+              light_mat[xx, yy, z]
+            total_contribtn <- total_contribtn + rel_contribtn
           }
-          microhab_mat[x - corridor, y - corridor, z, light_elt] <- total_contribtn
-        } # z
-      } # y
-    } # x
+        }
+        microhab_mat[x - corridor, y - corridor, z, light_elt] <- total_contribtn
+      } # z
+    } # y
+  } # x
 
-    microhab_mat[,,,light_elt] <- microhab_mat[,,,light_elt] * config$Imax
+  microhab_mat[,,,light_elt] <- microhab_mat[,,,light_elt] * config$Imax
 
-  } # lightConditions
+  attr(microhab_mat, "layer_mapping") <- c("surface_area", "surface_area_loss", "light")
 
-  if (config$calcSurfaceArea) {
-    # Compute PAI
-    microhabitat[ , , , pai_elt] <- microhab_mat[,,, sa_elt] +
-      leaf_area_mat / 10000 # TODO: do both matrices use the same indexing range?
+  # Microclimatic data layers
+  if (!is.null(microclimate_mat)) {
+    microhab_mat <- add_microclimate_layers(microhab_mat, microclimate_mat)
   }
 
   if (!is.null(path_to_output)) {
