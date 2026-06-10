@@ -40,6 +40,17 @@ get_light_resp_params <- function(MinLight, MaxLight, OptimumLight) {
   return(c(a, b, c))
 }
 
+#' Get light parabolic response
+#'
+#' Transform a given light incidence into a suitability score between 0 and 1
+#' using light niche parameters a, b and c.
+#'
+#' @param light a light incidence value
+#' @param a parabolic parameter characterising the light niche
+#' @param b parabolic parameter characterising the light niche
+#' @param c parabolic parameter characterising the light niche
+#'
+#' @return a suitability score between 0 and 1
 #'
 #'@export
 get_parabolic_resp <- function(light, a, b, c) {

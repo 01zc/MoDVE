@@ -48,12 +48,11 @@
 #'  * `DispersalKernelAsymmetryRandom` a length-2 numeric vector, min and max possible
 #'  values of the asymmetry coefficient, between 0 and 1.
 #'   * Either `LightBreadthRandom`, a length-2 numeric vector, giving the min and
-#'   max possible  values of the humidity niche, or equivalentlz,
+#'   max possible  values of the light niche, or equivalently,
 #'   `HeightBreadthRandom`, min and max possible values for the height niche.
-#'   In the latter case, the height niche is converted into light niche by the
+#'   In the latter case, height niche parameters are converted into light niche parameters by the
 #'   following relation:
 #'   \deqn{I_{max} * e^{-k_L \times LAI (1 - Height)}}
-#'  * `LightBreadthRandom`
 #'  * `HumBreadthRandom` a length-2 numeric vector, min and max possible
 #'  values of the humidity niche.
 #'  * `TempBreadthRandom` a length-2 numeric vector, min and max possible
@@ -72,6 +71,8 @@
 #' * The growth rate (\eqn{K}) is derived after the Bertalanffy growth curve,
 #' \deqn{M = M_{max} (1 - e^{-K*Age})}, which we resolve for \eqn{K} at the
 #' maturity age and mass.
+#'
+#'
 #' * The center of the height niche (relative to canopy height) is
 #' sampled between 0 and 1. The breadth of this height niche is sampled between
 #' the values of `HeightBreadthRandom`.
@@ -81,6 +82,19 @@
 #' being their mean. These values are use to define the parabolic light
 #' response with parameters `LightResponseA`, `LightResponseB`, `LightResponseC`
 #' such that `MinLight` and `MaxLight` correspond to 0 and `OptimumLight` to 1.
+#'
+#' * For the humidity, temperature and wind niches, the optimum value is first
+#' sampled in U(min+1, max-1), the minimum value in U(min, opt), and the maximum
+#' in U(opt, max). This ensures that `MinTemp < OptimumTemp < MaxTemp`
+#' (and equivalently for other climatic traits).
+#'
+#' * The light niche must be symmetric. For this reason, `OptimumLight` is first
+#' sampled in U(min+1, max-1) (where min and max are the elements of `LightBreadthRandom`).
+#' Then a light niche span is sampled in U(1, min(opt-min, max-opt+10)).
+#' The sampled value is respectively subtracted and added to `OptimumLight` to
+#' obtain parameters `MinLight` and `MaxLight`. Finally, the three parameters are
+#' used to calibrate parameters A, B, C of a parabolic response such that
+#' `MinLight` and `MaxLight` correspond to 0 and `OptimumLight` to 1.
 #'
 #' @returns a named list of numeric containing the following traits:
 #'  * `MaximumMass` positive numeric, the maximum mass an individual can reach.
@@ -108,11 +122,31 @@
 #'  species can survive
 #'  * `OptimumLight` positive numeric, optimum light conditions under which
 #'  individuals of this species
-#'  grow and reproduce at the maximum rate. It is calculated as the average of
-#'  `MinLight` and `MaxLight.`
+#'  grow and reproduce at the maximum rate.
 #'  * `LightResponseA` first term of the parabolic light-growth response function.
 #'  * `LightResponseB` second term of the parabolic light-growth response function.
 #'  * `LightResponseC` third term of the parabolic light-growth response function.
+#'  * `MinTemp` positive numeric, minimum temperature conditions under which this
+#'  species can survive
+#'  * `MaxTemp` positive numeric, maximum temperature conditions under which this
+#'  species can survive
+#'  * `OptimumTemp` positive numeric, optimum temperature conditions under which
+#'  individuals of this species
+#'  grow and reproduce at the maximum rate.
+#'  * `MinHum` positive numeric, minimum humidity conditions under which this
+#'  species can survive
+#'  * `MaxHum` positive numeric, maximum humidity conditions under which this
+#'  species can survive
+#'  * `OptimumHum` positive numeric, optimum humidity conditions under which
+#'  individuals of this species
+#'  grow and reproduce at the maximum rate.
+#'  * `MinWind` positive numeric, minimum wind conditions under which this
+#'  species can survive
+#'  * `MaxWind` positive numeric, maximum wind conditions under which this
+#'  species can survive
+#'  * `OptimumWind` positive numeric, optimum wind conditions under which
+#'  individuals of this species
+#'  grow and reproduce at the maximum rate.
 #'
 #' @export
 #'
@@ -180,7 +214,7 @@ draw_species_traits <- function(species_params) {
   }
   WindMargin <- runif(1, 0.001, 1)
   OptimumLight <- runif(1, min = sp$LightBreadthRandom[1] + 1,
-                        max = LightBreadthRandom$Light[2] - 1)
+                        max = sp$LightBreadthRandom[2] - 1)
   OptimumHum <- runif(1, min = sp$HumBreadthRandom[1] + 1,
                       max = sp$HumBreadthRandom[2] - 1)
   OptimumTemp <- runif(1, min = sp$TempBreadthRandom[1] + 1,
@@ -190,14 +224,21 @@ draw_species_traits <- function(species_params) {
   MinHum <- runif(1, min = sp$HumBreadthRandom[1], max = OptimumHum)
   MinTemp <- runif(1, min = sp$TempBreadthRandom[1], max = OptimumTemp)
   MinWind <- runif(1, min = sp$WindBreadthRandom[1], max = OptimumWind)
+
   MaxHum <- runif(1, min = OptimumHum, max = sp$HumBreadthRandom[2])
   MaxTemp <- runif(1, min = OptimumTemp, max = sp$TempBreadthRandom[2])
   MaxWind <- runif(1, min = OptimumWind, max = sp$WindreadthRandom[2])
-  maxLightBreadths <- min(OptimumLight - Breadths$Light[1],
-                          Breadths$Light[2] + 10 - OptimumLight)
-  LightBreadths <- runif(numNiches, min = 1, max = maxLightBreadths)
-  MinLight <- OptLight - LightBreadths
-  MaxLight <- OptimumLight + LightBreadths
+
+  # Light niche must be symmetric
+  max_light_niche_span <- min(
+    OptimumLight - sp$LightBreadthRandom[1],
+    sp$LightBreadthRandom[2] - OptimumLight + 10
+  ) # Ensure that light breadth does not exceed the range of light values
+  light_niche_span <- runif(1, min = 1, max = max_light_niche_span)
+  MinLight <- OptimumLight - light_niche_span
+  MaxLight <- OptimumLight + light_niche_span
+
+  light_resp_params <- get_light_resp_params(MinLight, MaxLight, OptimumLight)
 
   # Output
   sp_traits <- list(
