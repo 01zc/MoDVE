@@ -49,9 +49,6 @@
 #' * `recruitment_df` a `data.frame` summarising recruitment (expected and
 #' realised number of recruits for each species) for the output.
 #' * `max_id` the updated maximum individual ID
-#' #' @param microclimate_opts a named list with four logical elements, indicating
-#' which climatic variables to use to determine suitability:
-#' `use_light`, `use_temperature`, `use_wind`, `use_humidity`.
 #'
 #' @export
 #'
@@ -63,8 +60,7 @@ resolve_repro_dispersal <- function(E,
                              SlopeRecruitment,
                              prob_disp_matrix,
                              SpeciesPool,
-                             max_id,
-                             microclimate_opts
+                             max_id
                              ) {
 
   dimPlot <- dim(Microhabitat)[1:3]

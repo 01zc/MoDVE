@@ -23,6 +23,13 @@
 resolve_growth <- function(E, SpeciesPool, Microhabitat, SuitabilityMat, SurfaceBiomassScaling) {
 
   layer_map <- attr(Microhabitat, "layer_mapping")
+  microclimate_opts <- get_microclimate_opts(Microhabitat)
+  idx_sa <- which(layer_map == "surface_area")
+  idx_sa_loss <- which(layer_map == "surface_area_loss")
+  idx_light <- which(layer_map == "light")
+  idx_temperature <- which(layer_map == "temperature")
+  idx_wind <- which(layer_map == "wind")
+  idx_humidity <- which(layer_map == "humidity")
 
   for (i in seq_len(nrow(E))) {
 
@@ -47,12 +54,12 @@ resolve_growth <- function(E, SpeciesPool, Microhabitat, SuitabilityMat, Surface
     E$SurfaceAreaOccupied[i] <- mass_to_surf_area(E$Mass[i], SurfaceBiomassScaling)
     # TODO: do we really need individual-level copies of these habitat values?
     # This is only for output, not used during simulation
-    E$TotalSurfaceInVoxel[i] <- vox[which(layer_map == "surface_area")]  # Total surface in voxel
-    E$SurfaceLossInVoxel[i] <- vox[which(layer_map == "surface_area_loss")]  # Percentage surface loss in this year
-    E$LightInVoxel[i] <- vox[which(layer_map == "light")]  # Light conditions in voxel
-    E$HumInVoxel[i] <- vox[which(layer_map == "humidity")]
-    E$TempInVoxel[i] <- vox[which(layer_map == "temperature")]
-    E$WindInVoxel[i] <- vox[which(layer_map == "wind")]
+    E$TotalSurfaceInVoxel[i] <- vox[idx_sa]  # Total surface in voxel
+    E$SurfaceLossInVoxel[i] <- vox[idx_sa_loss]  # Percentage surface loss in this year
+    E$LightInVoxel[i] <- vox[idx_light]  # Light conditions in voxel
+    if (microclimate_opts$use_humidity) E$HumInVoxel[i] <- vox[idx_humidity]
+    if (microclimate_opts$use_temperature) E$TempInVoxel[i] <- vox[idx_temperature]
+    if (microclimate_opts$use_wind) E$WindInVoxel[i] <- vox[idx_wind]
   }
 
   return(E)

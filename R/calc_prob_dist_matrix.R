@@ -28,6 +28,8 @@ calc_prob_disp_matrix <- function(expanded_mat_central_point,
                                   SpeciesPool,
                                   WindSpeed = NULL
                                   ) {
+  use_wind_dispersal <- !is.null(WindSpeed)
+
   # Calculate distance to central point
   DistanceMatrix <- array(
     rep(0, prod(expanded_dims)),
@@ -44,7 +46,7 @@ calc_prob_disp_matrix <- function(expanded_mat_central_point,
   }
 
   expanded_wind_mat <- 0
-  if (!is.null(WindSpeed)) {
+  if (use_wind_dispersal) {
     # Modify the windspeed matrix to match the larger distance matrix
     expanded_wind_mat <- array(0, dim = expanded_dims)
 
@@ -70,9 +72,13 @@ calc_prob_disp_matrix <- function(expanded_mat_central_point,
     exponentE <- SpeciesPool$DispersalKernel[i]
 
     # Scale the dispersal kernel by wind speed (depending on species specific wind dispersal)
-    dispersalWindEffect <- SpeciesPool$DispersalKernelWindEffect[i]
-    WindExponentE <- exponentE / (1 + dispersalWindEffect * expanded_wind_mat)
-    ProbabilityMatrix[, , , i] <- exp(-DistanceMatrix * WindExponentE)  # call to negExp(DistanceMatrix(:,:,:),exponentE) in matlab
+    if (use_wind_dispersal) {
+      dispersalWindEffect <- SpeciesPool$DispersalKernelWindEffect[i]
+      WindExponentE <- exponentE / (1 + dispersalWindEffect * expanded_wind_mat)
+      ProbabilityMatrix[, , , i] <- exp(-DistanceMatrix * WindExponentE)
+    } else {
+      ProbabilityMatrix[, , , i] <- exp(-DistanceMatrix * exponentE)
+    }
 
     # Dispersal asymmetry (probability to disperse downwards > upwards)
     dispersalAsymmetry <- SpeciesPool$DispersalKernelAsymmetry[i]

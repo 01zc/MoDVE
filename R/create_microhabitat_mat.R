@@ -78,8 +78,7 @@ create_microhabitat_mat <- function(config, shoot_dt, trunk_dt, vox_dt,
 
   if (is.character(vox_dt))
     utils::read.table(vox_dt, sep = "\t",  header = TRUE, skip = 1)
-   check_vox_dt(vox_dt)
-  }
+  check_vox_dt(vox_dt)
 
   if (!is.null(path_to_output)) {
     dir_output <- dirname(path_to_output)
@@ -107,9 +106,10 @@ create_microhabitat_mat <- function(config, shoot_dt, trunk_dt, vox_dt,
   light_elt <- 3
 
   microhab_mat <- array(
-    rep(0, dimPlot[1] * dimPlot[2] * dimPlot[3] * 4),
-    dim = c(dimPlot[1], dimPlot[2], dimPlot[3], 4)
+    rep(0, dimPlot[1] * dimPlot[2] * dimPlot[3] * 3),
+    dim = c(dimPlot[1], dimPlot[2], dimPlot[3], 3)
   )
+  attr(microhab_mat, "layer_mapping") <- c("surface_area", "surface_area_loss", "light")
 
   for (s in seq_len(nrow(shoot_dt))) {
 
@@ -243,8 +243,6 @@ create_microhabitat_mat <- function(config, shoot_dt, trunk_dt, vox_dt,
   } # x
 
   microhab_mat[,,,light_elt] <- microhab_mat[,,,light_elt] * config$Imax
-
-  attr(microhab_mat, "layer_mapping") <- c("surface_area", "surface_area_loss", "light")
 
   # Microclimatic data layers
   if (!is.null(microclimate_mat)) {

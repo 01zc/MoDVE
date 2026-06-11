@@ -12,6 +12,11 @@
 #'  * `hasDynamicMicrohabitat`: `TRUE/FALSE`, does the microhabitat matrix change
 #' with each time steps? If `TRUE`, `Microhabitat` must be a vector of paths
 #' to each of the microhabitat matrices (one per year).
+#' * `use_wind_dispersal`: `TRUE/FALSE`. If `TRUE`, wind affects dispersal by
+#' changing the kernel to
+#'  \eqn{e^{-\frac{Dist_V * D_K}{1 + D_W + W}}}
+#'  instead of the usual
+#'  \eqn{e^{-Dist_V * D_K}}
 #' * `massDepCompetition`: `TRUE` = larger individuals get priority in
 #' voxel attribution, otherwise (`FALSE`) individuals are distributed randomly.
 #' * `use_mass_dep_mortality`: if `FALSE` individuals die randomly
@@ -117,20 +122,6 @@ run_modve_sim <- function(sim_params,
   check_sim_params(sim_params)
   timeSteps <- sim_params$timeSteps
 
-  # Check species pool input
-  if (!is.data.frame(SpeciesPool)) {
-    # Then it must be a path to the input
-    if (!grepl("*.csv$", SpeciesPool)) {
-      stop("SpeciesPool should be a data frame or a valid path to a .csv file.")
-    }
-    if (!file.exists(SpeciesPool)) {
-      stop(paste0(SpeciesPool, " doesn't exist.\n"))
-    } # error
-    else SpeciesPool <- utils::read.csv(SpeciesPool, sep = ",", header = TRUE)
-  }
-  check_species_df(SpeciesPool)
-  NumberOfSpecies <- nrow(SpeciesPool)  # number of species per 25x25m plot
-
   # Check Microhabitat input
   if (sim_params$hasDynamicMicrohabitat) {
     if (length(Microhabitat) != timeSteps) {
@@ -168,6 +159,25 @@ run_modve_sim <- function(sim_params,
   dimY <- dims[2]
   dimZ <- dims[3]
 
+  layer_map <- attr(Microhabitat, "layer_mapping")
+  use_wind <- "wind" %in% layer_map
+  wind_idx <- layer_map["wind"]
+
+  # Check species pool input
+  if (!is.data.frame(SpeciesPool)) {
+    # Then it must be a path to the input
+    if (!grepl("*.csv$", SpeciesPool)) {
+      stop("SpeciesPool should be a data frame or a valid path to a .csv file.")
+    }
+    if (!file.exists(SpeciesPool)) {
+      stop(paste0(SpeciesPool, " doesn't exist.\n"))
+    } # error
+    else SpeciesPool <- utils::read.csv(SpeciesPool, sep = ",", header = TRUE)
+  }
+  check_species_df(SpeciesPool, Microhabitat)
+  NumberOfSpecies <- nrow(SpeciesPool)  # number of species per 25x25m plot
+
+  # Check suitability matrix
   if (!is.array(SuitabilityMat)) {
     # Then it must be a path or vector of paths
     for (i in seq_along(SuitabilityMat)) {
@@ -218,7 +228,7 @@ run_modve_sim <- function(sim_params,
     stop("path_to_sp_output must be a csv file")
   }
 
-  sp_output_headers <- species_output_names()
+  sp_output_headers <- species_output_names(microclimate_opts)
   {
     # Column indices
     col_sp_t <- 1; col_sp_id <- 2; col_nb_inds_begin <- 3; col_nb_inds_end <- 4;
@@ -245,7 +255,7 @@ run_modve_sim <- function(sim_params,
   if (!grepl("*.csv$", path_to_comm_output)) {
     stop("path_to_comm_output must be a csv file")
   }
-  comm_output_headers <- comm_output_names()
+  comm_output_headers <- comm_output_names(microclimate_opts)
   comm_output <- data.frame(matrix(
     0.0, nrow = timeSteps, ncol = length(comm_output_headers)
   ))
@@ -262,7 +272,8 @@ run_modve_sim <- function(sim_params,
   prob_disp_matrix <- calc_prob_disp_matrix(
     expanded_mat_central_point,
     expanded_dims,
-    SpeciesPool
+    SpeciesPool,
+    ifelse(sim_params$use_wind_dispersal, Microhabitat[,,,wind_idx], NULL)
   )
 
   # Year loop
@@ -290,12 +301,12 @@ run_modve_sim <- function(sim_params,
                 ": number of dimensions must be the same as the first matrix")
           )
       }
-      if (use_wind_dispersal) { # need to recalculate dispersal matrix
+      if (sim_params$use_wind_dispersal) { # need to recalculate dispersal matrix
         prob_disp_matrix <- calc_prob_disp_matrix(
           expanded_mat_central_point,
           expanded_dims,
           SpeciesPool,
-          Microhabitat[,,, wind_idx]
+          Microhabitat[,,,wind_idx]
         )
       }
 
@@ -374,9 +385,6 @@ run_modve_sim <- function(sim_params,
       sp_output[row_nb, col_nb_dead_light] <- nb_dead_light
       sp_output[row_nb, col_nb_dead_comp] <- nb_dead_comp
       sp_output[row_nb, col_nb_dead_base] <- nb_dead_base
-      sp_output[row_nb, col_nb_dead_hum] <- nb_dead_hum
-      sp_output[row_nb, col_nb_dead_temp] <- nb_dead_temp
-      sp_output[row_nb, col_nb_dead_wind] <- nb_dead_wind
 
       if (nb_alive > 0 &&  nb_inds_begin > 0) {
         sp_output[row_nb, col_growth_rate] <- sp_output[row_nb, col_nb_inds_end] /
@@ -393,19 +401,26 @@ run_modve_sim <- function(sim_params,
         sp_output[row_nb, col_max_light] <- max(E$LightInVoxel[is_sp])
         sp_output[row_nb, col_mean_light] <- mean(E$LightInVoxel[is_sp])
 
-        sp_output[row_nb, col_min_hum] <- min(E$HumInVoxel[is_sp])
-        sp_output[row_nb, col_max_hum] <- max(E$HumInVoxel[is_sp])
-        sp_output[row_nb, col_mean_hum] <- mean(E$HumInVoxel[is_sp])
-
-        sp_output[row_nb, col_min_temp] <- min(E$TempInVoxel[is_sp])
-        sp_output[row_nb, col_max_temp] <- max(E$TempInVoxel[is_sp])
-        sp_output[row_nb, col_mean_temp] <- mean(E$TempInVoxel[is_sp])
-
-        sp_output[row_nb, col_min_wind] <- min(E$WindInVoxel[is_sp])
-        sp_output[row_nb, col_max_wind] <- max(E$WindInVoxel[is_sp])
-        sp_output[row_nb, col_mean_wind] <- mean(E$WindInVoxel[is_sp])
+        if (microclimate_opts$use_humidity) {
+          sp_output[row_nb, col_nb_dead_hum] <- nb_dead_hum
+          sp_output[row_nb, col_min_hum] <- min(E$HumInVoxel[is_sp])
+          sp_output[row_nb, col_max_hum] <- max(E$HumInVoxel[is_sp])
+          sp_output[row_nb, col_mean_hum] <- mean(E$HumInVoxel[is_sp])
+        }
+        if (microclimate_opts$use_temperature) {
+          sp_output[row_nb, col_nb_dead_temp] <- nb_dead_temp
+          sp_output[row_nb, col_min_temp] <- min(E$TempInVoxel[is_sp])
+          sp_output[row_nb, col_max_temp] <- max(E$TempInVoxel[is_sp])
+          sp_output[row_nb, col_mean_temp] <- mean(E$TempInVoxel[is_sp])
+        }
+        if (microclimate_opts$use_wind) {
+          sp_output[row_nb, col_nb_dead_wind] <- nb_dead_wind
+          sp_output[row_nb, col_min_wind] <- min(E$WindInVoxel[is_sp])
+          sp_output[row_nb, col_max_wind] <- max(E$WindInVoxel[is_sp])
+          sp_output[row_nb, col_mean_wind] <- mean(E$WindInVoxel[is_sp])
+        }
       } else {
-        sp_output[row_nb, col_growth_rate:col_mean_wind] <- NA
+        sp_output[row_nb, col_growth_rate:ncol(sp_output)] <- NA
       }
 
     } # species loop
@@ -429,15 +444,20 @@ run_modve_sim <- function(sim_params,
     comm_output$MortalityLight[t] <- MortalityLight
     comm_output$MortalityCompetition[t] <- MortalityCompetition
     comm_output$MortalityNatural[t] <- MortalityNatural
-    comm_output$MortalityHumidity[t] <- MortalityHumidity
-    comm_output$MortalityTemperature[t] <- MortalityTemperature
-    comm_output$MortalityWind[t] <- MortalityWind
     comm_output$BranchSurfaceIndex[t] <- sum(Microhabitat[, , , 1]) /
       (dimX[1] * dimY[2])
     comm_output$EpiphyteFilling[t] <- sum(
       mass_to_surf_area(E$Mass, sim_params$SurfaceBiomassScaling)
       ) / sum(Microhabitat[, , , 1])
-
+    if (microclimate_opts$use_humidity) {
+      comm_output$MortalityHumidity[t] <- MortalityHumidity
+    }
+    if (microclimate_opts$use_temperature) {
+      comm_output$MortalityTemperature[t] <- MortalityTemperature
+    }
+    if (microclimate_opts$use_wind) {
+      comm_output$MortalityWind[t] <- MortalityWind
+    }
     # Command window information
     msg <- "--------------------------------------------"
     msg <- paste_wrap(msg, "Time step: ", year_nb)

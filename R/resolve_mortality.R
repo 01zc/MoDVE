@@ -32,6 +32,7 @@ resolve_mortality <- function(E, SpeciesPool, Microhabitat, use_mass_dep_mortali
                               MortRateRandom, MortRateMass, MortRateMassScaling) {
 
   layer_map <- attr(Microhabitat, "layer_mapping")
+  microclimate_opts <- get_microclimate_opts(Microhabitat)
   idx_sa_loss <- which(layer_map == "surface_area_loss")
   idx_light <- which(layer_map == "light")
   idx_temperature <- which(layer_map == "temperature")
@@ -42,15 +43,30 @@ resolve_mortality <- function(E, SpeciesPool, Microhabitat, use_mass_dep_mortali
     if (E$Status[i] == 1) {
 
       vox <- Microhabitat[E$X[i], E$Y[i], E$Z[i],]
-      this_species <- SpeciesPool$SpeciesID == E$SpeciesID[i]
-      min_light <- SpeciesPool$MinLight[this_species]
-      max_light <- SpeciesPool$MaxLight[this_species]
-      min_hum <- SpeciesPool$MinHumidity[this_species]
-      max_hum <- SpeciesPool$MaxHumidity[this_species]
-      min_wind <- SpeciesPool$MinWind[this_species]
-      max_wind <- SpeciesPool$MaxWind[this_species]
-      min_temp <- SpeciesPool$MinTemperature[this_species]
-      max_temp <- SpeciesPool$MaxTemperature[this_species]
+      this_sp <- SpeciesPool$SpeciesID == E$SpeciesID[i]
+      min_light <- SpeciesPool$MinLight[this_sp]
+      max_light <- SpeciesPool$MaxLight[this_sp]
+
+      suitable_humidity <- ifelse(
+        microclimate_opts$use_humidity,
+        vox[idx_humidity] >= SpeciesPool$MinHumidity[this_sp] &
+          vox[idx_humidity] <= SpeciesPool$MaxHumidity[this_sp],
+        TRUE # if not used, then humidity always suitable
+      )
+
+      suitable_temperature <- ifelse(
+        microclimate_opts$use_temperature,
+        vox[idx_temperature] >= SpeciesPool$MinTemperature[this_sp] &
+          vox[idx_temperature] <= SpeciesPool$MaxTemperature[this_sp],
+        TRUE
+      )
+
+      suitable_wind <- ifelse(
+        microclimate_opts$use_wind,
+        vox[idx_wind] >= SpeciesPool$MinWind[this_sp] &
+          vox[idx_wind] <= SpeciesPool$MaxWind[this_sp],
+        TRUE
+      )
 
       # The following comparison would fail without the is.nan check,
       # because Microhabitat contains NaNs in some entries and
@@ -79,14 +95,11 @@ resolve_mortality <- function(E, SpeciesPool, Microhabitat, use_mass_dep_mortali
                  (MortRateMass * (E$Mass[i]^MortRateMassScaling))) {
         # Mass-dependent mortality
         E$Status[i] <- 5
-      } else if ("humidity" %in% layer_map && !is.na(vox[idx_humidity]) &&
-                 (vox[idx_humidity] < min_hum | vox[idx_humidity] > max_hum)) {
+      } else if (!suitable_humidity) {
         E$Status[i] <- 6
-      } else if ("temperature" %in% layer_map && !is.na(vox[idx_temperature]) &&
-                 (vox[idx_temperature] < min_temp | vox[idx_temperature] > max_temp)) {
+      } else if (!suitable_temperature) {
         E$Status[i] <- 7
-      } else if ("wind" %in% layer_map && !is.na(vox[idx_wind]) &&
-                 min_wind > max_wind) {
+      } else if (!suitable_wind) {
         E$Status[i] <- 8
       }
     }

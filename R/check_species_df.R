@@ -1,10 +1,10 @@
-check_species_df <- function(species_df) {
+check_species_df <- function(species_df, Microhabitat = NULL) {
 
   if (nrow(species_df) < 1) {
     stop("Species trait table is empty.")
   }
 
-  exptd_params <- c("SpeciesID", species_trait_names())
+  exptd_params <- c("SpeciesID", species_trait_names(get_microclimate_opts(Microhabitat)))
 
   missing_params <- exptd_params[!exptd_params %in% names(species_df)]
   if (length(missing_params > 0)) {

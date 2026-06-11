@@ -137,4 +137,14 @@ load_suitability <- function(suitability_file) {
   return(SuitabilityMat)
 }
 
+get_microclimate_opts <- function(Microhabitat) {
+  layer_map <- attr(Microhabitat, "layer_mapping")
+  microclimate_opts <- list(
+    "use_light" = "light" %in% layer_map,
+    "use_temperature" = "temperature" %in% layer_map,
+    "use_humidity" = "humidity" %in% layer_map,
+    "use_wind" = "wind" %in% layer_map
+  )
+  return(microclimate_opts)
+}
 

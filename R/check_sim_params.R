@@ -2,7 +2,7 @@ check_sim_params <- function(sim_params) {
 
   exptd_params <- c(
     "InitialTimeStep", "timeSteps", "StopCriterionHa","hasDynamicMicrohabitat",
-    "massDepCompetition", "use_mass_dep_mortality",
+    "massDepCompetition", "use_mass_dep_mortality", "use_wind_dispersal",
     "SurfaceBiomassScaling", "SlopeRecruitment", "InterceptRecruitment"
   )
 
@@ -44,6 +44,10 @@ check_sim_params <- function(sim_params) {
 
   if (!is.logical(sim_params$hasDynamicMicrohabitat)) {
     stop("hasDynamicMicrohabitat must be TRUE or FALSE.")
+  }
+
+  if (!is.logical(sim_params$use_wind_dispersal)) {
+    stop("use_wind_dispersal must be TRUE or FALSE.")
   }
 
   if (!is.logical(sim_params$use_mass_dep_mortality)) {

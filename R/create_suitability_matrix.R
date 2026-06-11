@@ -31,7 +31,7 @@ create_suitability_matrix <- function(
 ) {
 
   check_microhabitat(Microhabitat)
-  check_species_df(SpeciesPool)
+  check_species_df(SpeciesPool, Microhabitat)
 
   # Prepare output
   dir_output <- dirname(path_to_output)
