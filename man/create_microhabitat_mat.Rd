@@ -8,7 +8,8 @@ create_microhabitat_mat(
   config,
   shoot_dt,
   trunk_dt,
-  vox_dt = NULL,
+  vox_dt,
+  microclimate_mat = NULL,
   path_to_output = NULL,
   dead_branches_id = NULL,
   dead_trees_id = NULL
@@ -26,12 +27,6 @@ of voxels on the edge of forest plots without trees.
 \item \code{kL} light extinction coefficient
 \item \code{DistVoxToConsider} how far (in voxels and in every x and y direction)
 does light diffuse horizontally?
-\item \code{calcSurfaceArea} TRUE/FALSE, should available surface area be
-calculated?
-\item \code{calcSurfaceAreaLoss} TRUE/FALSE, should loss of surface are
-(between timesteps) be calculated?
-\item \code{calcLightConditions} TRUE/FALSE, should light intensity in each voxel
-be calculated?
 }}
 
 \item{shoot_dt}{a \code{data.frame} with branch information, with one row per
@@ -58,9 +53,8 @@ tree and the following columns:
 \item \code{treeID} unique identifier for this tree.
 }}
 
-\item{vox_dt}{only required if \code{calcLightConditionsOpt = TRUE},
-a \code{data.frame} specifying the total leaf area in each voxel, with the
-following columns:
+\item{vox_dt}{a \code{data.frame} specifying the total leaf area in each voxel,
+with the following columns:
 \itemize{
 \item \code{x} x-coordinate of the voxel
 \item \code{y} y-coordinate of the voxel
@@ -68,14 +62,21 @@ following columns:
 \item \code{leafarea} leaf area in this voxel
 }}
 
+\item{microclimate_mat}{(optional) a pre-assembled 4D array with the same X and Y
+dimensions as the microhabitat, containing three layers of data corresponding
+to the temperature, humidity and wind conditions in the voxels, respectively.
+The matrix must have an attribute named \code{layer_mapping}, a character vector
+containing elements \code{"temperature"}, \code{"wind"} and \code{"humidity"}. The order
+of the elements indicates the index of the corresponding layer in the matrix.}
+
 \item{path_to_output}{string, where to save output? Must be an \code{.rds} file
 or \code{NULL}, in which case the result matrix is returned.}
 
-\item{dead_branches_id}{integer vector containing the IDs of all branches
-that will die this timestep}
+\item{dead_branches_id}{(optional) integer vector containing the IDs of all branches
+that will die this timestep, used to calculate surface area loss.}
 
-\item{dead_trees_id}{integer vector containing the IDs of all trees that
-will die this timestep}
+\item{dead_trees_id}{(optional) integer vector containing the IDs of all trees that
+will die this timestep, used to calculate surface area loss.}
 }
 \description{
 Read in forest stand simulation data from \code{MoF3D}, and compute the surface area,

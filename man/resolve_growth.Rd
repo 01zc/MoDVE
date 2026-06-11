@@ -4,7 +4,13 @@
 \alias{resolve_growth}
 \title{Resolve the growth step of the simulation}
 \usage{
-resolve_growth(E, SpeciesPool, Microhabitat, SurfaceBiomassScaling)
+resolve_growth(
+  E,
+  SpeciesPool,
+  Microhabitat,
+  SuitabilityMat,
+  SurfaceBiomassScaling
+)
 }
 \arguments{
 \item{E}{a \code{data.frame} containing the individual epiphytes present in the

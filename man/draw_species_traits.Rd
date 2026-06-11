@@ -10,6 +10,9 @@ draw_species_traits(species_params)
 \item{species_params}{a list of trait-generating parameter, which must
 contain the following elements:
 \itemize{
+\item \code{microclimate_opts} a list specifying which climatic variables are used,
+with the following named logical elements: \code{use_temperature}, \code{use_wind},
+and \code{use_humidity}.
 \item \code{MaxMassLogScaleRandom} logical. If \code{FALSE}, \code{MaxMass} is sampled in a
 uniform distribution with parameters \code{MaxMassRandom}. If \code{TRUE}, the value
 is instead sampled in a uniform of the log10's of \code{MaxMassRandom}, and the
@@ -47,13 +50,18 @@ values \code{RecruitmentIncRandom.}
 values of the dispersal kernel.
 \item \code{DispersalKernelAsymmetryRandom} a length-2 numeric vector, min and max possible
 values of the asymmetry coefficient, between 0 and 1.
-\item \code{HeightBreadthRandom} a length-2 numeric vector, min and max possible
-values for the breadth of the height niche. The minimum and maximum relative
-heights for the species are \code{MeanHeight} \eqn{\pm} (\code{HeightBreadth} /2),
-where \code{MeanHeight} is sampled randomly between 0 and 1.
-The resulting min and max relative heights are then used to sample the
-minimum and maximum of the light niche:
-\deqn{I_{max} * e^{-k_L \times LAI (1 - MinHeight)}}
+\item Either \code{LightBreadthRandom}, a length-2 numeric vector, giving the min and
+max possible  values of the light niche, or equivalently,
+\code{HeightBreadthRandom}, min and max possible values for the height niche.
+In the latter case, height niche parameters are converted into light niche parameters by the
+following relation:
+\deqn{I_{max} * e^{-k_L \times LAI (1 - Height)}}
+\item \code{HumBreadthRandom} a length-2 numeric vector, min and max possible
+values of the humidity niche.
+\item \code{TempBreadthRandom} a length-2 numeric vector, min and max possible
+values of the temperature niche
+\item \code{WindBreadthRandom} a length-2 numeric vector, min and max possible
+values of the wind niche.
 \item \code{Imax} numeric, maximum light intensity used to generate the light niche
 \item \code{LAI} numeric, the leaf area index of this species
 \item \code{kL}, the light extinction coefficient used to generate the light niche
@@ -74,6 +82,12 @@ individual gains in a single year.
 \eqn{D_{k_A} = 1} individuals disperse stricly below themselves; with
 \eqn{D_{k_A} = 0} individuals never disperse only above themselves or at
 their height.
+\item \code{DispersalKernelWindEffect} numeric between 0 and 1, a factor scaling how
+much wind affects dispersal, if applicable. If used, wind modifies the
+dispersal kernel by
+\eqn{e^{-\frac{Dist_V * D_K}{1 + D_W + W}}}
+instead of the usual
+\eqn{e^{-Dist_V * D_K}}
 \item \code{RecruitmentInvestmentRel} numeric between 0 and 1, a coefficient scaling
 the mass-dependent fecundity coefficient (see \code{\link[=resolve_repro_dispersal]{resolve_repro_dispersal()}}),
 representing the fraction of available biomass invested in fecundity
@@ -87,11 +101,31 @@ species can survive
 species can survive
 \item \code{OptimumLight} positive numeric, optimum light conditions under which
 individuals of this species
-grow and reproduce at the maximum rate. It is calculated as the average of
-\code{MinLight} and \code{MaxLight.}
+grow and reproduce at the maximum rate.
 \item \code{LightResponseA} first term of the parabolic light-growth response function.
 \item \code{LightResponseB} second term of the parabolic light-growth response function.
 \item \code{LightResponseC} third term of the parabolic light-growth response function.
+\item \code{MinTemp} positive numeric, minimum temperature conditions under which this
+species can survive
+\item \code{MaxTemp} positive numeric, maximum temperature conditions under which this
+species can survive
+\item \code{OptimumTemp} positive numeric, optimum temperature conditions under which
+individuals of this species
+grow and reproduce at the maximum rate.
+\item \code{MinHum} positive numeric, minimum humidity conditions under which this
+species can survive
+\item \code{MaxHum} positive numeric, maximum humidity conditions under which this
+species can survive
+\item \code{OptimumHum} positive numeric, optimum humidity conditions under which
+individuals of this species
+grow and reproduce at the maximum rate.
+\item \code{MinWind} positive numeric, minimum wind conditions under which this
+species can survive
+\item \code{MaxWind} positive numeric, maximum wind conditions under which this
+species can survive
+\item \code{OptimumWind} positive numeric, optimum wind conditions under which
+individuals of this species
+grow and reproduce at the maximum rate.
 }
 }
 \description{
@@ -116,5 +150,16 @@ and \code{MaxHeight} to obtain \code{MinLight} and \code{MaxLight}, with \code{O
 being their mean. These values are use to define the parabolic light
 response with parameters \code{LightResponseA}, \code{LightResponseB}, \code{LightResponseC}
 such that \code{MinLight} and \code{MaxLight} correspond to 0 and \code{OptimumLight} to 1.
+\item For the humidity, temperature and wind niches, the optimum value is first
+sampled in U(min+1, max-1), the minimum value in U(min, opt), and the maximum
+in U(opt, max). This ensures that \verb{MinTemp < OptimumTemp < MaxTemp}
+(and equivalently for other climatic traits).
+\item The light niche must be symmetric. For this reason, \code{OptimumLight} is first
+sampled in U(min+1, max-1) (where min and max are the elements of \code{LightBreadthRandom}).
+Then a light niche span is sampled in U(1, min(opt-min, max-opt+10)).
+The sampled value is respectively subtracted and added to \code{OptimumLight} to
+obtain parameters \code{MinLight} and \code{MaxLight}. Finally, the three parameters are
+used to calibrate parameters A, B, C of a parabolic response such that
+\code{MinLight} and \code{MaxLight} correspond to 0 and \code{OptimumLight} to 1.
 }
 }

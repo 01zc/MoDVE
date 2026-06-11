@@ -30,10 +30,10 @@ the surface area requirement as a function of the mass of the individual:
 }}
 
 \item{species_df}{a data frame containing the species traits, as created by
-\code{draw_species_traits}}
+\code{\link[=draw_species_traits]{draw_species_traits()}}}
 
-\item{microhab_mat}{a matrix containing the surface area and light conditions
-in each voxel, as created by \code{\link[=create_microhabitat_mat]{create_microhabitat_mat()}}}
+\item{microhab_mat}{a matrix containing the surface area, light and optionally microclimatic
+conditions in each voxel, as created by \code{\link[=create_microhabitat_mat]{create_microhabitat_mat()}}}
 
 \item{path_to_output}{a string, where (folder and name) should the output
 be saved? Must be \code{.csv}. If \code{NULL} (the default), no output is saved and the

@@ -8,6 +8,7 @@ run_modve_sim(
   sim_params,
   SpeciesPool,
   Microhabitat,
+  SuitabilityMat,
   InitDist,
   path_to_ind_output,
   path_to_sp_output,
@@ -26,6 +27,11 @@ exits.
 \item \code{hasDynamicMicrohabitat}: \code{TRUE/FALSE}, does the microhabitat matrix change
 with each time steps? If \code{TRUE}, \code{Microhabitat} must be a vector of paths
 to each of the microhabitat matrices (one per year).
+\item \code{use_wind_dispersal}: \code{TRUE/FALSE}. If \code{TRUE}, wind affects dispersal by
+changing the kernel to
+\eqn{e^{-\frac{Dist_V * D_K}{1 + D_W + W}}}
+instead of the usual
+\eqn{e^{-Dist_V * D_K}}
 \item \code{massDepCompetition}: \code{TRUE} = larger individuals get priority in
 voxel attribution, otherwise (\code{FALSE}) individuals are distributed randomly.
 \item \code{use_mass_dep_mortality}: if \code{FALSE} individuals die randomly
@@ -78,7 +84,7 @@ grow and reproduce at the maximum rate. It is calculated as the average of \code
 \item \code{LightResponseC} third term of the parabolic light-growth response function.
 }}
 
-\item{Microhabitat}{a 4D matrix where the first three dimensions
+\item{Microhabitat}{either a 4D matrix where the first three dimensions
 corresponding to a 3D habitat space, and the last one containing values of:
 \enumerate{
 \item the microhabitat for the available surface area,
@@ -88,6 +94,15 @@ or a path to a csv file containing such a matrix.
 If \code{hasDynamicMicrohabitat} is \code{TRUE}, \code{Microhabitat} must be a vector of
 paths to such matrices\verb{,} with length \code{Timesteps}.
 }}
+
+\item{SuitabilityMat}{array containing combined environmental suitability
+scores (ranging from 0 to 1) for each species and each voxel in the
+\code{Microhabitat}. As for \code{Microhabitat}, this can be the array itself, or a
+path to a RDS or HDF5 (with file extension \code{.h5}) file containing it.
+If \code{hasDynamicMicrohabitat == TRUE}, \code{Suitability} must be a vector of paths
+to \code{.h5} files of length equal to the number of years.
+In any case, the first three dimensions of the array must match \code{Microhabitat},
+and the last one must match the number of species.}
 
 \item{InitDist}{a \code{data.frame} containing the distribution and initial
 attributes of individuals at the beginning of the simulation, as generated

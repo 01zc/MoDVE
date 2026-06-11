@@ -14,8 +14,9 @@ surface area loss and light conditions in a 3D environment, assembled with
 \item{microclimate_mat}{a pre-assembled 4D array with the same X and Y
 dimensions as \code{Microhabitat}, containing three layers of data corresponding
 to the temperature, humidity and wind conditions in the voxels, respectively.
-If the Z-dimension differs from \code{Microhabitat}, it is either clipped
-(if larger), or the top layer is repeated to fill the gap (if smaller).}
+The matrix must have an attribute named \code{layer_mapping}, a character vector
+containing elements \code{"temperature"}, \code{"wind"} and \code{"humidity"}. The order
+of the elements indicates the index of the corresponding layer in the matrix.}
 
 \item{path_to_output}{either a path ending in \code{.rds} indicating where to save
 the combined matrix, or \code{NULL}, in which case the output is returned.}
@@ -23,4 +24,8 @@ the combined matrix, or \code{NULL}, in which case the output is returned.}
 \description{
 Add temperature, humidity and wind layers to the microhabitat matrix, from
 a pre-assembled matrix containing this microclimate information
+}
+\details{
+If the Z-dimension of \code{microclimate_mat} differs from \code{Microhabitat}, it is
+either clipped (if larger), or the top layer is repeated to fill the gap (if smaller).
 }

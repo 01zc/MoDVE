@@ -4,14 +4,10 @@
 \alias{get_suitable_voxels}
 \title{Find which voxels are suitable for a given species}
 \usage{
-get_suitable_voxels(Microhabitat, microclimate_opts, species_row)
+get_suitable_voxels(Microhabitat, species_row)
 }
 \arguments{
-\item{Microhabitat}{a 3-D matrix with one layer per environmental variable}
-
-\item{microclimate_opts}{a named list with four logical elements, indicating
-which climatic variables to use to determine suitability:
-\code{use_light}, \code{use_temperature}, \code{use_wind}, \code{use_humidity}.}
+\item{Microhabitat}{a 3-D matrix with one layer per environmental variable`.}
 
 \item{species_row}{a single row of a species data frame containing this
 species attributes, including climatic niche.}
