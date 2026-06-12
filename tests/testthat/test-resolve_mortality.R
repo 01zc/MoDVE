@@ -150,3 +150,208 @@ test_that("Mortality works as expected", {
   expect_true(all_alive)
 
 })
+
+create_empty_microhab <- function(dim) {
+  Microhabitat <- array(0, dim = dim)
+  attr(Microhabitat, "layer_mapping") <- c("surface_area", "surface_area_loss", "light")
+  return(Microhabitat)
+}
+
+test_that("Niche-related mortality", {
+
+  climatic_vars <- c("humidity", "temperature", "wind")
+  trait_names <- c("Hum", "Temp", "Wind")
+  names(trait_names) <- climatic_vars
+  status_dead <- 6:8
+  names(status_dead) <- climatic_vars
+
+  # Species die based on their own niche
+  for (var in climatic_vars) {
+
+    trait_name <- trait_names[var]
+
+    # Non-overlapping climate niches
+    niche_diff <- 10
+    niche_min_sp1 <- runif(1, 0, 50)
+    niche_max_sp1 <- niche_min_sp1 * runif(1, 1.05, 2)
+    niche_min_sp2 <- niche_max_sp1 + niche_diff
+    niche_max_sp2 <- niche_min_sp2 * runif(1, 1.05, 2)
+
+    # Initialise niche
+    SpeciesPool <- tibble::tibble(
+      "SpeciesID" = c(1, 2),
+      "MinLight" = 0,
+      "MaxLight" = 0,
+      "Min{trait_name}" := c(niche_min_sp1, niche_min_sp2),
+      "Max{trait_name}" := c(niche_max_sp1, niche_max_sp2)
+    )
+
+    # Environment is suitable for sp 1, unsuitable for sp2
+    microhabitat_value <- niche_min_sp1 + niche_diff / 2
+    # Initialise Microhabitat matrix
+    dimensions <- c(sample(1:5, 3, replace = TRUE), 4)
+    Microhabitat <- create_empty_microhab(dimensions)
+    attr(Microhabitat, "layer_mapping") <- c(attr(Microhabitat, "layer_mapping") , var)
+    Microhabitat[,,,4] <- microhabitat_value
+
+    # Distribute individuals randomly across space and species
+    nb_inds <- 15000
+    E <- tibble::tibble(
+      "X" = sample(1:dimensions[1], nb_inds, replace = TRUE),
+      "Y" = sample(1:dimensions[2], nb_inds, replace = TRUE),
+      "Z" = sample(1:dimensions[3], nb_inds, replace = TRUE),
+      "Status" = 1,
+      # Attribute randomly to species 1 or 2
+      "SpeciesID" = sample(1:2, nb_inds, replace = TRUE),
+      "Mass" = 0 # needs to exist but we don't use it here
+    )
+    E <- dplyr::slice_sample(E, prop = 1) # shuffle
+
+    E <- resolve_mortality(
+      E,
+      SpeciesPool,
+      Microhabitat,
+      use_mass_dep_mortality = FALSE,
+      MortRateRandom = 0, MortRateMass = 0, MortRateMassScaling = 0
+    )
+
+    testthat::expect_true(all(E[E$SpeciesID == 1, "Status"] == 1))
+    testthat::expect_true(all(E[E$SpeciesID == 2, "Status"] == status_dead[var]))
+  }
+
+  # Individuals die only where conditions are unsuitable
+  for (var in climatic_vars) {
+
+    trait_name <- trait_names[var]
+
+    # Non-overlapping climate niches
+    niche_min <- runif(1, 0, 50)
+    niche_max <- niche_min * runif(1, 1.05, 2)
+
+    # Initialise niche
+    SpeciesPool <- tibble::tibble(
+      "SpeciesID" = 1,
+      "MinLight" = 0,
+      "MaxLight" = 0,
+      "Min{trait_name}" := niche_min,
+      "Max{trait_name}" := niche_max
+    )
+
+    # Initialise Microhabitat matrix
+    dimensions <- c(sample(1:5, 3, replace = TRUE), 4)
+    Microhabitat <- create_empty_microhab(dimensions)
+    attr(Microhabitat, "layer_mapping") <- c(attr(Microhabitat, "layer_mapping") , var)
+    nb_cells <- prod(dimensions[1:3])
+
+    # Only a random subset of cells are unsuitable
+    val_suitable <- (niche_min + niche_max) / 2
+    val_unsuitable <- niche_min * 0.9
+    nb_unsuitable <- round(nb_cells * runif(1))
+    layer_values <- rep(val_suitable, nb_cells)
+    index_unsuitable <- sample(1:nb_cells, size = nb_unsuitable)
+    layer_values[index_unsuitable] <- val_unsuitable
+    Microhabitat[,,,4] <- layer_values
+
+    # Distribute individuals randomly across space and species
+    nb_inds <- 15000
+    E <- tibble::tibble(
+      "X" = sample(1:dimensions[1], nb_inds, replace = TRUE),
+      "Y" = sample(1:dimensions[2], nb_inds, replace = TRUE),
+      "Z" = sample(1:dimensions[3], nb_inds, replace = TRUE),
+      "Status" = 1,
+      # Attribute randomly to species 1 or 2
+      "SpeciesID" = 1,
+      "Mass" = 0 # needs to exist but we don't use it here
+    )
+    E <- dplyr::slice_sample(E, prop = 1) # shuffle
+
+    E <- resolve_mortality(
+      E,
+      SpeciesPool,
+      Microhabitat,
+      use_mass_dep_mortality = FALSE,
+      MortRateRandom = 0, MortRateMass = 0, MortRateMassScaling = 0
+    )
+
+    E <- E |>
+      dplyr::mutate(
+        "cell_index" = index_3d(X, Y, Z, dimensions[1], dimensions[2]),
+        "should_die" = cell_index %in% index_unsuitable
+      )
+
+    testthat::expect_true(all(E[!E$should_die, "Status"] == 1))
+    testthat::expect_true(all(E[E$should_die, "Status"] == status_dead[var]))
+  }
+
+  ##  Multiple climatic layers
+
+  # Partially-overlapping climate niches
+  niche_hum_min <- runif(1, 0, 50)
+  niche_hum_max <- niche_hum_min * runif(1, 1.05, 2)
+  niche_wind_min <- niche_hum_min
+  niche_wind_max <- (niche_hum_min + niche_hum_max) / 2
+  expect_lt(niche_wind_max, niche_hum_max)
+  val_suitable_hum <- (niche_hum_min + niche_hum_max) / 2
+  # Suitable for both
+  val_suitable <- (niche_wind_min + niche_wind_max) / 2
+  # Unsuitable for both
+  val_unsuitable <- niche_hum_max * 1.5
+
+  # Initialise niche
+  SpeciesPool <- tibble::tibble(
+    "SpeciesID" = 1,
+    "MinLight" = 0,
+    "MaxLight" = 0,
+    "MinWind" = niche_wind_min, "MaxWind" = niche_wind_max,
+    "MinHum" = niche_hum_min, "MaxHum" = niche_hum_max
+  )
+
+  dimensions <- c(sample(1:5, 3, replace = TRUE), 5)
+
+  # Distribute individuals randomly
+  nb_inds <- 100
+  E_init <- tibble::tibble(
+    "X" = sample(1:dimensions[1], nb_inds, replace = TRUE),
+    "Y" = sample(1:dimensions[2], nb_inds, replace = TRUE),
+    "Z" = sample(1:dimensions[3], nb_inds, replace = TRUE),
+    "Status" = 1,
+    # Attribute randomly to species 1 or 2
+    "SpeciesID" = 1,
+    "Mass" = 0 # needs to exist but we don't use it here
+  )
+  E_init <- dplyr::slice_sample(E_init, prop = 1) # shuffle
+
+  Microhabitat <- create_empty_microhab(dimensions)
+  attr(Microhabitat, "layer_mapping") <- c(
+    attr(Microhabitat, "layer_mapping") , "wind", "humidity"
+  )
+
+  # 1/2 - Suitable conditions for humidity but not wind
+  # All individuals should die from wind mortality
+  Microhabitat[,,,5] <- val_suitable
+  Microhabitat[,,,4] <- val_unsuitable
+  E <- resolve_mortality(
+    E_init,
+    SpeciesPool,
+    Microhabitat,
+    use_mass_dep_mortality = FALSE,
+    MortRateRandom = 0, MortRateMass = 0, MortRateMassScaling = 0
+  )
+  testthat::expect_true(all(E[, "Status"] == status_dead["wind"]))
+
+
+  # 2/2 - Unsuitable conditions for both
+  # Humidity resolved before wind so all die from wind
+  Microhabitat[,,,5] <- val_unsuitable
+  Microhabitat[,,,4] <- val_unsuitable
+  E <- resolve_mortality(
+    E_init,
+    SpeciesPool,
+    Microhabitat,
+    use_mass_dep_mortality = FALSE,
+    MortRateRandom = 0, MortRateMass = 0, MortRateMassScaling = 0
+  )
+  testthat::expect_true(all(E[, "Status"] == status_dead["humidity"]))
+})
+
+

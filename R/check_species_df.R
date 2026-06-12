@@ -4,7 +4,8 @@ check_species_df <- function(species_df, Microhabitat = NULL) {
     stop("Species trait table is empty.")
   }
 
-  exptd_params <- c("SpeciesID", species_trait_names(get_microclimate_opts(Microhabitat)))
+  microclimate_opts <- species_trait_names(get_microclimate_opts(Microhabitat))
+  exptd_params <- c("SpeciesID", microclimate_opts)
 
   missing_params <- exptd_params[!exptd_params %in% names(species_df)]
   if (length(missing_params > 0)) {
@@ -69,4 +70,5 @@ check_species_df <- function(species_df, Microhabitat = NULL) {
   if (any(species_df$MaxLight < species_df$OptimumLight)) {
     stop("All values in species_df column MaxLight should be >= MinLight")
   }
+
 }
