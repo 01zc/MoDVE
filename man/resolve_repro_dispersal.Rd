@@ -8,7 +8,6 @@ resolve_repro_dispersal(
   E,
   Microhabitat,
   SurfaceBiomassScaling,
-  centralPoint,
   InterceptRecruitment,
   SlopeRecruitment,
   prob_disp_matrix,
@@ -26,9 +25,6 @@ and light conditions.}
 \item{SurfaceBiomassScaling}{a strictly positive parameter scaling how much
 surface area an individual occupies as a function of its mass:
 \deqn{S = M^{2/3} / g_S}}
-
-\item{centralPoint}{a numeric vector of length 3 containing the central
-X, Y and Z coordinates of \code{prob_disp_matrix}}
 
 \item{InterceptRecruitment}{a positive number (or zero), the intercept of the
 relation between mass and fecundity.}

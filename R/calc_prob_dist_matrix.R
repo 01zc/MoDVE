@@ -10,10 +10,7 @@
 #' individual and cropped to the edges of the microhabitat, giving the
 #' probabilities of the offspring dispersing in each voxel.
 #'
-#' @param expanded_dims 3-element vector with the X, Y, Z dimensions of a matrix
-#' twice as large as the microhabitat matrix
-#' @param expanded_mat_central_point a numeric vector of length 3 containing the
-#'  X, Y and Z coordinates of the center of the expanded matrix
+#' @param dims 3-element vector with the X, Y, Z dimensions of a microhabitat matrix
 #' @param SpeciesPool a data frame containing the species traits of all species
 #' @param WindSpeed the wind layer of the Microhabitat matrix, either a 3-D
 #' matrix with dimensions X, Y, Z or a vector of equivalent length.
@@ -23,12 +20,14 @@
 #' @export
 #'
 
-calc_prob_disp_matrix <- function(expanded_mat_central_point,
-                                  expanded_dims,
-                                  SpeciesPool,
-                                  WindSpeed = NULL
-                                  ) {
+calc_prob_disp_matrix <- function(dims, SpeciesPool, WindSpeed = NULL) {
   use_wind_dispersal <- !is.null(WindSpeed)
+
+  # Generate probabilities to disperse in any direction from any voxel
+  # in the matrix
+  # --> we need a matrix twice as large as microhabitat
+  expanded_dims <- dims[1:3] * 2 + 1
+  expanded_mat_central_point <- dims + 1
 
   # Calculate distance to central point
   DistanceMatrix <- array(
@@ -40,7 +39,7 @@ calc_prob_disp_matrix <- function(expanded_mat_central_point,
       for (k in seq_len(expanded_dims[3])) {
         x1 <- c(i, j, k)
         x2 <- expanded_mat_central_point
-        DistanceMatrix[i, j, k] <- sqrt(sum((x1 - x2)^2))  # call to pdist() in the matlab script
+        DistanceMatrix[i, j, k] <- sqrt(sum((x1 - x2)^2))
       }
     }
   }
@@ -69,16 +68,13 @@ calc_prob_disp_matrix <- function(expanded_mat_central_point,
   for (i in seq_len(NumberOfSpecies)) {
 
     # Negative exponential
-    exponentE <- SpeciesPool$DispersalKernel[i]
-
+    exponent <- DistanceMatrix * SpeciesPool$DispersalKernel[i]
     # Scale the dispersal kernel by wind speed (depending on species specific wind dispersal)
     if (use_wind_dispersal) {
-      dispersalWindEffect <- SpeciesPool$DispersalKernelWindEffect[i]
-      WindExponentE <- exponentE / (1 + dispersalWindEffect * expanded_wind_mat)
-      ProbabilityMatrix[, , , i] <- exp(-DistanceMatrix * WindExponentE)
-    } else {
-      ProbabilityMatrix[, , , i] <- exp(-DistanceMatrix * exponentE)
+      exponent <- exponent /
+        (1 + SpeciesPool$DispersalKernelWindEffect[i] * expanded_wind_mat)
     }
+    ProbabilityMatrix[, , , i] <- exp(-exponent)
 
     # Dispersal asymmetry (probability to disperse downwards > upwards)
     dispersalAsymmetry <- SpeciesPool$DispersalKernelAsymmetry[i]

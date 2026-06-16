@@ -38,8 +38,6 @@
 #' @param prob_disp_matrix matrix, the output of [calc_prob_disp_matrix()].
 #' Contains the 3D probability distribution of dispersing to all surrounding
 #' voxels within a matrix twice as large as the `Microhabitat` matrix.
-#' @param centralPoint a numeric vector of length 3 containing the central
-#'  X, Y and Z coordinates of `prob_disp_matrix`
 #' @param max_id integer, the highest ID among all individuals
 #'
 #' @returns a list containing the following elements:
@@ -55,7 +53,6 @@
 resolve_repro_dispersal <- function(E,
                              Microhabitat,
                              SurfaceBiomassScaling,
-                             centralPoint,
                              InterceptRecruitment,
                              SlopeRecruitment,
                              prob_disp_matrix,
@@ -64,6 +61,7 @@ resolve_repro_dispersal <- function(E,
                              ) {
 
   dimPlot <- dim(Microhabitat)[1:3]
+  prob_disp_mat_center <- dimPlot + 1
 
   # Store number of individuals at beginning of time step
   NumberOfSpecies <- nrow(SpeciesPool)
@@ -118,9 +116,9 @@ resolve_repro_dispersal <- function(E,
     for (j in seq_len(nrow(mature_inds))) {
 
       dist_to_center <- c(
-        centralPoint[1] - mature_inds$X[j],
-        centralPoint[2] - mature_inds$Y[j],
-        centralPoint[3] - mature_inds$Z[j]
+        prob_disp_mat_center[1] - mature_inds$X[j],
+        prob_disp_mat_center[2] - mature_inds$Y[j],
+        prob_disp_mat_center[3] - mature_inds$Z[j]
       )
       x_coords <- seq(dist_to_center[1] + 1, dist_to_center[1] + dimPlot[1])
       y_coords <- seq(dist_to_center[2] + 1, dist_to_center[2] + dimPlot[2])
