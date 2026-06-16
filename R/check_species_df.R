@@ -71,4 +71,15 @@ check_species_df <- function(species_df, Microhabitat = NULL) {
     stop("All values in species_df column MaxLight should be >= MinLight")
   }
 
+  if (any(species_df$MaxLight < species_df$OptimumLight)) {
+    stop("All values in species_df column MaxLight should be >= MinLight")
+  }
+
+  if (microclimate_opts$use_wind) {
+    if (any(species_df$DispersalKernelWindEffect < 0 ||
+            species_df$DispersalKernelWindEffect > 1)) {
+      stop("DispersalKernelWindEffect should be between 0 and 1.")
+    }
+  }
+
 }

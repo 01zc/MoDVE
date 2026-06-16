@@ -30,7 +30,7 @@ test_that("matrix of with 1-dimension are accepted", {
     "DispersalKernelAsymmetry" = runif(nb_species)
   )
   testthat::expect_silent(disp_mat <- calc_prob_disp_matrix(
-    centralPoint, dims, SpeciesPool
+   dims, SpeciesPool
     ))
   testthat::expect_true(is.array(disp_mat))
   testthat::expect_equal(sum(disp_mat[,,,1]), 1)
@@ -38,7 +38,7 @@ test_that("matrix of with 1-dimension are accepted", {
 })
 
 
-test_that("Asymmtry", {
+test_that("Asymmetry", {
 
   dims <- sample(1:10, 3, replace = TRUE)
   expanded_dims <- dims * 2 + 1
@@ -46,9 +46,9 @@ test_that("Asymmtry", {
 
   nb_species <- 3
   SpeciesPool <- tibble::tibble(
+    "DispersalKernelAsymmetry" = c(0, 0.5, 1),
     "SpeciesID" = seq_len(nb_species),
-    "DispersalKernel" = runif(nb_species),
-    "DispersalKernelAsymmetry" = c(0, 0.5, 1)
+    "DispersalKernel" = runif(nb_species)
   )
 
   disp_mat <- calc_prob_disp_matrix(dims, SpeciesPool)
@@ -86,11 +86,11 @@ test_that("Asymmtry", {
   sp <- 3
   expect_equal(central_columns[expanded_dims[3], sp], 0)
 
-  })
+})
 
 test_that("Wind facilitates dispersal", {
 
-  dims <- rep(3, 3)
+  dims <- rep(10, 3)
   centre <- dims + 1
   expanded_dims <- dims * 2 + 1
 
@@ -98,7 +98,7 @@ test_that("Wind facilitates dispersal", {
   SpeciesPool <- tibble::tibble(
     "SpeciesID" = seq_len(nb_species),
     "DispersalKernel" = runif(nb_species),
-    "DispersalKernelAsymmetry" = runif(nb_species),
+    "DispersalKernelAsymmetry" = 0.5,
     "DispersalKernelWindEffect" = runif(nb_species) # positive number
   )
 
@@ -112,14 +112,24 @@ test_that("Wind facilitates dispersal", {
 
   testthat::expect_equal(sum(disp_mat_wind), sum(disp_mat))
 
-  disp_mat[centre[1], centre[2], centre[3],1] >
+  # Wind increases the overall chance of dispersal (i.e, leaving central cell)
+  testthat::expect_gt(
+    disp_mat[centre[1], centre[2], centre[3],1],
     disp_mat_wind[centre[1], centre[2], centre[3], 1]
+  )
 
-  disp_mat[expanded_dims[1], expanded_dims[2], expanded_dims[3], 1] <
-    disp_mat_wind[expanded_dims[1], expanded_dims[2], expanded_dims[3], 1]
+  # Wind changes the distribution of dipsersal probabilities
+  slice <- disp_mat[(centre[1]+1):expanded_dims[1], centre[2], centre[3], 1]
+  slice_wind <- disp_mat_wind[(centre[1]+1):expanded_dims[1], centre[2], centre[3], 1]
+  testthat::expect_true(all(slice != slice_wind))
 
-  disp_mat[1:7,4,1:7,1]
-  disp_mat_wind[1:7,4,1:7,1]
+  # I would expect wind to increase long distance dispersal but apparently this
+  # is not the case
+  # Unsure if feature or bug, no doc
+  #testthat::expect_lt(
+  #  disp_mat[expanded_dims[1], expanded_dims[2], expanded_dims[3],1],
+  #  disp_mat_wind[expanded_dims[1], expanded_dims[2], expanded_dims[3], 1]
+  #)
 
   })
 

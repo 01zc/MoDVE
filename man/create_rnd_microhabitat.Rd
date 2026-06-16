@@ -5,7 +5,12 @@
 \title{Create a microhabitat matrix of specified dimensions and fill its
 surface area and light layer based on species requirements}
 \usage{
-create_rnd_microhabitat(SpeciesPool, dimensions, SurfaceBiomassScaling)
+create_rnd_microhabitat(
+  SpeciesPool,
+  dimensions,
+  SurfaceBiomassScaling,
+  microclimate_vars = NULL
+)
 }
 \arguments{
 \item{SpeciesPool}{a \code{data.frame} containing one row per species and at least
@@ -17,11 +22,16 @@ the matrix.}
 \item{SurfaceBiomassScaling}{a strictly positive parameter scaling the surface
 area requirement as a function of the mass of the individual:
 \deqn{S = M^{2/3} / g_S}.}
+
+\item{microclimate_vars}{a character vector specifying which microclimatic
+variables (among \code{"humidity"} \code{"temperature"} and \code{"wind"}) should be added as
+extra layers. These layers are set to 0.}
 }
 \value{
-a 4D array where the first three dimensions are the microhabitat
-dimensions and the last dimensions contains 3 layers: surface area, surface
-area loss (not set), and light conditions.
+an array where the first three dimensions are the microhabitat
+dimensions and the last dimensions contains the environmental layers:
+surface area, surface area loss (not set), light conditions, and
+microclimate layers, if requested.
 }
 \description{
 Microhabitat is set to be suitable for the \emph{first} species in SpeciesPool,
