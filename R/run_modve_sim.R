@@ -266,15 +266,8 @@ run_modve_sim <- function(sim_params,
   StopNbInds <- sim_params$StopCriterionHa / 10000 * dimX * dimY
 
   # Calculate the probability to disperse in surrounding voxels
-  # Generate probabilities for a matrix twice as large as microhabitat
-  expanded_dims <- dims[1:3] * 2 + 1
-  expanded_mat_central_point <- floor(expanded_dims / 2) + 1
-  prob_disp_matrix <- calc_prob_disp_matrix(
-    expanded_mat_central_point,
-    expanded_dims,
-    SpeciesPool,
-    ifelse(sim_params$use_wind_dispersal, Microhabitat[,,,wind_idx], NULL)
-  )
+  wind_layer <- ifelse(sim_params$use_wind_dispersal, Microhabitat[,,,wind_idx], NULL)
+  prob_disp_matrix <- calc_prob_disp_matrix(dims[1:3], SpeciesPool, wind_layer)
 
   # Year loop
   for (t in seq_len(timeSteps)) {
@@ -303,10 +296,7 @@ run_modve_sim <- function(sim_params,
       }
       if (sim_params$use_wind_dispersal) { # need to recalculate dispersal matrix
         prob_disp_matrix <- calc_prob_disp_matrix(
-          expanded_mat_central_point,
-          expanded_dims,
-          SpeciesPool,
-          Microhabitat[,,,wind_idx]
+          dims[1:3], SpeciesPool, Microhabitat[,,,wind_idx]
         )
       }
 
