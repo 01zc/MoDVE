@@ -133,6 +133,27 @@ draw_rnd_initial_inds_params <- function() {
   ))
 }
 
+#' Create an empty microhabitat matrix
+#'
+#' Create a matrix of the requested dimensions and environmental layers,
+#' required attributes and filled with zeros.
+#'
+#' @param dimensions a 3-element vector containing the X, Y and Z dimensions of
+#' the matrix.
+#' @param microclimate_vars a character vector specifying which microclimatic
+#' variables (among `"humidity"` `"temperature"` and `"wind"`) should be added as
+#' extra layers. These layers are set to 0.
+create_empty_microhabitat <- function(dimensions, microclimate_vars = NULL) {
+  Microhabitat <- array(0, c(dimensions, 3 + length(microclimate_vars)))
+  attr(Microhabitat, "layer_mapping") <- c(
+    "surface_area",
+    "surface_area_loss",
+    "light",
+    microclimate_vars
+    )
+  return(Microhabitat)
+}
+
 #' Create a microhabitat matrix of specified dimensions and fill its
 #' surface area and light layer based on species requirements
 #'
@@ -155,14 +176,22 @@ draw_rnd_initial_inds_params <- function() {
 #' @param SurfaceBiomassScaling a strictly positive parameter scaling the surface
 #'  area requirement as a function of the mass of the individual:
 #' \deqn{S = M^{2/3} / g_S}.
+#' @param microclimate_vars a character vector specifying which microclimatic
+#' variables (among `"humidity"` `"temperature"` and `"wind"`) should be added as
+#' extra layers. These layers are set to 0.
 #'
-#' @return a 4D array where the first three dimensions are the microhabitat
-#' dimensions and the last dimensions contains 3 layers: surface area, surface
-#' area loss (not set), and light conditions.
+#' @return an array where the first three dimensions are the microhabitat
+#' dimensions and the last dimensions contains the environmental layers:
+#' surface area, surface area loss (not set), light conditions, and
+#' microclimate layers, if requested.
 #'
-create_rnd_microhabitat <- function(SpeciesPool, dimensions, SurfaceBiomassScaling) {
+create_rnd_microhabitat <- function(SpeciesPool,
+                                    dimensions,
+                                    SurfaceBiomassScaling,
+                                    microclimate_vars = NULL) {
 
-  Microhabitat <- array(0, c(dimensions, 3))
+  Microhabitat <- create_empty_microhab(dimensions, microclimate_vars)
+
   nb_suitable_voxels <- round(prod(dimensions) * stats::runif(1, 0, 1))
   suitable_voxels <- sample(1:prod(dimensions), nb_suitable_voxels)
   reqd_sa_per_ind <- mass_to_surf_area(SpeciesPool$MaximumMass[1], SurfaceBiomassScaling)
@@ -171,6 +200,5 @@ create_rnd_microhabitat <- function(SpeciesPool, dimensions, SurfaceBiomassScali
     sample(1:10, length(suitable_voxels), replace = TRUE)
   Microhabitat[, , , 1] <- surface_area_mat
   Microhabitat[, , , 3] <- SpeciesPool$OptimumLight[1]
-
   return(Microhabitat)
 }

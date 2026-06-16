@@ -6,7 +6,8 @@ test_that("Mortality works as expected", {
   # Initialise Microhabitat matrix
   dimensions <- sample(1:5, 3, replace = TRUE)
   sa_loss_layer <- rep(0, prod(dimensions))
-  Microhabitat <- array(0, dim = c(dimensions, 3))
+  Microhabitat <- create_empty_microhabitat(dimensions)
+
   # Mortality doesn't check surface area (only loss) so we don't need to set it
 
   # Initialise light niche
@@ -151,12 +152,6 @@ test_that("Mortality works as expected", {
 
 })
 
-create_empty_microhab <- function(dim) {
-  Microhabitat <- array(0, dim = dim)
-  attr(Microhabitat, "layer_mapping") <- c("surface_area", "surface_area_loss", "light")
-  return(Microhabitat)
-}
-
 test_that("Niche-related mortality", {
 
   climatic_vars <- c("humidity", "temperature", "wind")
@@ -187,11 +182,10 @@ test_that("Niche-related mortality", {
     )
 
     # Environment is suitable for sp 1, unsuitable for sp2
-    microhabitat_value <- niche_min_sp1 + niche_diff / 2
+    microhabitat_value <- (niche_min_sp1 + niche_max_sp1) / 2
     # Initialise Microhabitat matrix
-    dimensions <- c(sample(1:5, 3, replace = TRUE), 4)
-    Microhabitat <- create_empty_microhab(dimensions)
-    attr(Microhabitat, "layer_mapping") <- c(attr(Microhabitat, "layer_mapping") , var)
+    dimensions <- sample(1:5, 3, replace = TRUE)
+    Microhabitat <- create_empty_microhabitat(dimensions, microclimate_vars = var)
     Microhabitat[,,,4] <- microhabitat_value
 
     # Distribute individuals randomly across space and species
@@ -224,7 +218,6 @@ test_that("Niche-related mortality", {
 
     trait_name <- trait_names[var]
 
-    # Non-overlapping climate niches
     niche_min <- runif(1, 0, 50)
     niche_max <- niche_min * runif(1, 1.05, 2)
 
@@ -238,9 +231,8 @@ test_that("Niche-related mortality", {
     )
 
     # Initialise Microhabitat matrix
-    dimensions <- c(sample(1:5, 3, replace = TRUE), 4)
-    Microhabitat <- create_empty_microhab(dimensions)
-    attr(Microhabitat, "layer_mapping") <- c(attr(Microhabitat, "layer_mapping") , var)
+    dimensions <- sample(1:5, 3, replace = TRUE)
+    Microhabitat <- create_empty_microhabitat(dimensions, microclimate_vars = var)
     nb_cells <- prod(dimensions[1:3])
 
     # Only a random subset of cells are unsuitable
@@ -252,7 +244,7 @@ test_that("Niche-related mortality", {
     layer_values[index_unsuitable] <- val_unsuitable
     Microhabitat[,,,4] <- layer_values
 
-    # Distribute individuals randomly across space and species
+    # Distribute individuals randomly across space
     nb_inds <- 15000
     E <- tibble::tibble(
       "X" = sample(1:dimensions[1], nb_inds, replace = TRUE),
@@ -306,7 +298,7 @@ test_that("Niche-related mortality", {
     "MinHum" = niche_hum_min, "MaxHum" = niche_hum_max
   )
 
-  dimensions <- c(sample(1:5, 3, replace = TRUE), 5)
+  dimensions <- sample(1:5, 3, replace = TRUE)
 
   # Distribute individuals randomly
   nb_inds <- 100
@@ -321,9 +313,9 @@ test_that("Niche-related mortality", {
   )
   E_init <- dplyr::slice_sample(E_init, prop = 1) # shuffle
 
-  Microhabitat <- create_empty_microhab(dimensions)
-  attr(Microhabitat, "layer_mapping") <- c(
-    attr(Microhabitat, "layer_mapping") , "wind", "humidity"
+  Microhabitat <- create_empty_microhabitat(
+    dimensions,
+    microclimate_vars = c("wind", "humidity")
   )
 
   # 1/2 - Suitable conditions for humidity but not wind
