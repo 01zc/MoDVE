@@ -21,3 +21,7 @@ MassAtMaturityRelativeRandom = [0.5, 0.7]
 HeightBreadthRandom = [0.15, 0.7]
 DispersalKernelRandom = [0.03, 0.5]
 DispersalKernelAsymmetryRandom = [0.5, 0.95]
+HumBreadthRandom   = [0.15, 0.7]
+TempBreadthRandom   = [0.15, 0.7]
+WindBreadthRandom   = [0.15, 0.7]
+

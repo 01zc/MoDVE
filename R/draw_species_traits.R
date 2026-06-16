@@ -243,7 +243,7 @@ draw_species_traits <- function(species_params) {
     OptimumWind <- runif(1, min = sp$WindBreadthRandom[1] + WindMargin,
                          max = sp$WindBreadthRandom[2] - WindMargin)
     MinWind <- runif(1, min = sp$WindBreadthRandom[1], max = OptimumWind)
-    MaxWind <- runif(1, min = OptimumWind, max = sp$WindreadthRandom[2])
+    MaxWind <- runif(1, min = OptimumWind, max = sp$WindBreadthRandom[2])
   }
 
   if (sp$microclimate_opts$use_temperature) {
@@ -293,7 +293,6 @@ draw_species_traits <- function(species_params) {
 check_species_params <- function(species_params) {
 
   exptd_params <- c(
-    "microclimate_opts",
     "AgeAtMaturityDevCorr",
     "CorrelationMassRecruitment",
     "DispersalKernelAsymmetryRandom",
@@ -307,6 +306,10 @@ check_species_params <- function(species_params) {
     "ScalingAgeMaturity",
     "kL"
     )
+
+  if (is.null(species_params$microclimate_opts)) {
+    stop("species_params must contain list microclimate_opts with logical elements use_wind, use_temperature and use_humidity.")
+  }
 
   if (species_params$microclimate_opts$use_temperature) {
     exptd_params <- c(exptd_params, "TempBreadthRandom")
@@ -351,7 +354,7 @@ check_species_params <- function(species_params) {
   }
 
   # No NAs, NULL, or NaN!
-  is_missing_val <- sapply(species_params, function(x)  {
+  is_missing_val <- sapply(species_params[exptd_params], function(x)  {
     any(is.na(x)) || any(is.nan(x)) || any(is.null(x))
   })
   if (any(is_missing_val)) {

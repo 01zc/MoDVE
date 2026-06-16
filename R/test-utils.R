@@ -60,6 +60,11 @@ create_rnd_species_df <- function(nb_species, species_params = draw_rnd_species_
 draw_rnd_species_params <- function(max_val = 100) {
 
   sp_params <- list(
+    microclimate_opts = list(
+      use_temperature = TRUE,
+      use_humidity = TRUE,
+      use_wind = TRUE
+    ),
     MaxMassLogScaleRandom = stats::runif(1) > 0.5, # coin flip
     MaxMassRandom = stats::runif(1, 0, max_val),
     InterceptAgeMaturity = stats::runif(1, 0, max_val),
@@ -76,7 +81,10 @@ draw_rnd_species_params <- function(max_val = 100) {
 
     Imax = stats::runif(1, 0, max_val),
     kL = stats::runif(1, 0, 1),
-    LAI = stats::runif(1, 0, min(10, max_val))
+    LAI = stats::runif(1, 0, min(10, max_val)),
+    HumBreadthRandom = stats::runif(1, 0, max_val),
+    TempBreadthRandom = stats::runif(1, 0, max_val),
+    WindBreadthRandom = stats::runif(1, 0, max_val)
   )
 
   sp_params$MaxMassRandom[2] <- draw_max_value(sp_params$MaxMassRandom[1], max_val)
@@ -88,6 +96,10 @@ draw_rnd_species_params <- function(max_val = 100) {
     sp_params$DispersalKernelAsymmetryRandom[1], 1
   )
   sp_params$HeightBreadthRandom[2] <- draw_max_value(sp_params$HeightBreadthRandom[1], 1)
+
+  sp_params$HumBreadthRandom[2] <- draw_max_value(sp_params$HumBreadthRandom[1], max_val)
+  sp_params$TempBreadthRandom[2] <- draw_max_value(sp_params$TempBreadthRandom[1], max_val)
+  sp_params$WindBreadthRandom[2] <- draw_max_value(sp_params$WindBreadthRandom[1], max_val)
 
   # Parameters that depend on the correlation mass option
   if (sp_params$CorrelationMassRecruitment) {

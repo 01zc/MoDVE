@@ -1,4 +1,9 @@
 ref_sp_params <- parse_config(test_path("configs", "config_a2.toml"))
+ref_sp_params$microclimate_opts <- list(
+  "use_temperature" = TRUE,
+  "use_wind" = TRUE,
+  "use_humidity" = TRUE
+)
 
 test_that("Input is checked correctly", {
 

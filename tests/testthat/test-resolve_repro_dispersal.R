@@ -33,16 +33,12 @@ test_that("dispersal consistent with the previous version", {
   distr_params <- init_params
 
   # Compute the dispersal matrix
-  expanded_dims <- dimPlot * 2 + 1
-  centralPoint <- floor(expanded_dims / 2) + 1
-  ProbabilityMatrixNormalized <- calc_prob_disp_matrix(
-    centralPoint,
-    expanded_dims,
-    SpeciesPool
-  )
+  ProbabilityMatrixNormalized <- calc_prob_disp_matrix(dimPlot, SpeciesPool)
 
   # 1 - Generate expectation with old version
   # Format input to the old format
+  expanded_dims <- dimPlot * 2 + 1
+  centralPoint <- floor(expanded_dims / 2) + 1
   # Collate species traits to individual table
   extra_col_indices <- (ncol(E) + 1):(ncol(E) + ncol(SpeciesPool) - 1)
   E[, extra_col_indices] <- SpeciesPool[, 2:ncol(SpeciesPool)]
@@ -79,7 +75,6 @@ test_that("dispersal consistent with the previous version", {
     E[,1:9],
     Microhabitat,
     SurfaceBiomassScaling,
-    centralPoint,
     InterceptRecruitment,
     SlopeRecruitment,
     ProbabilityMatrixNormalized,
