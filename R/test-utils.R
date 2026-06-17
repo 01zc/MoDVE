@@ -214,3 +214,19 @@ create_rnd_microhabitat <- function(SpeciesPool,
   Microhabitat[, , , 3] <- SpeciesPool$OptimumLight[1]
   return(Microhabitat)
 }
+
+all_microclimate_opts <- function() {
+  return(list(
+    "use_humidity" = TRUE,
+    "use_temperature" = TRUE,
+    "use_wind" = TRUE
+  ))
+}
+
+no_microclimate_opts <- function() {
+  return(list(
+    "use_humidity" = FALSE,
+    "use_temperature" = FALSE,
+    "use_wind" = FALSE
+  ))
+}

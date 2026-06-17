@@ -224,38 +224,38 @@ draw_species_traits <- function(species_params) {
     sp$LightBreadthRandom <- c(MinLightRandom, MaxLightRandom)
   }
 
-  OptimumLight <- runif(1, min = sp$LightBreadthRandom[1] + 1,
-                        max = sp$LightBreadthRandom[2] - 1)
+  OptimumLight <- runif(1, min = sp$LightBreadthRandom[1],
+                        max = sp$LightBreadthRandom[2])
 
   # Light niche must be symmetric
   max_light_niche_span <- min(
     OptimumLight - sp$LightBreadthRandom[1],
-    sp$LightBreadthRandom[2] - OptimumLight + 10
+    sp$LightBreadthRandom[2] - OptimumLight + 10 # ?? magic constant?
   ) # Ensure that light breadth does not exceed the range of light values
-  light_niche_span <- runif(1, min = 1, max = max_light_niche_span)
+  light_niche_span <- runif(1, min = 0, max = max_light_niche_span)
+
   MinLight <- OptimumLight - light_niche_span
   MaxLight <- OptimumLight + light_niche_span
 
   light_resp_params <- get_light_resp_params(MinLight, MaxLight, OptimumLight)
 
   if (sp$microclimate_opts$use_wind) {
-    WindMargin <- runif(1, 0.001, 1)
-    OptimumWind <- runif(1, min = sp$WindBreadthRandom[1] + WindMargin,
-                         max = sp$WindBreadthRandom[2] - WindMargin)
+    OptimumWind <- runif(1, min = sp$WindBreadthRandom[1],
+                         max = sp$WindBreadthRandom[2])
     MinWind <- runif(1, min = sp$WindBreadthRandom[1], max = OptimumWind)
     MaxWind <- runif(1, min = OptimumWind, max = sp$WindBreadthRandom[2])
   }
 
   if (sp$microclimate_opts$use_temperature) {
-    OptimumTemp <- runif(1, min = sp$TempBreadthRandom[1] + 1,
-                         max = sp$TempBreadthRandom[2] - 1)
+    OptimumTemp <- runif(1, min = sp$TempBreadthRandom[1],
+                         max = sp$TempBreadthRandom[2])
     MinTemp <- runif(1, min = sp$TempBreadthRandom[1], max = OptimumTemp)
     MaxTemp <- runif(1, min = OptimumTemp, max = sp$TempBreadthRandom[2])
   }
 
   if (sp$microclimate_opts$use_humidity) {
-    OptimumHum <- runif(1, min = sp$HumBreadthRandom[1] + 1,
-                        max = sp$HumBreadthRandom[2] - 1)
+    OptimumHum <- runif(1, min = sp$HumBreadthRandom[1],
+                        max = sp$HumBreadthRandom[2])
 
     MinHum <- runif(1, min = sp$HumBreadthRandom[1], max = OptimumHum)
 
@@ -270,15 +270,15 @@ draw_species_traits <- function(species_params) {
     light_resp_params[1], light_resp_params[2], light_resp_params[3]
   )
   if (sp$microclimate_opts$use_humidity) {
-    sp_traits <- append(sp_traits, MinHum, MaxHum, OptimumHum)
+    sp_traits <- append(sp_traits, list(MinHum, MaxHum, OptimumHum))
   }
   if (sp$microclimate_opts$use_temperature) {
-    sp_traits <- append(sp_traits, MinTemp, MaxTemp, OptimumTemp,)
+    sp_traits <- append(sp_traits, list(MinTemp, MaxTemp, OptimumTemp))
 
   }
   if (sp$microclimate_opts$use_wind) {
-    sp_traits <- append(sp_traits, MinWind, MaxWind, OptimumWind,
-                        DispersalKernelWindEffect)
+    sp_traits <- append(sp_traits, list(MinWind, MaxWind, OptimumWind,
+                        DispersalKernelWindEffect))
   }
   names(sp_traits) <- species_trait_names(sp$microclimate_opts)
   return(sp_traits)

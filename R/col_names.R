@@ -1,4 +1,4 @@
-species_trait_names <- function(microclimate_opts) {
+species_trait_names <- function(microclimate_opts = no_microclimate_opts()) {
   sptr_names <- c("MaximumMass", "MassAtMaturity", "GrowthRate",
                   "DispersalKernel", "DispersalKernelAsymmetry",
                   "RecruitmentInvestmentRel", "RecruitmentInc",

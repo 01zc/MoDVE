@@ -174,7 +174,7 @@ run_modve_sim <- function(sim_params,
     } # error
     else SpeciesPool <- utils::read.csv(SpeciesPool, sep = ",", header = TRUE)
   }
-  check_species_df(SpeciesPool, Microhabitat)
+  check_species_df(SpeciesPool, get_microclimate_opts(Microhabitat))
   NumberOfSpecies <- nrow(SpeciesPool)  # number of species per 25x25m plot
 
   # Check suitability matrix

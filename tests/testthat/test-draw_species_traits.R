@@ -41,13 +41,14 @@ test_that("Species traits meet requirements", {
 
   sp_params <- draw_rnd_species_params(max_val = 100)
   expect_silent(species_traits <- draw_species_traits(sp_params))
+  microclimate_opts <- all_microclimate_opts()
 
   # All expected elements are present
-  expect_equal(names(species_traits), species_trait_names())
+  expect_equal(names(species_traits), species_trait_names(microclimate_opts))
 
   # All parameters are numeric, positive etc.
   species_df <- as.data.frame(c("SpeciesID" = 1, species_traits))
-  expect_silent(check_species_df(species_df))
+  expect_silent(check_species_df(species_df, microclimate_opts))
 
   list2env(species_traits, envir = environment())
 

@@ -51,7 +51,7 @@ draw_initial_individuals <- function(distr_params, species_df,
 
   check_distr_params(distr_params)
   check_microhabitat(microhab_mat)
-  check_species_df(species_df, microhab_mat)
+  check_species_df(species_df, get_microclimate_opts(microhab_mat))
 
   nb_inds_per_sp <- distr_params$IndividualsPerSpecies
 
