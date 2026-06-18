@@ -33,7 +33,8 @@ test_that("Initial individuals are distributed correctly", {
   dimensions <- sample(2:10, 3, replace = TRUE)
   nb_voxels <- sample(1:prod(dimensions), 1)
   unlimited_sa <- 100000
-  microhab_mat <- array(unlimited_sa, dim = c(dimensions, 3))
+  microhab_mat <- create_empty_microhabitat(dimensions)
+  microhab_mat[,,,] <- unlimited_sa
 
   # light not limiting for now
   species_df$MinLight <- 0
@@ -59,11 +60,13 @@ test_that("Initial individuals are distributed correctly", {
 
   # Edge case: 1D matrix
   flat_dim <- c(1, 1, 10)
-  microhab_1d <- array(unlimited_sa, dim = c(flat_dim, 3))
+  microhab_1d <- create_empty_microhabitat(flat_dim)
+  microhab_1d[,,,] <- unlimited_sa
   microhab_1d[,,,3] <- 50 # optimal light conditions
   expect_silent(draw_initial_individuals(rnd_params, species_df, microhab_1d))
   # 2D matrix
-  square_matrix <- array(unlimited_sa, dim = c(c(2, 1, 3), 3))
+  square_matrix <- create_empty_microhabitat(c(2, 1, 3))
+  square_matrix[,,,] <- unlimited_sa
   square_matrix[,,,3] <- 50 # optimal light conditions
   expect_silent(draw_initial_individuals(rnd_params, species_df, square_matrix))
 
@@ -152,7 +155,7 @@ test_that("Initial individuals are distributed correctly", {
   dimensions <- rep(6, 3)
   nb_bad_voxels <- prod(dimensions) / 3
   unlimited_sa <- 100000
-  microhab_mat <- array(0, dim = c(dimensions, 3))
+  microhab_mat <- create_empty_microhabitat(dimensions)
   microhab_mat[,,,1] <- unlimited_sa
   min_light <- runif(1, 1, 49)
   max_light <- runif(1, 51, 100)

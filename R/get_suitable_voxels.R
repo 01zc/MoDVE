@@ -19,12 +19,10 @@ get_suitable_voxels <- function(Microhabitat, species_row) {
   SuitableMask <- Microhabitat[,,, which(layer_map == "surface_area")] > 0
 
   # ---- Light ----
-  if (microclimate_opts$use_light) {
-    LightIdx <- which(layer_map == "light")
-    SuitableMask <- SuitableMask &
-      Microhabitat[, , , LightIdx] >= species_row$MinLight &
-      Microhabitat[, , , LightIdx] <= species_row$MaxLight
-  }
+  LightIdx <- which(layer_map == "light")
+  SuitableMask <- SuitableMask &
+    Microhabitat[, , , LightIdx] >= species_row$MinLight &
+    Microhabitat[, , , LightIdx] <= species_row$MaxLight
 
   # ---- Humidity ----
   if (microclimate_opts$use_humidity) {
