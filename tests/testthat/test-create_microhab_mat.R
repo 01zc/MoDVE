@@ -43,6 +43,15 @@ create_empty_trunk_tbl <- function() {
   ))
 }
 
+create_empty_vox_tbl <- function() {
+  return(tibble::tibble(
+    "x" = numeric(),
+    "y" = numeric(),
+    "z" = numeric(),
+    "leafarea" = numeric()
+  ))
+}
+
 test_that("Branch surface area is calculated correctly", {
 
   # A 5*5 landscape with a 1-cell corridor around it
@@ -52,15 +61,13 @@ test_that("Branch surface area is calculated correctly", {
   microhab_extent <- c(corridor, dim + corridor)
 
   config <- list(
-    calcSurfaceArea = TRUE,
-    calcSurfaceAreaLoss = FALSE,
-    calcLightConditions = FALSE,
-    calcWeightedAngles = FALSE,
     MaxX = dim,
     MaxY = dim,
     MaxZ = 1, # 2D
     corridor = corridor,
-    Imax = 900
+    Imax = 900,
+    kL = 0,
+    DistVoxToConsider = 0
   )
 
   # Create a test shoots table
@@ -131,7 +138,8 @@ test_that("Branch surface area is calculated correctly", {
   microhab_mat <- create_microhabitat_mat(
     config = config,
     shoot_dt = shoots_dt,
-    trunk_dt = create_empty_trunk_tbl()
+    trunk_dt = create_empty_trunk_tbl(),
+    vox_dt = create_empty_vox_tbl()
   )
   expect_equal(microhab_mat[,,1,1], expected_mat)
 })
@@ -142,15 +150,13 @@ test_that("Trunk surface area is calculated correctly", {
   dim_xy <- 2
   dim_z <- 5
   config <- list(
-    calcSurfaceArea = TRUE,
-    calcSurfaceAreaLoss = FALSE,
-    calcLightConditions = FALSE,
-    calcWeightedAngles = FALSE,
     MaxX = dim_xy,
     MaxY = dim_xy,
     MaxZ = dim_z, # 2D
     corridor = 0,
-    Imax = 900
+    Imax = 900,
+    kL = 0,
+    DistVoxToConsider = 0
   )
 
   trunk_dt <- create_empty_trunk_tbl() |>
@@ -176,7 +182,8 @@ test_that("Trunk surface area is calculated correctly", {
   microhab_mat <- create_microhabitat_mat(
     config = config,
     shoot_dt = shoots_dt,
-    trunk_dt = trunk_dt
+    trunk_dt = trunk_dt,
+    vox_dt = create_empty_vox_tbl()
   )[,,,1] # only retain surface area
 
   # Total cone volume is calculated correctly

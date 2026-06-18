@@ -171,10 +171,8 @@ create_microhabitat_mat <- function(config, shoot_dt, trunk_dt, vox_dt,
       # Update total surface area of cylinder so far (to use in next step)
       SurfaceAreaTotal <- SurfaceAreaTotal + SurfaceAreaInVoxel
 
-      if (config$calcSurfaceArea) {
-        microhab_mat[x, y, z, sa_elt] <- microhab_mat[x, y, z, sa_elt] +
-          SurfaceAreaInVoxel
-      }
+      microhab_mat[x, y, z, sa_elt] <- microhab_mat[x, y, z, sa_elt] +
+        SurfaceAreaInVoxel
 
       # If trunk is lost during this time step, add it to lost surface
       if (trunk_dt$treeID[s] %in% dead_trees_id) {
