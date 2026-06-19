@@ -146,7 +146,7 @@ draw_initial_individuals <- function(distr_params, species_df,
     # Find all suitable voxels for this individual
     AreaNeededInd <- init_ind_mat[ind, col_sa]
     hasEnoughSurface <- which(AvailableSurfaceArea > AreaNeededInd)
-    SuitableVoxels <- get_suitable_voxels(microhab_mat, this_sp_row)
+    SuitableVoxels <- which(get_suitable_voxels(microhab_mat, this_sp_row))
     SuitableVoxels <- intersect(SuitableVoxels, hasEnoughSurface)
 
     if (length(SuitableVoxels) > 0) {

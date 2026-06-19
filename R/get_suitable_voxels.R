@@ -48,5 +48,5 @@ get_suitable_voxels <- function(Microhabitat, species_row) {
       Microhabitat[, , , WindIdx] <= species_row$MaxWind
   }
 
-  return(which(SuitableMask))
+  return(SuitableMask)
 }
