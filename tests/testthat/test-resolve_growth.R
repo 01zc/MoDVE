@@ -31,15 +31,21 @@ test_that("Growth meets expectations", {
   # Save initial table for resets
   E_init <- E
 
+  # Suitability matrix (all perfectly suitable for now)
+  SuitabilityMat <- array(1, dim = c(dimensions, nb_species))
+
   # Growth never decreases mass, or exceed max mass
   mass_never_decreases <- TRUE
   mass_never_above_max <- TRUE
 
   for (i in 1:1000) {
     mass_before <- E$Mass
-    E <- resolve_growth(
-      E, SpeciesPool, Microhabitat, SurfaceBiomassScaling
-    )
+    E <- resolve_growth(E,
+                        SpeciesPool,
+                        Microhabitat,
+                        SuitabilityMat,
+                        SurfaceBiomassScaling
+                        )
     mass_diff <- E$Mass - mass_before
     if (any(mass_diff < -1e-06)) mass_never_decreases <- FALSE
     if (any(E$Mass - E$max_mass > 1e-06)) mass_never_above_max <- FALSE
@@ -47,21 +53,24 @@ test_that("Growth meets expectations", {
   expect_true(mass_never_decreases)
   expect_true(mass_never_above_max)
 
-  # No growth outside of light niche
+  # Growth scales with suitability
+  # Perfect suitability test is implicitly part of above test
+  # Unsuitable = no growth
   E <- E_init # reset
-  Microhabitat[,,,3] <- min(SpeciesPool$MinLight) / 2
+  SuitabilityMat[,,,] <- 0
   E <- resolve_growth(
-    E, SpeciesPool, Microhabitat, SurfaceBiomassScaling
+    E, SpeciesPool, Microhabitat, SuitabilityMat, SurfaceBiomassScaling
   )
   expect_equal(E$Mass, E_init$Mass)
 
-  # At optimum light, growth is equal to k * (max_mass - mass)
-  # We carry this test only for the first species
+  # Intermediate suitability
   E <- E_init[E_init$SpeciesID == 1,]
+  rnd_suit <- runif(1)
+  SuitabilityMat[,,,] <- rnd_suit
   Microhabitat[,,,3] <- SpeciesPool$OptimumLight[1]
-  exptd_mass <- E$Mass + E$growth_rate * (E$max_mass - E$Mass)
+  exptd_mass <- E$Mass + E$growth_rate * (E$max_mass - E$Mass) * rnd_suit
   E <- resolve_growth(
-    E, SpeciesPool, Microhabitat, SurfaceBiomassScaling
+    E, SpeciesPool, Microhabitat, SuitabilityMat, SurfaceBiomassScaling
   )
   expect_equal(E$Mass, exptd_mass)
 })

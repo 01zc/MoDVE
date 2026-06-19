@@ -332,13 +332,24 @@ run_modve_sim <- function(sim_params,
     NumberRecruits <- length(which(E$Status == 1)) - nbIndsBeforeDispTotal
     nbRecruitsPerSpecies <- disp_items$recruitment_df$nb_recruits
 
+
     # Growth
-    E <- resolve_growth(E, SpeciesPool, Microhabitat, SuitabilityMat, sim_params$SurfaceBiomassScaling)
+    E <- resolve_growth(E,
+                        SpeciesPool,
+                        Microhabitat,
+                        SuitabilityMat,
+                        sim_params$SurfaceBiomassScaling)
 
     # Mortality (except from competition)
-    E <- resolve_mortality(E, SpeciesPool, Microhabitat, sim_params$use_mass_dep_mortality,
-                           sim_params$MortRateRandom, sim_params$MortRateMass,
-                           sim_params$MortRateMassScaling)
+    E <- resolve_mortality(
+      E,
+      SpeciesPool,
+      Microhabitat,
+      sim_params$use_mass_dep_mortality,
+      sim_params$MortRateRandom,
+      sim_params$MortRateMass,
+      sim_params$MortRateMassScaling
+    )
 
     # Mortality due to competition for space
     E <- resolve_competition(E, Microhabitat, sim_params$massDepCompetition)

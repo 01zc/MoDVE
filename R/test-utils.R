@@ -202,7 +202,7 @@ create_rnd_microhabitat <- function(SpeciesPool,
                                     SurfaceBiomassScaling,
                                     microclimate_vars = NULL) {
 
-  Microhabitat <- create_empty_microhab(dimensions, microclimate_vars)
+  Microhabitat <- create_empty_microhabitat(dimensions, microclimate_vars)
 
   nb_suitable_voxels <- round(prod(dimensions) * stats::runif(1, 0, 1))
   suitable_voxels <- sample(1:prod(dimensions), nb_suitable_voxels)

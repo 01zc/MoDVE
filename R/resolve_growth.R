@@ -45,8 +45,7 @@ resolve_growth <- function(E, SpeciesPool, Microhabitat, SuitabilityMat, Surface
         (SpeciesPool$MaximumMass[sp_row] - E$Mass[i])
 
       env_term <- SuitabilityMat[E$X[i], E$Y[i], E$Z[i], E$SpeciesID[i]]
-      if (is.na(env_term) | is.nan(env_term)) {env_term <- 0}
-      all_suits_prec <- c(all_suits_prec, env_term)
+      if (is.na(env_term) | is.nan(env_term)) { env_term <- 0 }
       E$Mass[i] <- E$Mass[i] + max(0, growth_term * env_term)
     }
 
