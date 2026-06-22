@@ -29,6 +29,7 @@ calc_suitability <- function(val, niche_min, niche_max, niche_opt) {
   expo  <- (niche_opt - niche_min) / (niche_max - niche_opt)
 
   suitability <- num * denom ^ expo
+  suitability <- pmax(suitability, 0)
 
   return(suitability)
 }

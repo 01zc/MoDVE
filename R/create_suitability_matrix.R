@@ -34,13 +34,15 @@ create_suitability_matrix <- function(
   check_species_df(SpeciesPool, get_microclimate_opts(Microhabitat))
 
   # Prepare output
-  dir_output <- dirname(path_to_output)
-  if (!dir.exists(dir_output)) {
-    stop(paste0("Output directory ", dir_output, " does not exist."))
-  }
-  file_ext <- strsplit(path_to_output, "\\.", fixed = FALSE)[[1]][2]
-  if (!file_ext %in% c(".rds", ".h5")) {
-    stop("path_to_output must be a .rds or .h5 file")
+  if (!is.null(path_to_output)) {
+    dir_output <- dirname(path_to_output)
+    if (!dir.exists(dir_output)) {
+      stop(paste0("Output directory ", dir_output, " does not exist."))
+    }
+    file_ext <- strsplit(path_to_output, "\\.", fixed = FALSE)[[1]][2]
+    if (!file_ext %in% c(".rds", ".h5")) {
+      stop("path_to_output must be a .rds or .h5 file")
+    }
   }
 
   layer_map <- attr(Microhabitat, "layer_mapping")
@@ -48,7 +50,7 @@ create_suitability_matrix <- function(
   active_vars <- keys[names(keys) %in% layer_map]
 
   nb_sp <- nrow(SpeciesPool)
-  suitability_mat <- array(1, dim = c(dim(Microhabitat[1:3], nb_sp)))
+  suitability_mat <- array(1, dim = c(dim(Microhabitat)[1:3], nb_sp))
 
   for (sp in seq_len(nb_sp)) {
 
@@ -58,9 +60,9 @@ create_suitability_matrix <- function(
       var_name <- keys[names(keys) == layer_name]
       if (length(var_name) == 0) next # not a microclimate variable
 
-      var <- Microhabitat[,,,i]
+      var <- Microhabitat[,, i, sp]
 
-      if (var_name == "Light" & use_parabolic_light == "Parabolic") {
+      if (var_name == "Light" & use_parabolic_light) {
         suitability_var <- get_parabolic_resp(
           var,
           SpeciesPool$LightResponseA[sp],
