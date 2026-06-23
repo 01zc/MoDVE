@@ -38,9 +38,15 @@ check_microhabitat <- function(microhab_mat) {
    missing_layers <- reqd_layers[!reqd_layers %in% layer_map]
    if (length(missing_layers > 0)) {
 
-     stop(paste(c("Microhabitat matrix must have the following layers: ",
+     stop(paste(c("Microhabitat matrix must have at least the following layers: ",
                   missing_layers), rep(" ", length(missing_layers) + 1)))
    }
 
+   possible_layers <- c(reqd_layers, "temperature", "wind", "humidity")
+   if (any(!layer_map %in% possible_layers)) {
+     stop(c("Microhabitat must only contain layers among the following: ",
+            paste("\n", possible_layers)
+            ))
+   }
 
 }

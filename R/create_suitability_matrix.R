@@ -60,7 +60,7 @@ create_suitability_matrix <- function(
       var_name <- keys[names(keys) == layer_name]
       if (length(var_name) == 0) next # not a microclimate variable
 
-      var <- Microhabitat[,, i, sp]
+      var <- Microhabitat[,,, i]
 
       if (var_name == "Light" & use_parabolic_light) {
         suitability_var <- get_parabolic_resp(
@@ -77,11 +77,10 @@ create_suitability_matrix <- function(
           SpeciesPool[sp, paste0("Optimum", var_name)]
         )
       }
+
+      # Combine scores (product) across variables
+      suitability_mat[,,,sp] <- suitability_mat[,,,sp] * suitability_var
     }
-
-    # Combine scores (product) across variables
-    suitability_mat[,,,sp] <- suitability_mat[,,,sp] * suitability_var
-
   } # for each species
 
   if (!is.null(path_to_output)) {

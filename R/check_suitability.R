@@ -19,7 +19,8 @@ check_suitability <- function(SuitabilityMat, dims, nb_species) {
   if (any(SuitabilityMat < 0)) {
     stop("Suitability scores must be strictly between 0 and 1.")
   }
-  if (any(SuitabilityMat > 1)) {
+  tol <- 1e-10
+  if (any((SuitabilityMat - 1) > tol)) {
     stop("Suitability scores must be strictly between 0 and 1.")
   }
 }
