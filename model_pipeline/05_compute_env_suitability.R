@@ -13,12 +13,12 @@
 #'
 #' Directorymicrohabitat = "/path/to/microhabitat_mc/" # Directory containing microhabitat matrices
 #' DirectorySpeciesPools = "/path/to/species_pools/"    # Directory containing species pool CSV files
-#' DirectoryOutput = "/path/to/EnvSuitability/"        # Directory to save suitability scores
+#' DirectoryOutput = "/path/to/suitability_scores/forest0/"  # Directory to save suitability scores
 #' timeSteps = 10                                      # Number of timesteps to simulate
 #' InitialTimeStep = 1                                 # First timestep to process
 #' numSpeciesPools = c(1, 10)                          # Range of species pool IDs to process
 #' LightResponseFct = "Parabolic"                      # Light response function ("Parabolic" or "Yan and Hunt")
-#' Imax = 1000                                         # Maximum light intensity for scaling
+#' Imax = 900                                          # Maximum light intensity for scaling
 #' LightNicheOpt = 1                                   # {0, 1} Include light niche in suitability calculation
 #' HumNicheOpt = 1                                     # {0, 1} Include humidity niche in suitability calculation
 #' TempNicheOpt = 1                                    # {0, 1} Include temperature niche in suitability calculation
@@ -38,7 +38,7 @@ options(digits.secs=3)  # 3 decimal digits for seconds
 
 # Epiphte IBM - Model
 # This model simulates the development of the entire epiphyte community
-source("utils.R")
+source("model_pipeline/utils.R")
 
 library("doRNG")
 library("foreach")
@@ -188,10 +188,10 @@ main <- function() {
 
         if (!is.na(singleStep)) {
 
-            print(paste0("Computing suitability scores for species pool ", numPool, "for each variable ..."))
+            print(paste0("Computing suitability scores for species pool ", numPool, " for each variable ..."))
 
             t <- singleStep
-            print(paste0("Time step", t))
+            print(paste0("Time step ", t))
 
             savePath <- file.path(DirectoryOutputSpeciesPool,
                                   paste0("ID_SpeciesP_", numPool, "_TimeStep", t, ".h5"))
@@ -204,7 +204,7 @@ main <- function() {
             microhabitat <- readRDS(FileNamemicrohabitat)
 
             # Scale light
-            microhabitat[, , , Inds["LightNicheOpt"]] <- Imax * microhabitat[, , , Inds["LightNicheOpt"]]
+            microhabitat[, , , microhabitat_index_list["LightNicheOpt"]] <- Imax * microhabitat[, , , microhabitat_index_list["LightNicheOpt"]]
 
             SuitabilityScoresT <- array(NA, dim=c(dimPlot, nrow(SpeciesPool), length(allEnvVarsIdx)))
 
@@ -313,7 +313,6 @@ main <- function() {
             for (step in 0:timeSteps) {
                 t <- InitialTimeStep + step
 
-                # MEMORY FIX 4: Fixed the typo here (double numPool)
                 inFile <- file.path(
                     DirectoryOutputSpeciesPool,
                     paste0("ID_SpeciesP_", numPool, "_TimeStep", t, ".h5")  # Fixed typo
@@ -373,7 +372,7 @@ main <- function() {
                     EnvSuitScors <- h5read(outFile, "ScaledSuitabilityScores")
 
                     # Delete input file after successful processing
-                    #file.remove(inFile)
+                    file.remove(inFile)
                     writeLines(paste0("✅ Successfully processed and saved: ", outFile))
 
                 }, error = function(e) {

@@ -16,10 +16,11 @@
 #' SurfaceAreaLossOpt = 1                          # {0, 1} include surface area loss
 #' LightNicheOpt = 1                               # {0, 1} include light condidions
 #' AverageWeightedAngles = 0                       # {0, 1} include weighted angle averages
-#' DirectoryGroIMP = "/path/to/groimp/"            # with MoF3D output "Results/" and "Model/"
-#' DirectorySaveMain = "/path/to/output/directory" # e.g. "../modve_data/modve_output/microhabitat"
+#' DirectoryGroIMP = "/path/to/groimp"            # with MoF3D output "Results/" and "Model/"
+#' DirectorySaveMain = "/path/to/output/directory" # e.g. "../modve_output/regua/microhabitat"
 #' ReplicateForest = 0                             # forest replicate {0, 1, 2}
 #' timeStepStart = 1                               # first simulation timestep
+#' timeStepEnd = 3                                 # last simulation timestep
 #' timeStepEnd = 3                                 # last simulation timestep
 #'
 #' Output:
@@ -30,7 +31,7 @@
 #'
 NULL
 
-source("utils.R")
+source("model_pipeline/utils.R")
 
 library(data.table)
 
@@ -281,7 +282,6 @@ if (microhabitatType == 1 || microhabitatType == 2) {
                 }
 
                 # If trunk is lost during this time step, add it to lost surface
-                print(paste0("Total dead: ", TotalDead))
                 if (SurfaceAreaLossOpt == 1 & TotalDead > 0) {
                     if (j == locDeadSegments[CounterDead]) {
                         CounterDead <- min(TotalDead, CounterDead + 1)

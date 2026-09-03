@@ -6,7 +6,7 @@
 #' The output is saved as CSV files containing the initial epiphyte matrix for each species pool and replicate.
 #'
 #' @details
-#' Usage: Rscript model_pipeline/06_generate_initial_distribution.R --config config.toml
+#' Usage: Rscript model_pipeline/06_create_initial_distributions.R --config config.toml
 #'
 #' Example config.toml
 #'
@@ -31,7 +31,7 @@
 #'
 NULL
 
-source("utils.R")
+source("model_pipeline/utils.R")
 
 #' Identify suitable voxels for a species
 #'
@@ -56,7 +56,6 @@ source("utils.R")
 #'
 ComputeSuitableVoxels <- function(microhabitat,
                                   microhabitat_index_list,
-                                  microhabitat_var_names,
                                   SpeciesPool,
                                   numSpecies) {
 
@@ -64,7 +63,7 @@ ComputeSuitableVoxels <- function(microhabitat,
   SuitableMask <- microhabitat_index_list["TotalSurfaceAreaOpt"] > 0
 
   # ---- Light ----
-  if (microhabitat_var_names["LightNicheOpt"] == 1) {
+  if ("LightNicheOpt" %in% names(microhabitat_index_list)) {
     LightIdx <- microhabitat_index_list[["LightNicheOpt"]]
     SuitableMask <- SuitableMask &
       microhabitat[, , , LightIdx] >= SpeciesPool$MinLight[numSpecies] &
@@ -72,7 +71,7 @@ ComputeSuitableVoxels <- function(microhabitat,
   }
 
   # ---- Humidity ----
-  if (microhabitat_var_names["HumNicheOpt"] == 1) {
+  if ("HumNicheOpt" %in% names(microhabitat_index_list)) {
     HumIdx <- microhabitat_index_list[["HumNicheOpt"]]
     SuitableMask <- SuitableMask &
       microhabitat[, , , HumIdx] >= SpeciesPool$MinHum[numSpecies] &
@@ -80,7 +79,7 @@ ComputeSuitableVoxels <- function(microhabitat,
   }
 
   # ---- Temperature ----
-  if (microhabitat_var_names["TempNicheOpt"] == 1) {
+  if ("TempNicheOpt" %in% names(microhabitat_index_list)) {
     TempIdx <- microhabitat_index_list[["TempNicheOpt"]]
     SuitableMask <- SuitableMask &
       microhabitat[, , , TempIdx] >= SpeciesPool$MinTemp[numSpecies] &
@@ -88,7 +87,7 @@ ComputeSuitableVoxels <- function(microhabitat,
   }
 
   # ---- Wind ----
-  if (microhabitat_var_names["WindNicheOpt"] == 1) {
+  if ("WindNicheOpt" %in% names(microhabitat_index_list)) {
     WindIdx <- microhabitat_index_list[["WindNicheOpt"]]
     SuitableMask <- SuitableMask &
       microhabitat[, , , WindIdx] >= SpeciesPool$MinWind[numSpecies] &
@@ -201,7 +200,7 @@ FileInitalMatrix <- file.path(DirectorymicrohabitatMain, microhabitat_filename)
 microhabitat <- readRDS(FileInitalMatrix)
 
 # Set real light values (in microhabitat, relative light values are saved)
-microhabitat[, , , Indices["LightNicheOpt"]] <- microhabitat[, , , Indices["LightNicheOpt"]] * Imax
+microhabitat[, , , microhabitat_index_list["LightNicheOpt"]] <- microhabitat[, , , microhabitat_index_list["LightNicheOpt"]] * Imax
 
 ###############################################################################
 # Main loop for Single Species Model
@@ -225,7 +224,7 @@ if (SingleSpeciesModel == 1) {
 
             # Initialize Available surface area
             # - Matrix to trace the still available surface area per voxel
-            AvailableSurfaceArea <- microhabitat[, , , Indices["TotalSurfaceAreaOpt"]]
+            AvailableSurfaceArea <- microhabitat[, , , microhabitat_index_list["TotalSurfaceAreaOpt"]]
 
             # Fill InitialEpiphyteMatrix with species trait informations and the
             # initial size of each individual
@@ -274,7 +273,6 @@ if (SingleSpeciesModel == 1) {
                 SuitableVoxels <- ComputeSuitableVoxels(
                   microhabitat,
                   microhabitat_index_list,
-                  microhabitat_var_names,
                   SpeciesPool,
                   numSpecies
                 )
@@ -349,7 +347,7 @@ if (SingleSpeciesModel == 0) {
             IntitalEpiphyteMatrix <- array(rep(0, TotalIndividuals * (SizeSpeciesPool[2] + 8)), dim=c(TotalIndividuals, SizeSpeciesPool[2] + 8))
 
             # Initialize Available surface area
-            AvailableSurfaceArea <- microhabitat[, , , Indices["TotalSurfaceAreaOpt"]]  # Matrix to trace the still available surface area per voxel
+            AvailableSurfaceArea <- microhabitat[, , , microhabitat_index_list["TotalSurfaceAreaOpt"]]  # Matrix to trace the still available surface area per voxel
 
             # Fill InitialEpiphyteMatrix with species trait informations and the
             # initial size of each individual
@@ -400,7 +398,6 @@ if (SingleSpeciesModel == 0) {
                 SuitableVoxels <- ComputeSuitableVoxels(
                   microhabitat,
                   microhabitat_index_list,
-                  microhabitat_var_names,
                   SpeciesPool,
                   numSpecies
                 )

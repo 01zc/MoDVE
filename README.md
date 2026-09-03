@@ -24,7 +24,7 @@ This repository provides a full model pipeline and the following simulation anal
 For running the modeling pipline an R version >= 4.3.1 is required. 
 For downloading CMIP6 data and for several post-simulation scripts python >= 3.11 is required. 
 
-1. Clone the repository: git clone https://github.com/JohannaTrost/MoDVE.git
+1. Clone the repository: `git clone https://github.com/01zc/MoDVE.git`
 2. Then navigate to the repository folder: cd MoDVE
 3. Open a R console and install required R libraries:
 ```r   
@@ -33,7 +33,7 @@ devtools::install_deps(".")
 ```
 4. Open a terminal and install Python packages:
 ```bash
-pip install . -r requirements.txt
+pip install -r requirements.txt
 ```
 
 ## Project Structure
@@ -94,12 +94,12 @@ TODO
 ```
 
 #### 1. Generate microhabitat
-Then, generate the microhabitat matrices from the MoF3D forest output or find the corresponding files in `../modve_data_zenodo/microhabitat`.
+Then, generate the microhabitat matrices from the MoF3D forest output or find the corresponding files in `../modve_data_zenodo/modve_output/regua/microhabitat`.
 Open a terminal and `cd` into the project folder (MoDVE). Then, execute the script:
 ```bash
 Rscript model_pipeline/01_generate_microhabitat.R --config ../modve_data_zenodo/cfgs/01_config.toml
 ```
-This produces 4D matrices (xDim X yDim X zDim X nVariables) for each time step in `../modve_output/microhabitat`: `microhabitatMatrix80.rds`, ..., `microhabitatMatrix100.rds`, and forest parameter files (`Forest_param_global.txt`, `Forest_param_pass0.txt`, `dimPlot.rds`).
+This produces 4D matrices (xDim X yDim X zDim X nVariables) for each time step in `../modve_output/regua/microhabitat`: `microhabitatMatrix80.rds`, ..., `microhabitatMatrix100.rds`, and forest parameter files (`Forest_param_global.txt`, `Forest_param_pass0.txt`, `dimPlot.rds`).
 
 #### 2. Simulate microclimate
 
@@ -114,7 +114,6 @@ In the following scripts, any configurable variables and parameters can be found
   ```bash
 cd model_pipeline/02_simulate_microclimate/01_climate_inputs
 OUTDIR="../../../../modve_data/mc_input/climate/cmip6_ceda"
-
 python 01_cmip6_downloader.py --help
 python 01_cmip6_downloader.py -f 1981 -l 2014 -o $OUTDIR --scenario historical --token-file <path/to/token.txt>
 python 01_cmip6_downloader.py -f 2015 -l 2100 -o $OUTDIR --scenario ssp245 --token <your token>
@@ -158,7 +157,7 @@ Rscript 03_prepro_era5.R $CLIMDIR/era5_raw $CLIMDIR/era5_processed $(seq 1981 20
 cd model_pipeline/02_simulate_microclimate/03_simulation
 
 # Path to simulation config file
-cfg="../../../../modve_data_zenodo/cfgs/mc_sim.toml"
+cfg="../../../../modve_data_zenodo/cfgs/02_1_mc_sim.toml"
 
 # Loop over cells in steps of 50 (2500 cells, 50 cells in parallel)
 for chunk in $(seq 1 50 2501); do
@@ -175,7 +174,7 @@ done
 2. Merge all cells into a microclimate matrix:
 ```bash
 # Path to config file
-cfg="../../../../modve_data_zenodo/cfgs/mc_process.toml"
+cfg="../../../../modve_data_zenodo/cfgs/02_2_mc_process.toml"
 
 # Loop over years to simulate
 for year in {1981..2000}; do
@@ -185,6 +184,8 @@ for year in {1981..2000}; do
   # Run the simulation script
   Rscript 02_merge_cells.R --config $cfg --year "$year" --timestep "$t"
 done
+
+cd ../../..
 ```
 
 ##### 2.4 Visualize and validate microclimate simulations
@@ -201,14 +202,14 @@ The following scripts in `model_pipeline/02_simulate_microclimate/04_diagnostics
 ```
 
 #### 3. Add microclimate to microhabitat matrices
-Add the simulated microclimate variables to the microhabitat matrices or find the corresponding files in `../modve_data_zenodo/microhabitat_mc`.
+Add the simulated microclimate variables to the microhabitat matrices or find the corresponding files in `../modve_data_zenodo/modve_output/regua/climdata_era5_cmip6_1981-2100_ssp245/microhabitat_mc/forest0`. 
 ```bash
 Rscript model_pipeline/03_add_microclimate_dimensions.R --config ../modve_data_zenodo/cfgs/03_config.toml
 ```
-New `microhabitatMatrix<t>.rds` files will be in `../modve_output/microhabitat_mc` (with `t` = time step). 
+New `MicrohabitatMatrix<t>.rds` files will be in `../modve_output/regua/climdata_era5_cmip6_1981-2100_ssp245/microhabitat_mc/forest0` (with `t` = time step) and include matrices for REGUA, forest replicate 0, under the SSP 2-4.5 scenario (for other replicates and scenarios copy and adjust the config file). 
 
 #### 4. Draw species
-Next, generate the species for each species pool. To reproduce our results please use the species pools in `../modve_data_zenodo/species_pools`.
+Next, generate the species for each species pool. To reproduce our results please use the species pools in `../modve_data_zenodo/modve_output/regua/species_pools`.
 
 ```bash
 Rscript model_pipeline/04_create_species_pools.R --config ../modve_data_zenodo/cfgs/04_config.toml
@@ -218,19 +219,19 @@ Rscript model_pipeline/04_create_species_pools.R --config ../modve_data_zenodo/c
 First, compute environmental suitability scores (0-1) for each scenario, species, voxel, forest and time step: 
 
 ```bash
-Rscript model_pipeline/05_compute_env_suitability.R --config ../modve_data_zenodo/cfgs/05_config.toml
+for singleStep in {80..200}; do
+  Rscript model_pipeline/05_compute_env_suitability.R ../modve_data_zenodo/cfgs/05_config.toml $singleStep
+done
 ```
 
-Suitability scores will be stored in `../modve_output/EnvSuitability/ID_SpeciesP_<pool>_TimeStep<t>.h5` (with `t` = time step, `pool` = no. species pool).
+Suitability scores will be stored in `../modve_output/regua/climdata_era5_cmip6_1981-2100_ssp245/suitability_scores/forest0/EnvSuitability/ID_SpeciesP_<pool>_TimeStep<t>.h5` (with `t` = time step, `pool` = no. species pool).
 Second, scale the suitability scores across space, time, scenario, and forest for each time step (using the additional `singleStep` argument):
 
 ```bash
-for singleStep in {80..100}; do
-  Rscript model_pipeline/05_compute_env_suitability.R --config ../modve_data_zenodo/cfgs/05_config.toml *singleStep*
-end
+Rscript model_pipeline/05_compute_env_suitability.R ../modve_data_zenodo/cfgs/05_config.toml
 ```
 
-This will first compute the global maximum suitabilities for each species and species pool and save it in `../modve_output/EnvSuitability/GlobalMaxSuitability_<pool>.h5`. Then, the suitability scores will be scaled for the given time step (`singleStep`) and written to `../modve_output/EnvSuitability/ScaledSuitability_<pool>TimeStep<t>.h5`. The corresponding file with unscaled scores will be deleted thereafter.
+This will first compute the global maximum suitabilities for each species and species pool and save it in `../modve_output/regua/climdata_era5_cmip6_1981-2100_ssp245/suitability_scores/forest0/EnvSuitability/GlobalMaxSuitability_<pool>.h5`. Then, the suitability scores will be scaled for the given time step (`singleStep`) and written to `../modve_output/regua/climdata_era5_cmip6_1981-2100_ssp245/suitability_scores/forest0/EnvSuitability/ScaledSuitability_<pool>TimeStep<t>.h5`. The corresponding file with unscaled scores will be deleted thereafter.
 
 #### 6. Initialize the spatial epiphyte distribution
 For the starting point of the simulation, distribute epiphyte individuals for all species across the 3D forest stand according to suitable environmental factors. To reproduce our results please use the distributions in `../modve_data_zenodo/distribution`.
@@ -239,7 +240,7 @@ For the starting point of the simulation, distribute epiphyte individuals for al
 Rscript model_pipeline/06_create_initial_distributions.R --config ../modve_data_zenodo/cfgs/06_config.toml
 ```
 
-The initial distribution will be saved at `../modve_output/ID_SpeciesP_<pool>_Rep_<replicate>.csv` (with `pool` = no. species pool, `replicate` = no. replicate simulation of the species pool, i.e. the same species pool with different random initial distributions).
+The initial distribution will be saved in `../modve_output/regua/climdata_era5_cmip6_1981-2100_ssp245/distribution/forest0/ID_SpeciesP_<pool>_Rep_<replicate>.csv` (with `pool` = no. species pool, `replicate` = no. replicate simulation of the species pool, i.e. the same species pool with different random initial distributions).
 
 #### 7. Simulate epiphyte communities
 Finally, simulate epiphyte communities over 20 time steps (1980 ti 2000):
@@ -250,6 +251,19 @@ Rscript model_pipeline/07_run_model.R --config ../modve_data_zenodo/cfgs/07_conf
 
 Epiphyte communities will be saved in `../modve_output/communities` and include epiphyte matrices for each time step t (`IndividualMatrixTimeStep<t>.csv`), summary statistics for each species and time step (`SpeciesSummary.csv`), summary statistics for the entire community (`CommunitySummary.csv`) and optionally the random number generator state (`random_state_seed.RData`).
 
+#### 8. Evaluate the number of replicates used 
+Evaluate whether the number of replicates (forests and species pools) is sufficient using a bootstrapping approach:
+
+```bash
+Rscript model_pipeline/08_replicate_diagnostic.R
+```
+
+How it works:
+1. Draw an increasing number of replicates (1 to 30)
+2. Compute the coefficient of variation (CV) across richness and abundance of these replicates
+3. Repeat 100 times
+4. Plot the number of draws against the CV (saved in `../modve_figs/climdata_era5_cmip6_1981-2100_ssp245`)
+
 ## License
-This project is licensed under the GPL-3 License - see the [LICENSE.md](LICENSE.md) file for details.
+This project is licensed under the GPL-3 License - see the [LICENSE](LICENSE) file for details.
 

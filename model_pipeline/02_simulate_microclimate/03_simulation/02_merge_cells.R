@@ -25,6 +25,20 @@ suppressPackageStartupMessages({
   library(terra)
 })
 
+immediateMessage <- function(..., domain = NULL, appendLF = TRUE) {
+  msg <- .makeMessage(..., domain = domain, appendLF = appendLF)
+  call <- sys.call()
+  m <- simpleMessage(msg, call)
+
+  cls <- class(m)
+  cls <- setdiff(cls, "condition")
+  cls <- c(cls, "immediateCondition", "condition")
+  class(m) <- cls
+
+  message(m)
+  invisible(m)
+}
+
 # ----------------------------
 # CLI argument parsing
 # ----------------------------
@@ -44,6 +58,7 @@ if (is.null(opt$config)) {
   print_help(opt_parser)
   quit(status = 1)
 }
+
 
 year <- if (!is.null(opt$year)) opt$year else stop("Error: 'year' must be provided in opt.")
 # Conversion from year to corresponding ts: year - 1900 - 1 (e.g. year=1981 -> ts=80)
@@ -66,21 +81,20 @@ mc_dir    <- config$mc_dir
 veg_dir <- config$veg_dir
 region <- config$region
 rep <- config$rep
-year <- config$year
-ts   <- config$ts
 
 # ----------------------------
 # Define directories
 # ----------------------------
-
-mc_in_dir <- if (!is.na(rep)) file.path(mc_dir, region, paste0("rep", rep), year)
-                 else file.path(mc_dir, region, year)
+mc_in_dir <- (if (!is.na(rep)) file.path(mc_dir, paste0("rep", rep), year)
+                 else file.path(mc_dir, year))
 
 # ----------------------------
 # Extract maximum vegetation height
 # ----------------------------
-vegp_path <- if (!is.na(rep)) file.path(veg_dir, region, paste0("rep", rep), paste0("vegp_mof3d_ptm_", ts, ".RDS"))
-                 else file.path(veg_dir, region, paste0("vegp_mof3d_ptm_", ts, ".RDS"))
+vegp_path <- (if (!is.na(rep)) file.path(veg_dir, region, paste0("rep", rep), paste0("vegp_mof3d_ptm_", ts, ".RDS"))
+                 else file.path(veg_dir, region, paste0("vegp_mof3d_ptm_", ts, ".RDS")))
+print("ts")
+print(ts)
 vegp_reg  <- readRDS(vegp_path)
 max_hgt   <- max(terra::values(terra::unwrap(vegp_reg$h)), na.rm = TRUE) + 1
 
@@ -135,7 +149,7 @@ cat("Average time per cell:", round(total_time / successful_cells, 3), "seconds\
 # ----------------------------
 # Save result
 # ----------------------------
-out_file <- file.path(mc_dir, paste(year, region, "mc_matrix.rds", sep = "_"))
+out_file <- file.path(mc_dir, paste0("rep", rep), paste(year, region, "mc_matrix.rds", sep = "_"))
 saveRDS(mc_matrix, out_file)
 
 cat("Saved result to:", out_file, "\n")
