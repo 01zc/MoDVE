@@ -13,7 +13,7 @@ matplotlib.use("MacOSX")
 
 # Directories
 scenarios = ["climdata_era5_cmip6_1981-2100_ssp245_no_cc", "climdata_era5_cmip6_1981-2100_ssp245"]
-base_dir = Path("../modve_data_zenodo/modve_output/regua") # /a5/forest0/
+base_dir = Path("../data/modve_output/regua") # /a5/forest0/
 DirectoryPlots = Path("../modve_figs/climate_change")
 
 DirectoryPlots.mkdir(exist_ok=True)

@@ -5,7 +5,7 @@ library(readr)
 library(dplyr)
 
 base_dir <- file.path("../modve_data/modve_output/regua")
-zenodo_base_dir <- file.path("../modve_data_zenodo/modve_output/regua")
+zenodo_base_dir <- file.path("../data/modve_output/regua")
 shift_species_q75 <- read_csv(file.path(base_dir, "species_shift_upwards_cc_vs_no_cc.csv"))
 
 base_dir_new <- file.path(base_dir, "upward_shifted_species_pool")

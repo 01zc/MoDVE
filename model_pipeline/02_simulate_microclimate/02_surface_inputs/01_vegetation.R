@@ -67,10 +67,10 @@ if(!file.exists(lcover_path) | !file.exists(cheight_path)) {
 # - LAI
 
 # Empirical
-pathout <- file.path("..", "modve_data_zenodo", "mc_input", "vegetation", "modis_lai")
+pathout <- file.path("..", "data", "mc_input", "vegetation", "modis_lai")
 
 if (!dir.exists(pathout)) {
-  stop("Download MODIS data from Zenodo (MoDVE/../modve_data_zenodo/mc_input/vegetation/modis_lai).")
+  stop("Download MODIS data from Zenodo (MoDVE/../data/mc_input/vegetation/modis_lai).")
 }
 
 # Estimate LAI from landcover time and MODIS (as lai_download from microclimdata not working here)

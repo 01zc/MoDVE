@@ -9,7 +9,7 @@ library(patchwork)  # for arranging plots vertically
 # CONFIGURE directories
 # /path/to/<year>_<region>_mc_matrix.rds
 indir <- "../modve_output/mc_output/pirineus/scenarios/climdata_era5_cmip6_1906-2024_ssp245_119ts"
-veg_path <- "../modve_data_zenodo/mc_input/pirineus/rep0"
+veg_path <- "../data/mc_input/pirineus/rep0"
 out_file <- "../modve_figs/mc_output/temp_rh_by_height_1906_2024_pirineus.pdf"
 
 first <- 1906
